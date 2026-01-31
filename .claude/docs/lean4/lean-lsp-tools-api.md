@@ -11,7 +11,7 @@ For workflow patterns and quick reference, see [lean-lsp-server.md](lean-lsp-ser
 **Local tools (unlimited, instant):**
 - Direct LSP queries against your project files
 - No rate limits, < 1 second response time
-- Tools: `lean_goal`, `lean_local_search`, `lean_multi_attempt`, `lean_diagnostic_messages`, `lean_hover_info`
+- Tools: `lean_goal`, `lean_local_search`, `lean_multi_attempt`, `lean_diagnostic_messages`, `lean_hover_info`, `lean_file_outline`, `lean_run_code`, `lean_profile_proof`
 
 **External tools (rate-limited to 3 req/30s):**
 - Remote API calls to loogle.lean-lang.org, leansearch.net
@@ -44,30 +44,31 @@ lemma test_add_comm (n m : ℕ) : n + m = m + n := by
 
 **Call:** `lean_goal(file, line=12)`
 
-**Output:**
-```
-Goals on line:
-lemma test_add_comm (n m : ℕ) : n + m = m + n := by
-Before:
-No goals at line start.
-After:
-n m : ℕ
-⊢ n + m = m + n
+**Output (v0.17+):** Returns **structured goals list** (not just text):
+```json
+{
+  "goals_before": [],
+  "goals_after": [
+    {"goal": "n + m = m + n", "hypotheses": ["n : ℕ", "m : ℕ"]}
+  ]
+}
 ```
 
 **What this tells you:**
-- Context: `n m : ℕ` (variables in scope)
-- Goal: `⊢ n + m = m + n` (what you need to prove)
+- Context: `n : ℕ, m : ℕ` (hypotheses)
+- Goal: `n + m = m + n` (what you need to prove)
 - Now you know exactly what tactic to search for!
 
 **Pro tip:** Call `lean_goal` on a line WITH a tactic to see before/after states - shows exactly what that tactic accomplishes.
 
-**Success signal:**
+**Success signal (v0.17+):**
+```json
+{
+  "goals_before": [...],
+  "goals_after": []
+}
 ```
-After:
-no goals
-```
-← Proof complete!
+← Empty `goals_after` array = proof complete!
 
 ---
 
@@ -79,8 +80,9 @@ no goals
 
 **Parameters:**
 - `file_path` (required): Absolute path to Lean file
+- `declaration_name` (optional): Filter diagnostics to a specific declaration (e.g., "myLemma"). Useful for large files with many errors.
 
-**⚠️ IMPORTANT:** Do NOT pass `severity` parameter - it will cause error `'severity'`. The tool only accepts `file_path` and returns ALL diagnostics (errors + warnings). Severity appears IN the response, not as a filter.
+**⚠️ IMPORTANT:** Do NOT pass `severity` parameter - it will cause error `'severity'`. Severity appears IN the response, not as a filter.
 
 **Correct usage:**
 ```python
@@ -104,6 +106,8 @@ lean_diagnostic_messages(file)
 → []
 ```
 ← Empty array = no errors!
+
+**Structured output (v0.18+):** Returns `{success, failed_dependencies, diagnostics}`. Check `failed_dependencies` when imports fail (e.g., "Unknown package 'Mathlib'").
 
 **Critical:** Empty diagnostics means no errors, but doesn't mean proof complete. Always verify with `lean_goal` to confirm "no goals".
 
@@ -183,10 +187,10 @@ lean_multi_attempt(file, line=13, snippets=[
   "  apply Nat.add_comm"
 ])
 
-→ Output:
-["  simp [Nat.add_comm]:\n no goals\n\n",
- "  omega:\n no goals\n\n",
- "  apply Nat.add_comm:\n no goals\n\n"]
+→ Output (v0.17+): Returns **structured goals** for each snippet:
+[{"snippet": "  simp [Nat.add_comm]", "goals": []},  # no goals = success!
+ {"snippet": "  omega", "goals": []},
+ {"snippet": "  apply Nat.add_comm", "goals": []}]
 ```
 All work! Pick simplest: `omega`
 
@@ -274,6 +278,104 @@ lean_hover_info(file, line=20, column=30)
 
 ---
 
+### `lean_file_outline` - File Structure Overview
+
+**When to use:**
+- Getting a quick overview of a Lean file
+- Finding theorem/definition locations
+- Understanding file structure without reading entire file
+
+**Parameters:**
+- `file_path` (required): Absolute path to Lean file
+
+**Example:**
+```
+lean_file_outline("/path/to/MyFile.lean")
+→ Returns:
+- Imports: [Mathlib.Data.Real.Basic, ...]
+- Declarations:
+  - theorem add_comm (line 12): ∀ a b : ℕ, a + b = b + a
+  - def myFunction (line 25): ℕ → ℕ → ℕ
+  - structure MyStruct (line 40): ...
+```
+
+**Return structure:**
+```json
+{
+  "imports": ["import1", "import2", ...],
+  "declarations": [
+    {"name": "decl_name", "kind": "theorem|def|structure|class", "line": 12, "type": "..."},
+    ...
+  ]
+}
+```
+
+**Pro tips:**
+- Faster than reading the file when you only need structure
+- Use to find line numbers for `lean_goal` or `lean_multi_attempt`
+- Good first step when exploring unfamiliar files
+
+---
+
+### `lean_run_code` - Run Standalone Snippets
+
+**When to use:**
+- Testing small code snippets without a full project
+- Running `#eval` expressions
+- Quick experimentation outside of proof context
+
+**Parameters:**
+- `code` (required): Lean code to run (string)
+
+**Example:**
+```
+lean_run_code("#eval 5 * 7 + 3")
+→ Output:
+l1c1-l1c6, severity: 3
+38
+```
+
+**What the output means:**
+- `l1c1-l1c6`: Location (line 1, columns 1-6)
+- `severity: 3`: Info message (not error)
+- `38`: The computed result
+
+**Severity levels:**
+- 1 = Error
+- 2 = Warning
+- 3 = Info (normal output)
+
+**Pro tips:**
+- Use for quick `#check`, `#eval`, `#print` experiments
+- Useful for testing mathlib imports without modifying files
+- Each call runs in isolation - no persistent state
+
+---
+
+### `lean_profile_proof` - Performance Profiling (v0.19+)
+
+**When to use:** Proof compiles slowly, `simp` hangs, tactic takes forever, need to find bottlenecks.
+
+**Parameters:**
+- `file_path` (required): Absolute path to Lean file
+- `declaration_name` (required): Name of theorem/lemma to profile
+
+**Example:**
+```
+lean_profile_proof(file="/path/to/file.lean", declaration_name="mySlowTheorem")
+→ {
+    "total_time_ms": 2450,
+    "lines": [
+      {"line": 12, "tactic": "simp [complex_lemma]", "time_ms": 1200},
+      {"line": 13, "tactic": "ring", "time_ms": 850}
+    ]
+  }
+```
+
+**Tips:** Focus on >20% of total time. Replace slow `simp` with explicit rewrites. Only use when investigating performance - adds overhead.
+
+---
+
 ## External Search Tools (Rate-Limited)
 
 **Use these when `lean_local_search` doesn't find what you need.**
@@ -296,6 +398,8 @@ These tools call external APIs (loogle.lean-lang.org, leansearch.net). The **LSP
 **Parameters:**
 - `query` (required): Type pattern string
 - `num_results` (optional): Max results (default 6)
+
+**Local Loogle (v0.16+):** Run locally to avoid rate limits. First run: 5-10 min (builds index). After: instant. Set `LOOGLE_PATH` env var. See lean-lsp-mcp docs for setup.
 
 **Example:**
 ```
