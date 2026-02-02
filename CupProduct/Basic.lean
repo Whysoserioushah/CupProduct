@@ -1,4 +1,5 @@
 import Mathlib
+import CupProduct.Mathlib.RepresentationTheory.Aug
 
 open CategoryTheory groupCohomology
 
