@@ -32,13 +32,14 @@ instance richards : LinearMapClass (Action.HomSubtype _ _ A B) R A B where
   map_add f := map_add f.val
   map_smulₛₗ f := map_smul f.val
 
--- -- This hack instance will be removed after the relevant PR is merged.
+-- This hack instance will be removed after the relevant PR is merged.
 instance [MulAction G H] :
-    LinearMapClass (Action.HomSubtype _ _ A (ofMulAction R G H)) R A
-    (ofMulAction R G H) := richards
+    LinearMapClass (Action.HomSubtype _ _ A (ofMulAction R G H)) R A (ofMulAction R G H) := richards
 
 @[simp] lemma coe_hom (f : A ⟶ B) : ⇑f.hom = f := rfl
 @[simp] lemma hom_apply (f : A ⟶ B) (x : A) : f.hom x = f x := rfl
+
+example (A B : Rep R G) (f : A ⟶ B) (a b : A) (c : R) : f (a + c • b) = f a + c • f b := by simp
 
 @[simp] lemma zero_apply (v : A) : (0 : A ⟶ B) v = 0 := rfl
 @[simp] lemma add_apply (f₁ f₂ : A ⟶ B) (v : A) : (f₁ + f₂) v = f₁ v + f₂ v := rfl
