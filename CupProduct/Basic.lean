@@ -118,9 +118,35 @@ lemma ModuleCat.of_tensor {M N : Type u} [AddCommGroup M] [AddCommGroup N] [Modu
 lemma ModuleCat.of_carrier {R M} [Ring R] [AddCommGroup M] [Module R M] :
     (ModuleCat.of R M) = M := rfl
 
-#check MonoidalCategory.tensorRight
+-- def Equiv.inv
+#synth InvolutiveInv G
+#check Equiv.inv
+open TensorProduct in
 def Rep.coindIsoTensorFunctor [DecidableEq G] [Fintype G] :
-    MonoidalCategory.tensorLeft (Rep.leftRegular R G) ≅ Rep.coind₁' := sorry
+    MonoidalCategory.tensorLeft (Rep.leftRegular R G) ≅ Rep.coind₁' :=
+  NatIso.ofComponents (fun A ↦ mkIso _ _ (finsuppScalarLeft R A G ≪≫ₗ
+    Finsupp.mapDomain.linearEquiv A.V R (Equiv.inv G) ≪≫ₗ
+    Finsupp.linearEquivFunOnFinite R A G).toModuleIso fun g x ↦ by
+  dsimp at x
+  induction x using TensorProduct.induction_on with
+  | zero => simp
+  | tmul f y =>
+    change G →₀ R at f
+    simp only [coind₁'_obj, curriedTensor_obj_obj, Action.tensorObj_V, LinearEquiv.toModuleIso_hom,
+      ModuleCat.hom_ofHom, tensor_ρ, of_ρ, LinearEquiv.coe_coe, LinearEquiv.trans_apply,
+      Finsupp.mapDomain.coe_linearEquiv, Equiv.inv_apply]
+    ext i
+    simp only [Finsupp.linearEquivFunOnFinite_apply, Representation.coind₁'_apply_apply]
+    rw [← inv_inv (i * g), ← inv_inv i, Finsupp.mapDomain_apply inv_injective,
+      Finsupp.mapDomain_apply inv_injective]
+    erw [Representation.tprod_apply, TensorProduct.map_tmul,
+      -- Finsupp.mapDomain_apply,
+      finsuppScalarLeft_apply_tmul_apply,
+      finsuppScalarLeft_apply_tmul_apply]
+    simp
+  | add x y h1 h2 =>
+    dsimp at h1 h2 ⊢
+    simp [h1, h2, Finsupp.mapDomain_add]) sorry
 -- open TensorProduct in
 -- def Rep.coindIsoTensor [DecidableEq G] [Fintype G] (A : Rep R G) :
 --     Rep.leftRegular R G ⊗ A ≅ Rep.coind₁'.obj A  :=
