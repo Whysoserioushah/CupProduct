@@ -71,8 +71,7 @@ structure IsCupProduct (map : (p q r : ℕ) → (h : r = p + q) → (A B : Rep R
   commSq2 (p q : ℕ) (S2 : ShortComplex (Rep R G)) (h1 : S2.ShortExact)
     (h2 : (S2.map (tensorLeft A)).ShortExact) :
     map p q (p + q) rfl A S2.X₃ ≫ δ h2 (p + q) (p + q + 1) rfl =
-    (𝟙 _ ⊗ₘ δ h1 q (q + 1) rfl) ≫ map p (q + 1) (p + q + 1) (by omega) A S2.X₁
-
+    (-1 : R) ^ p • (𝟙 _ ⊗ₘ δ h1 q (q + 1) rfl) ≫ map p (q + 1) (p + q + 1) (by omega) A S2.X₁
 
 noncomputable def Representation.coind₁'_ι_range_iso_A [h : Nonempty G] [Fintype G] (A : Rep R G) :
     A ≃ₗ[R] (Representation.coind₁'_ι (R := R) (G := G) (V := A)).range where
@@ -103,10 +102,10 @@ lemma Submodule.equiv_const {R M ι ι' : Type*} [h : Nonempty ι] [h' : Nonempt
   simp [const, ← Function.const_comp (α := ι) (f := e), funLeft, ← Equiv.comp_symm_eq,
     Function.comp_assoc, Equiv.self_comp_symm, -Function.const_comp]
 
-noncomputable section 
+noncomputable section
 
-def Rep.trivialTensorIso (A : Rep R G) : A ≅ Rep.trivial R G R ⊗ A := 
-  mkIso _ _ (LinearEquiv.toModuleIso (TensorProduct.lid R A).symm) fun g x ↦ by 
+def Rep.trivialTensorIso (A : Rep R G) : A ≅ Rep.trivial R G R ⊗ A :=
+  mkIso _ _ (LinearEquiv.toModuleIso (TensorProduct.lid R A).symm) fun g x ↦ by
   simp only [Action.tensorObj_V, Equivalence.symm_inverse,
     Action.functorCategoryEquivalence_functor, Action.FunctorCategoryEquivalence.functor_obj_obj,
     LinearEquiv.toModuleIso_hom, ModuleCat.hom_ofHom, tensor_ρ, of_ρ]
@@ -116,30 +115,32 @@ lemma ModuleCat.of_tensor {M N : Type u} [AddCommGroup M] [AddCommGroup N] [Modu
     [Module R N] : ModuleCat.of R (TensorProduct R M N) =
     (ModuleCat.of R M) ⊗ (ModuleCat.of R N) := by rfl
 
-lemma ModuleCat.of_carrier {R M} [Ring R] [AddCommGroup M] [Module R M] : 
+lemma ModuleCat.of_carrier {R M} [Ring R] [AddCommGroup M] [Module R M] :
     (ModuleCat.of R M) = M := rfl
 
-#check LinearEquiv.piCongrLeft
-open TensorProduct in
-def Rep.coindIsoTensor [DecidableEq G] [Fintype G] (A : Rep R G) : 
-    Rep.leftRegular R G ⊗ A ≅ Rep.coind₁'.obj A  := 
-  mkIso _ _ (finsuppScalarLeft R A G ≪≫ₗ Finsupp.linearEquivFunOnFinite R A G).toModuleIso 
-  fun g x ↦ by 
-  dsimp at x
-  induction x using TensorProduct.induction_on with
-  | zero => simp
-  | tmul f a => 
-    change G →₀ R at f
-    simp only [coind₁'_obj, Action.tensorObj_V, LinearEquiv.toModuleIso_hom, ModuleCat.hom_ofHom,
-      tensor_ρ, of_ρ, LinearEquiv.coe_coe, LinearEquiv.trans_apply]
-    ext i 
-    simp only [Finsupp.linearEquivFunOnFinite_apply, Representation.coind₁'_apply_apply]
-    erw [Representation.tprod_apply, TensorProduct.map_tmul, finsuppScalarLeft_apply_tmul_apply, 
-      finsuppScalarLeft_apply_tmul_apply]
-    simp only [Representation.ofMulAction_apply, smul_eq_mul, map_smul]
-    
-    sorry
-  | add x y _ _ => sorry
+#check MonoidalCategory.tensorRight
+def Rep.coindIsoTensorFunctor [DecidableEq G] [Fintype G] :
+    MonoidalCategory.tensorLeft (Rep.leftRegular R G) ≅ Rep.coind₁' := sorry
+-- open TensorProduct in
+-- def Rep.coindIsoTensor [DecidableEq G] [Fintype G] (A : Rep R G) :
+--     Rep.leftRegular R G ⊗ A ≅ Rep.coind₁'.obj A  :=
+--   mkIso _ _ (finsuppScalarLeft R A G ≪≫ₗ Finsupp.linearEquivFunOnFinite R A G).toModuleIso
+--   fun g x ↦ by
+--   dsimp at x
+--   induction x using TensorProduct.induction_on with
+--   | zero => simp
+--   | tmul f a =>
+--     change G →₀ R at f
+--     simp only [coind₁'_obj, Action.tensorObj_V, LinearEquiv.toModuleIso_hom, ModuleCat.hom_ofHom,
+--       tensor_ρ, of_ρ, LinearEquiv.coe_coe, LinearEquiv.trans_apply]
+--     ext i
+--     simp only [Finsupp.linearEquivFunOnFinite_apply, Representation.coind₁'_apply_apply]
+--     erw [Representation.tprod_apply, TensorProduct.map_tmul, finsuppScalarLeft_apply_tmul_apply,
+--       finsuppScalarLeft_apply_tmul_apply]
+--     simp only [Representation.ofMulAction_apply, smul_eq_mul, map_smul]
+
+--     sorry
+--   | add x y _ _ => sorry
 
 
 
@@ -149,8 +150,8 @@ def Rep.coindIsoTensor [DecidableEq G] [Fintype G] (A : Rep R G) :
 --     {X Y Z W : C} (f : X ⟶ Y) (g : Z ⟶ W) (e1 : X ≅ Z) (e2 : Y ≅ W) (h : e1.hom ≫ g = f ≫ e2.hom)
 --     [HasCokernel f] [HasCokernel g] : cokernel f ≅ cokernel g where
 --   hom := cokernel.desc _ (e2.hom ≫ cokernel.π g) (by rw [← Category.assoc, ← h]; simp)
---   inv := cokernel.desc _ (e2.inv ≫ cokernel.π f) (by 
---     apply_fun (e1.inv ≫ · ≫ e2.inv) at h 
+--   inv := cokernel.desc _ (e2.inv ≫ cokernel.π f) (by
+--     apply_fun (e1.inv ≫ · ≫ e2.inv) at h
 --     simp only [Category.assoc, Iso.inv_hom_id_assoc, Iso.hom_inv_id, Category.comp_id] at h
 --     rw [← Category.assoc, h]
 --     simp)
