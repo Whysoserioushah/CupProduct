@@ -103,6 +103,61 @@ lemma Submodule.equiv_const {R M ι ι' : Type*} [h : Nonempty ι] [h' : Nonempt
   simp [const, ← Function.const_comp (α := ι) (f := e), funLeft, ← Equiv.comp_symm_eq,
     Function.comp_assoc, Equiv.self_comp_symm, -Function.const_comp]
 
+noncomputable section 
+
+def Rep.trivialTensorIso (A : Rep R G) : A ≅ Rep.trivial R G R ⊗ A := 
+  mkIso _ _ (LinearEquiv.toModuleIso (TensorProduct.lid R A).symm) fun g x ↦ by 
+  simp only [Action.tensorObj_V, Equivalence.symm_inverse,
+    Action.functorCategoryEquivalence_functor, Action.FunctorCategoryEquivalence.functor_obj_obj,
+    LinearEquiv.toModuleIso_hom, ModuleCat.hom_ofHom, tensor_ρ, of_ρ]
+  erw [TensorProduct.lid_symm_apply]
+
+lemma ModuleCat.of_tensor {M N : Type u} [AddCommGroup M] [AddCommGroup N] [Module R M]
+    [Module R N] : ModuleCat.of R (TensorProduct R M N) =
+    (ModuleCat.of R M) ⊗ (ModuleCat.of R N) := by rfl
+
+lemma ModuleCat.of_carrier {R M} [Ring R] [AddCommGroup M] [Module R M] : 
+    (ModuleCat.of R M) = M := rfl
+
+#check LinearEquiv.piCongrLeft
+open TensorProduct in
+def Rep.coindIsoTensor [DecidableEq G] [Fintype G] (A : Rep R G) : 
+    Rep.leftRegular R G ⊗ A ≅ Rep.coind₁'.obj A  := 
+  mkIso _ _ (finsuppScalarLeft R A G ≪≫ₗ Finsupp.linearEquivFunOnFinite R A G).toModuleIso 
+  fun g x ↦ by 
+  dsimp at x
+  induction x using TensorProduct.induction_on with
+  | zero => simp
+  | tmul f a => 
+    change G →₀ R at f
+    simp only [coind₁'_obj, Action.tensorObj_V, LinearEquiv.toModuleIso_hom, ModuleCat.hom_ofHom,
+      tensor_ρ, of_ρ, LinearEquiv.coe_coe, LinearEquiv.trans_apply]
+    ext i 
+    simp only [Finsupp.linearEquivFunOnFinite_apply, Representation.coind₁'_apply_apply]
+    erw [Representation.tprod_apply, TensorProduct.map_tmul, finsuppScalarLeft_apply_tmul_apply, 
+      finsuppScalarLeft_apply_tmul_apply]
+    simp only [Representation.ofMulAction_apply, smul_eq_mul, map_smul]
+    
+    sorry
+  | add x y _ _ => sorry
+
+
+
+-- open Limits in
+-- @[simps]
+-- def CategoryTheory.isoCokernelOfIso {C : Type u} [Category.{v, u} C] [HasZeroMorphisms C]
+--     {X Y Z W : C} (f : X ⟶ Y) (g : Z ⟶ W) (e1 : X ≅ Z) (e2 : Y ≅ W) (h : e1.hom ≫ g = f ≫ e2.hom)
+--     [HasCokernel f] [HasCokernel g] : cokernel f ≅ cokernel g where
+--   hom := cokernel.desc _ (e2.hom ≫ cokernel.π g) (by rw [← Category.assoc, ← h]; simp)
+--   inv := cokernel.desc _ (e2.inv ≫ cokernel.π f) (by 
+--     apply_fun (e1.inv ≫ · ≫ e2.inv) at h 
+--     simp only [Category.assoc, Iso.inv_hom_id_assoc, Iso.hom_inv_id, Category.comp_id] at h
+--     rw [← Category.assoc, h]
+--     simp)
+
+#check Limits.cokernel.mapIso
+
+#exit
 open Rep TensorProduct in
 noncomputable def mapCoaugTensorLinear [Fintype G] (A : Rep R G) : @HasQuotient.Quotient (G → ↑A.V)
     (Submodule R (G → ↑A.V)) Submodule.hasQuotient Representation.coind₁'_ι.range ≃ₗ[R]
@@ -147,19 +202,27 @@ noncomputable def mapCoaugTensorLinear [Fintype G] (A : Rep R G) : @HasQuotient.
     · sorry
   | add x y _ _ => sorry
 
+def MonoidalCategory.tensorRightIso {C} [Category C] [MonoidalCategory C]
+    {X Y : C} (Z : C) (e : X ≅ Y) : X ⊗ Z ≅ Y ⊗ Z where
+  hom := e.hom ▷ Z
+  inv := e.inv ▷ Z
+  hom_inv_id := by simp
+  inv_hom_id := by simp
 
--- #synth HasRankNullity ℤ
+
+-- #synth MonoidalCategory (ModuleCat R)
+
 open Rep in
 noncomputable def upIsoTensorCoaug [Fintype G] (A : Rep R G) :
-    up.obj A ⟶ Rep.leftRegular.coaug R G ⊗ A where
-  hom := (forgetCokernelIso _).hom ≫ (ModuleCat.cokernelIsoRangeQuotient _).hom ≫
-    (ModuleCat.ofHom (by dsimp; sorry)) ≫
-      ((ModuleCat.cokernelIsoRangeQuotient (leftRegular.μ R G).hom).inv ≫
-      (forgetCokernelIso (leftRegular.μ R G)).inv) ▷ A.V ≫
-      eqToHom (Action.tensorObj_V (leftRegular.coaug R G) A).symm
-  comm := sorry
-
-#check Rep.leftRegular.coaug
+    up.obj A ≅ Rep.leftRegular.coaug R G ⊗ A :=
+  mkIso _ _ ((forgetCokernelIso _) ≪≫ (ModuleCat.cokernelIsoRangeQuotient _) ≪≫
+    (mapCoaugTensorLinear A).toModuleIso ≪≫ eqToIso ModuleCat.of_tensor ≪≫
+    MonoidalCategory.tensorRightIso _ (ModuleCat.cokernelIsoRangeQuotient _).symm ≪≫
+    MonoidalCategory.tensorRightIso _ (forgetCokernelIso (leftRegular.μ R G)).symm
+    ≪≫ eqToIso (Action.tensorObj_V (leftRegular.coaug R G) A).symm) <| fun g x ↦ by
+  simp [mapCoaugTensorLinear, MonoidalCategory.tensorRightIso, Rep.forgetCokernelIso]
+  -- a mess
+  sorry
 
 def upTensorIso (A B : Rep R G) : up.obj A ⊗ B ≅ up.obj (A ⊗ B) := sorry
 
@@ -189,3 +252,7 @@ noncomputable def CupProduct (p q r : ℕ) (h : r = p + q) (A B : Rep R G) :
   --       --   groupCohomology (A ⊗ up.obj B) (n + 1) ≅ groupCohomology (up.obj (A ⊗ B)) (n + 1)).hom ≫ _
   -- | 1 => sorry
   -- | n + 2 => sorry
+
+-- variable (n : Type*) [Fintype n] [DecidableEq n]
+-- #synth IsTopologicalGroup (Matrix.GeneralLinearGroup n ℚ)
+-- #check Submodule.eq_bot_iff
