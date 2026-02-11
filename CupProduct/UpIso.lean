@@ -1,6 +1,7 @@
-import Mathlib
 import CupProduct.Cohomology.AugmentationModule
 import CupProduct.Cohomology.Functors.UpDown
+-- import Mathlib.Algebra.Lie.OfAssociative
+import Mathlib.LinearAlgebra.TensorProduct.RightExactness
 
 open CategoryTheory Rep.leftRegular MonoidalCategory
 
@@ -276,8 +277,16 @@ lemma inv_comp_upToTensor [Fintype G] (A : Rep R G) : coaugTensorToUp A ≫ upTo
     Category.comp_id]
   rfl
 
+@[simps]
 def upIsoCoaugTensor [Fintype G] (A : Rep R G) : up.obj A ≅ coaug R G ⊗ A where
   hom := upToTensor A
   inv := coaugTensorToUp A
   hom_inv_id := upToTensor_comp_inv A
   inv_hom_id := inv_comp_upToTensor A
+
+def upTensor [Fintype G] (A B : Rep R G) : up.obj A ⊗ B ≅ up.obj (A ⊗ B) :=
+  MonoidalCategory.whiskerRightIso (upIsoCoaugTensor A) _ ≪≫ α_ _ _ _ ≪≫
+    (upIsoCoaugTensor (A ⊗ B)).symm
+
+abbrev upTensor' [Fintype G] (A B : Rep R G) : A ⊗ up.obj B ≅ up.obj (A ⊗ B) :=
+  (β_ _ _) ≪≫ upTensor B A ≪≫ up.mapIso (β_ _ _)
