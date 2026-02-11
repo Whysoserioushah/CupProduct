@@ -207,19 +207,6 @@ def upIsoCokernelrTensor [Fintype G] (A : Rep R G) : up.obj A ≅
   simp [Rep.leftRegular.of]
 
 
-def MonoidalCategory.cokernellTensor {C} [Category C] [Preadditive C] [Balanced C] [MonoidalCategory C]
-    [MonoidalPreadditive C] {X Y Z : C} (f : X ⟶ Y) [HasCokernel f] [HasCokernel (f ⊗ₘ 𝟙 Z)] :
-    cokernel (f ⊗ₘ 𝟙 Z) ≅ cokernel f ⊗ Z :=
-  sorry
-  -- @asIso _ _ _ _ (cokernel.desc _ (cokernel.π f ⊗ₘ 𝟙 Z) (by
-  --   simp [← CategoryTheory.MonoidalCategory.comp_whiskerRight])) <|
-  -- @isIso_of_mono_of_epi _ _ _ _ _ _
-  --   (ShortComplex.Exact.mono_cokernelDesc _) _
-  -- hom := cokernel.desc _ (cokernel.π f ⊗ₘ 𝟙 Z) <| by
-  --   simp [← CategoryTheory.MonoidalCategory.comp_whiskerRight]
-  -- inv := sorry
-  -- hom_inv_id := sorry
-  -- inv_hom_id := sorry
 
 def Rep.upIsoTensor [Fintype G] (A : Rep R G) : up.obj A ≅ leftRegular.coaug R G ⊗ A :=
   sorry
@@ -250,8 +237,6 @@ def cup1aux (σ : H0 B) : H1 A ⟶ H1 (A ⊗ B) := by
 --     simp only [Category.assoc, Iso.inv_hom_id_assoc, Iso.hom_inv_id, Category.comp_id] at h
 --     rw [← Category.assoc, h]
 --     simp)
-
-#check Limits.cokernel.mapIso
 
 open Rep TensorProduct in
 noncomputable def mapCoaugTensorLinear [Fintype G] (A : Rep R G) : @HasQuotient.Quotient (G → ↑A.V)
