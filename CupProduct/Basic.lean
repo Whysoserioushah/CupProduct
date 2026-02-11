@@ -118,57 +118,126 @@ lemma ModuleCat.of_tensor {M N : Type u} [AddCommGroup M] [AddCommGroup N] [Modu
 lemma ModuleCat.of_carrier {R M} [Ring R] [AddCommGroup M] [Module R M] :
     (ModuleCat.of R M) = M := rfl
 
--- def Equiv.inv
-#synth InvolutiveInv G
-#check Equiv.inv
 open TensorProduct in
-def Rep.coindIsoTensorFunctor [DecidableEq G] [Fintype G] :
-    MonoidalCategory.tensorLeft (Rep.leftRegular R G) ≅ Rep.coind₁' :=
-  NatIso.ofComponents (fun A ↦ mkIso _ _ (finsuppScalarLeft R A G ≪≫ₗ
-    Finsupp.mapDomain.linearEquiv A.V R (Equiv.inv G) ≪≫ₗ
+@[simps!]
+def Rep.coindIsoTensor [Fintype G] (A : Rep R G) :
+    Rep.leftRegular R G ⊗ A ≅ Rep.coind₁'.obj A  :=
+  open scoped Classical in
+  mkIso _ _ (finsuppScalarLeft R A G ≪≫ₗ Finsupp.mapDomain.linearEquiv A.V R (Equiv.inv G) ≪≫ₗ
     Finsupp.linearEquivFunOnFinite R A G).toModuleIso fun g x ↦ by
   dsimp at x
   induction x using TensorProduct.induction_on with
   | zero => simp
   | tmul f y =>
     change G →₀ R at f
-    simp only [coind₁'_obj, curriedTensor_obj_obj, Action.tensorObj_V, LinearEquiv.toModuleIso_hom,
+    simp only [coind₁'_obj, Action.tensorObj_V, LinearEquiv.toModuleIso_hom,
       ModuleCat.hom_ofHom, tensor_ρ, of_ρ, LinearEquiv.coe_coe, LinearEquiv.trans_apply,
       Finsupp.mapDomain.coe_linearEquiv, Equiv.inv_apply]
     ext i
     simp only [Finsupp.linearEquivFunOnFinite_apply, Representation.coind₁'_apply_apply]
     rw [← inv_inv (i * g), ← inv_inv i, Finsupp.mapDomain_apply inv_injective,
       Finsupp.mapDomain_apply inv_injective]
+    classical
     erw [Representation.tprod_apply, TensorProduct.map_tmul,
-      -- Finsupp.mapDomain_apply,
-      finsuppScalarLeft_apply_tmul_apply,
-      finsuppScalarLeft_apply_tmul_apply]
+      finsuppScalarLeft_apply_tmul_apply, finsuppScalarLeft_apply_tmul_apply]
     simp
   | add x y h1 h2 =>
     dsimp at h1 h2 ⊢
-    simp [h1, h2, Finsupp.mapDomain_add]) sorry
--- open TensorProduct in
--- def Rep.coindIsoTensor [DecidableEq G] [Fintype G] (A : Rep R G) :
---     Rep.leftRegular R G ⊗ A ≅ Rep.coind₁'.obj A  :=
---   mkIso _ _ (finsuppScalarLeft R A G ≪≫ₗ Finsupp.linearEquivFunOnFinite R A G).toModuleIso
---   fun g x ↦ by
---   dsimp at x
---   induction x using TensorProduct.induction_on with
---   | zero => simp
---   | tmul f a =>
---     change G →₀ R at f
---     simp only [coind₁'_obj, Action.tensorObj_V, LinearEquiv.toModuleIso_hom, ModuleCat.hom_ofHom,
---       tensor_ρ, of_ρ, LinearEquiv.coe_coe, LinearEquiv.trans_apply]
---     ext i
---     simp only [Finsupp.linearEquivFunOnFinite_apply, Representation.coind₁'_apply_apply]
---     erw [Representation.tprod_apply, TensorProduct.map_tmul, finsuppScalarLeft_apply_tmul_apply,
---       finsuppScalarLeft_apply_tmul_apply]
---     simp only [Representation.ofMulAction_apply, smul_eq_mul, map_smul]
+    simp [h1, h2, Finsupp.mapDomain_add]
 
---     sorry
---   | add x y _ _ => sorry
+open TensorProduct in
+def Rep.coindIsoTensorFunctor [Fintype G] :
+    MonoidalCategory.tensorLeft (Rep.leftRegular R G) ≅ Rep.coind₁' :=
+  NatIso.ofComponents Rep.coindIsoTensor <| fun {X Y} f ↦ by
+  ext : 2
+  simp only [curriedTensor_obj_obj, Action.tensorObj_V, coind₁'_obj, curriedTensor_obj_map,
+    coindIsoTensor, Action.comp_hom, Action.whiskerLeft_hom, mkIso_hom_hom,
+    LinearEquiv.toModuleIso_hom, ModuleCat.hom_comp, ModuleCat.hom_ofHom]
+  ext1 fx
+  induction fx using TensorProduct.induction_on with
+  | zero => simp
+  | tmul f' x =>
+    simp only [ModuleCat.hom_whiskerLeft, LinearMap.coe_comp, LinearEquiv.coe_coe,
+      Function.comp_apply, LinearEquiv.trans_apply, Finsupp.mapDomain.coe_linearEquiv,
+      Equiv.inv_apply, coind₁', ModuleCat.hom_ofHom]
+    ext i
+    simp only [Finsupp.linearEquivFunOnFinite_apply, LinearMap.compLeft, coe_hom, coe_mk,
+      AddHom.coe_mk, Function.comp_apply]
+    rw [← inv_inv i, Finsupp.mapDomain_apply inv_injective, Finsupp.mapDomain_apply inv_injective]
+    classical
+    erw [finsuppScalarLeft_apply_tmul_apply, finsuppScalarLeft_apply_tmul_apply]
+    simp
+  | add x y h1 h2 =>
+    dsimp at h1 h2 ⊢
+    simp [map_add, Finsupp.mapDomain_add, h1, h2]
+
+open Limits
+
+def upIsoCokernelrTensor [Fintype G] (A : Rep R G) : up.obj A ≅
+    cokernel (Rep.leftRegular.μ R G ⊗ₘ 𝟙 A) :=
+  cokernel.mapIso _ _ (Rep.trivialTensorIso A) (Rep.coindIsoTensor A).symm <| by
+  classical
+  rw [Iso.symm_hom]
+  apply_fun (· ≫ A.coindIsoTensor.hom) using (by aesop_cat)
+  simp only [Functor.id_obj, Rep.coind₁'_obj, Category.assoc, Iso.inv_hom_id, Category.comp_id,
+    tensorHom_id]
+  ext : 2
+  simp only [Functor.id_obj, Rep.coind₁'_obj, Rep.coind₁'_ι_app_hom, ModuleCat.hom_ofHom,
+    Rep.trivialTensorIso, Equivalence.symm_inverse, Action.functorCategoryEquivalence_functor,
+    Action.FunctorCategoryEquivalence.functor_obj_obj, Action.comp_hom, Action.tensorObj_V,
+    Rep.mkIso_hom_hom, LinearEquiv.toModuleIso_hom, Action.whiskerRight_hom, ModuleCat.hom_comp]
+  apply_fun (· ∘ₗ (TensorProduct.lid R ↑A.V).toLinearMap) using
+    (fun _ _ ↦ LinearEquiv.eq_comp_toLinearMap_iff _ _|>.1)
+  simp only [LinearMap.comp_assoc, LinearEquiv.symm_comp, LinearMap.comp_id,
+    ModuleCat.hom_whiskerRight]
+  ext a : 3
+  simp only [Representation.coind₁'_ι, TensorProduct.AlgebraTensorModule.curry_apply,
+    restrictScalars_self, TensorProduct.curry_apply, LinearMap.coe_comp, coe_mk, AddHom.coe_mk,
+    LinearEquiv.coe_coe, Function.comp_apply, TensorProduct.lid_tmul, one_smul, Rep.coindIsoTensor,
+    Rep.coind₁'_obj, Rep.mkIso_hom_hom, Action.tensorObj_V, LinearEquiv.toModuleIso_hom,
+    ModuleCat.hom_ofHom, LinearEquiv.trans_apply, Finsupp.mapDomain.coe_linearEquiv,
+    Equiv.inv_apply]
+  erw [rTensor_tmul]
+  ext i
+  simp only [Function.const_apply, Rep.leftRegular.μ, map_sum, lsmul_flip_apply,
+    ModuleCat.hom_ofHom, coe_sum, Finset.sum_apply, toSpanSingleton_apply, one_smul,
+    Finsupp.linearEquivFunOnFinite_apply]
+  rw [← inv_inv i, Finsupp.mapDomain_apply inv_injective]
+  erw [TensorProduct.finsuppScalarLeft_apply_tmul_apply]
+  simp [Rep.leftRegular.of]
 
 
+def MonoidalCategory.cokernellTensor {C} [Category C] [Preadditive C] [Balanced C] [MonoidalCategory C]
+    [MonoidalPreadditive C] {X Y Z : C} (f : X ⟶ Y) [HasCokernel f] [HasCokernel (f ⊗ₘ 𝟙 Z)] :
+    cokernel (f ⊗ₘ 𝟙 Z) ≅ cokernel f ⊗ Z :=
+  sorry
+  -- @asIso _ _ _ _ (cokernel.desc _ (cokernel.π f ⊗ₘ 𝟙 Z) (by
+  --   simp [← CategoryTheory.MonoidalCategory.comp_whiskerRight])) <|
+  -- @isIso_of_mono_of_epi _ _ _ _ _ _
+  --   (ShortComplex.Exact.mono_cokernelDesc _) _
+  -- hom := cokernel.desc _ (cokernel.π f ⊗ₘ 𝟙 Z) <| by
+  --   simp [← CategoryTheory.MonoidalCategory.comp_whiskerRight]
+  -- inv := sorry
+  -- hom_inv_id := sorry
+  -- inv_hom_id := sorry
+
+def Rep.upIsoTensor [Fintype G] (A : Rep R G) : up.obj A ≅ leftRegular.coaug R G ⊗ A :=
+  sorry
+
+def upTensorIso (A B : Rep R G) : up.obj A ⊗ B ≅ up.obj (A ⊗ B) := sorry
+
+def cup1aux (σ : H0 B) : H1 A ⟶ H1 (A ⊗ B) := by
+  -- haveI := δ_up_zero_epi A
+  haveI : Epi (mapShortComplex₃ (shortExact_upSES A) (Nat.zero_add 1)).g :=
+    δ_up_zero_epi A
+  refine (mapShortComplex₃_exact (shortExact_upSES A) (Nat.zero_add 1)).desc
+    ((ModuleCat.ofHom ((cup0 (up.obj A) B).flip σ)) ≫
+    (CategoryTheory.Functor.mapIso (groupCohomology.functor R G _) (upTensorIso A B)).hom ≫
+    (δ (shortExact_upSES (A ⊗ B)) 0 1 rfl : _ ⟶ H1 (A ⊗ B))) ?_
+  dsimp
+  change groupCohomology.map _ _ _ ≫ _ = 0
+  sorry
+      --(cup0 (up.obj A) B).flip 0)) ?_
 
 -- open Limits in
 -- @[simps]
@@ -184,7 +253,6 @@ def Rep.coindIsoTensorFunctor [DecidableEq G] [Fintype G] :
 
 #check Limits.cokernel.mapIso
 
-#exit
 open Rep TensorProduct in
 noncomputable def mapCoaugTensorLinear [Fintype G] (A : Rep R G) : @HasQuotient.Quotient (G → ↑A.V)
     (Submodule R (G → ↑A.V)) Submodule.hasQuotient Representation.coind₁'_ι.range ≃ₗ[R]
@@ -251,7 +319,7 @@ noncomputable def upIsoTensorCoaug [Fintype G] (A : Rep R G) :
   -- a mess
   sorry
 
-def upTensorIso (A B : Rep R G) : up.obj A ⊗ B ≅ up.obj (A ⊗ B) := sorry
+
 
 def upTensorIso' (A B : Rep R G) : A ⊗ up.obj B ≅ up.obj (A ⊗ B) := sorry
 
@@ -260,9 +328,8 @@ noncomputable def CupProduct (p q r : ℕ) (h : r = p + q) (A B : Rep R G) :
     groupCohomology A p ⊗ groupCohomology B q ⟶ groupCohomology (A ⊗ B) r :=
   match p, q with
   | 0, 0 => cup0' A B ≫ eqToHom (by rw [h])
-  | 0, 1 => (sorry : _ ⟶ groupCohomology (A ⊗ B) 1) ≫ eqToHom (by rw [h])
-  | 1, 0 => sorry
-  | 1, 1 => sorry
+  | _, 1 => sorry--(sorry : _ ⟶ groupCohomology (A ⊗ B) 1) ≫ eqToHom _
+  | 1, _ => sorry
   | (n + 2), _ => sorry
   | _, (n + 2) => sorry
 
