@@ -258,6 +258,13 @@ lemma mapToTensor_tensorToFun [Fintype G] (A : Rep R G) : tensorToFun A ≫ mapT
     (by simp) (by simp)]
   simp [of_def, LinearMap.id]
 
+@[simps]
+def coindIsoTensor [Fintype G] (A : Rep R G) : coind₁'.obj A ≅ leftRegular R G ⊗ A where
+  hom := mapToTensor A
+  inv := tensorToFun A
+  hom_inv_id := tensorToFun_mapToTensor A
+  inv_hom_id := mapToTensor_tensorToFun A
+
 lemma inv_comp_upToTensor [Fintype G] (A : Rep R G) : coaugTensorToUp A ≫ upToTensor A = 𝟙 _ := by
   haveI : Epi ((upSES₀ R G).map (tensorRight A)).g := by
     simp only [upSES₀, map_X₂, Functor.flip_obj_obj, curriedTensor_obj_obj, map_X₃, map_g,
@@ -283,6 +290,13 @@ def upIsoCoaugTensor [Fintype G] (A : Rep R G) : up.obj A ≅ coaug R G ⊗ A wh
   inv := coaugTensorToUp A
   hom_inv_id := upToTensor_comp_inv A
   inv_hom_id := inv_comp_upToTensor A
+
+def coindTensor [Fintype G] (A B : Rep R G) : coind₁'.obj A ⊗ B ≅ coind₁'.obj (A ⊗ B) :=
+  MonoidalCategory.whiskerRightIso (coindIsoTensor A) _ ≪≫ α_ _ _ _ ≪≫
+    (coindIsoTensor (A ⊗ B)).symm
+
+abbrev coindTensor' [Fintype G] (A B : Rep R G) : A ⊗ coind₁'.obj B ≅ coind₁'.obj (A ⊗ B) :=
+  (β_ _ _) ≪≫ coindTensor B A ≪≫ coind₁'.mapIso (β_ _ _)
 
 def upTensor [Fintype G] (A B : Rep R G) : up.obj A ⊗ B ≅ up.obj (A ⊗ B) :=
   MonoidalCategory.whiskerRightIso (upIsoCoaugTensor A) _ ≪≫ α_ _ _ _ ≪≫
