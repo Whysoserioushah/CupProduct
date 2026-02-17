@@ -46,6 +46,7 @@ lemma cup0_apply (a : H0 A) (b : H0 B) : cup0 A B a b = (H0Iso (A ⊗ B)).inv
   ⟨((H0Iso A).hom.hom a).1 ⊗ₜ ((H0Iso B).hom b).1, mem_tensorInvariants A B
     (H0Iso A|>.hom.hom a) (H0Iso B|>.hom.hom b)⟩ := rfl
 
+#exit
 structure IsCupProduct (map : (p q r : ℕ) → (h : r = p + q) → (A B : Rep R G) →
     groupCohomology A p ⊗ groupCohomology B q ⟶ groupCohomology (A ⊗ B) r) : Prop where
   zero : map 0 0 0 rfl = cup0'
@@ -166,6 +167,15 @@ def cup1Aux : H0 B →ₗ[R] H1 A →ₗ[R] H1 (A ⊗ B) where
 
 abbrev cup1 : H1 A ⊗ H0 B ⟶ H1 (A ⊗ B) :=
   ModuleCat.ofHom <| TensorProduct.lift <| LinearMap.flip (cup1Aux A B)
+
+def cup1NatTrans (σ : H1 A) : functor R G 0 ⟶ tensorLeft A ⋙ functor R G 1  where
+  app B := ModuleCat.ofHom ((LinearMap.flip (cup1Aux A B)) σ : H0 B →ₗ[R] H1 (A ⊗ B))
+  naturality {M N} φ := by
+    -- choose σ' hσ' using
+    -- simp
+    sorry
+-- lemma quantum (M N : Rep R G) (φ : M ⟶ N) (σ : H1 A) : (ModuleCat.ofHom (cup1Aux A M).flip σ) ≫
+--     groupCohomology.map (MonoidHom.id G) _ 1
 
 omit [Fintype G] in
 lemma smallcommSq1 : (Rep.invariantsFunctor R G).map ((up.obj A) ◁ (up.π B)) ≫
