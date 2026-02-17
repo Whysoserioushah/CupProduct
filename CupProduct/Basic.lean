@@ -118,14 +118,19 @@ lemma commSq12 : (functor R G 0).map (up.π A ▷ B) ≫ groupCohomology.map (Mo
   erw [← this]
   rw [ShortComplex.Exact.g_desc]
 
-def cup1aux (σ : H0 B) : H1 A ⟶ H1 (A ⊗ B) := by
+lemma ModuleCat.ofHom_add {M N : ModuleCat R} (f g : M →ₗ[R] N) :
+    ModuleCat.ofHom (f + g) = ModuleCat.ofHom f + ModuleCat.ofHom g := rfl
+
+lemma ModuleCat.ofHom_smul (r : R) {M N : ModuleCat R} (f : M →ₗ[R] N) :
+  ModuleCat.ofHom (r • f) = r • ModuleCat.ofHom f := rfl
+
+def cup1Aux0 (σ : H0 B) : H1 A ⟶ H1 (A ⊗ B) := by
   haveI : Epi (mapShortComplex₃ (shortExact_upSES A) (Nat.zero_add 1)).g :=
     δ_up_zero_epi A
   refine (mapShortComplex₃_exact (shortExact_upSES A) (Nat.zero_add 1)).desc
     ((ModuleCat.ofHom ((cup0 (up.obj A) B).flip σ)) ≫
     ((groupCohomology.functor R G _).mapIso (upTensor A B)).hom ≫
     (δ (shortExact_upSES (A ⊗ B)) 0 1 rfl : _ ⟶ H1 (A ⊗ B))) ?_
-  -- dsimp
   change groupCohomology.map _ _ 0 ≫ _ = 0
   dsimp [-up_obj]
   rw [← Category.assoc, commSq11, ← Category.assoc]
@@ -134,15 +139,209 @@ def cup1aux (σ : H0 B) : H1 A ⟶ H1 (A ⊗ B) := by
   simp only [up_obj, Functor.id_obj, Rep.coind₁'_obj, Action.tensorObj_V, Rep.tensor_ρ,
     ModuleCat.of_coe, functor_obj, Functor.mapIso_hom, functor_map, coequalizer_as_cokernel,
     Category.assoc]
+  have := (mapShortComplex₃ (shortExact_upSES (A ⊗ B)) (Nat.zero_add 1)).zero
+  dsimp at this
+  change groupCohomology.map (MonoidHom.id G) _ 0 ≫ δ (shortExact_upSES (A ⊗ B)) 0 1 _ = 0 at this
+  simp [this]
+
+lemma cup1Aux0_add (σ1 σ2 : H0 B) : cup1Aux0 A B (σ1 + σ2) =
+    cup1Aux0 A B σ1 + cup1Aux0 A B σ2 := by
+  haveI : Epi (mapShortComplex₃ (shortExact_upSES A) (Nat.zero_add 1)).g :=
+    δ_up_zero_epi A
+  rw [← cancel_epi (mapShortComplex₃ (shortExact_upSES A) (Nat.zero_add 1)).g]
+  simp only [cup1Aux0, Preadditive.comp_add, ShortComplex.Exact.g_desc]
+  rw [map_add, ModuleCat.ofHom_add, Preadditive.add_comp]
+
+lemma cup1Aux0_smul (r : R) (σ : H0 B) : cup1Aux0 A B (r • σ) = r • cup1Aux0 A B σ := by
+  haveI : Epi (mapShortComplex₃ (shortExact_upSES A) (Nat.zero_add 1)).g :=
+    δ_up_zero_epi A
+  rw [← cancel_epi (mapShortComplex₃ (shortExact_upSES A) (Nat.zero_add 1)).g]
+  simp only [cup1Aux0, ShortComplex.Exact.g_desc, Linear.comp_smul]
+  rw [map_smul, ModuleCat.ofHom_smul, Linear.smul_comp]
+
+def cup1Aux : H0 B →ₗ[R] H1 A →ₗ[R] H1 (A ⊗ B) where
+  toFun σ := (cup1Aux0 A B σ).hom
+  map_add' := by simp [cup1Aux0_add]
+  map_smul' := by simp [cup1Aux0_smul]
+
+abbrev cup1 : H1 A ⊗ H0 B ⟶ H1 (A ⊗ B) :=
+  ModuleCat.ofHom <| TensorProduct.lift <| LinearMap.flip (cup1Aux A B)
+
+set_option maxHeartbeats 800000 in
+open TensorProduct in
+lemma commSq11' (σ : H1 A) : @groupCohomology.map R G G _ _ _ (Rep.of B.ρ.coind₁') (up.obj B)
+    (MonoidHom.id G) (cokernel.π (Rep.coind₁'_ι.app B)) 0 ≫ ModuleCat.ofHom
+    ((cup1Aux A (up.obj B)).flip σ) = ModuleCat.ofHom ((cup1Aux A (Rep.coind₁'.obj B)).flip σ) ≫
+    (functor R G 1).map (A ◁ up.π B) := by
+  apply_fun ((H0Iso _).inv ≫ · ) using by aesop_cat
+  simp only
+  ext1
+  simp only [Rep.of_ρ, up_obj, Functor.id_obj, Rep.coind₁'_obj, ModuleCat.of_coe,
+    ModuleCat.hom_comp, ModuleCat.hom_ofHom, functor_obj, coequalizer_as_cokernel, functor_map]
+  ext ⟨b, hb⟩
+  simp only [cup1Aux, cup1Aux0, ShortComplex.SnakeInput.L₁'_X₂,
+    HomologicalComplex.HomologySequence.snakeInput_L₀, Functor.mapShortComplex_obj,
+    ShortComplex.map_X₃, upSES_X₃, up_obj, Functor.id_obj, Rep.coind₁'_obj, cochainsFunctor_obj,
+    HomologicalComplex.homologyFunctor_obj, ModuleCat.of_coe, Action.tensorObj_V, Rep.tensor_ρ,
+    functor_obj, Functor.mapIso_hom, functor_map, LinearMap.coe_comp, Function.comp_apply,
+    flip_apply, coe_mk, AddHom.coe_mk, Rep.of_ρ]
+  -- conv_lhs => enter [2, 2]; rw [← LinearMap.comp_apply, ← LinearMap.comp_apply,
+  --   ← ModuleCat.hom_comp, ← ModuleCat.hom_comp]
+  -- rw [← LinearMap.comp_apply, ← LinearMap.comp_apply, ← ModuleCat.hom_comp, ← ModuleCat.hom_comp]
+  simp only [← LinearMap.comp_apply, ← ModuleCat.hom_comp]
+  congr 2
+  haveI : Epi (mapShortComplex₃ (shortExact_upSES A) (Nat.zero_add 1)).g :=
+    δ_up_zero_epi A
+  rw [← cancel_epi (mapShortComplex₃ (shortExact_upSES A) (Nat.zero_add 1)).g,
+    ShortComplex.Exact.g_desc, ← Category.assoc (mapShortComplex₃ _ _).g,
+    ShortComplex.Exact.g_desc]
+  simp only [ShortComplex.SnakeInput.L₁'_X₂, HomologicalComplex.HomologySequence.snakeInput_L₀,
+    Functor.mapShortComplex_obj, ShortComplex.map_X₃, upSES_X₃, up_obj, Functor.id_obj,
+    Rep.coind₁'_obj, cochainsFunctor_obj, HomologicalComplex.homologyFunctor_obj,
+    LinearMap.coe_comp, Function.comp_apply, Category.assoc]
+  apply_fun ((H0Iso _).inv ≫ ·) using by aesop_cat
+  ext1
+  simp only [ModuleCat.hom_comp, ModuleCat.hom_ofHom]
+  ext ⟨a, ha⟩
+  simp only [LinearMap.coe_comp, Function.comp_apply, flip_apply, cup0_apply, Action.tensorObj_V,
+    Rep.tensor_ρ, Equivalence.symm_inverse, Action.functorCategoryEquivalence_functor,
+    Action.FunctorCategoryEquivalence.functor_obj_obj, Iso.inv_hom_id_apply,
+    map_id_comp_H0Iso_hom_apply, Rep.of_ρ]
+  conv_lhs => enter [2, 2, 2, 1]; change a ⊗ₜ[R] (@Subtype.val _ _
+  (((H0Iso (Rep.of B.ρ.coind₁')).hom ≫ (Rep.invariantsFunctor R G).map
+    (cokernel.π (Rep.coind₁'_ι.app B))).hom
+    ((ModuleCat.Hom.hom (H0Iso (Rep.of B.ρ.coind₁')).inv) ⟨b, hb⟩)))
+  simp only [Functor.id_obj, Rep.coind₁'_obj, Rep.of_ρ, ModuleCat.hom_comp,
+    Rep.invariantsFunctor_map_hom, LinearMap.coe_comp, Function.comp_apply, Iso.inv_hom_id_apply]
+  conv_lhs => enter [2, 2, 2, 1]; erw [codRestrict_apply]
+  simp only [LinearMap.coe_comp, Submodule.coe_subtype, Function.comp_apply]
+  conv_lhs => enter [2, 2, 2, 1]; rw [← lTensor_tmul]
+
+  conv_lhs =>
+    enter [2, 2, 2]; change ⟨(lTensor (up.obj A) _) _, _⟩
+    change (ModuleCat.Hom.hom <| (Rep.invariantsFunctor R G).map
+      ((up.obj A) ◁ (up.π B))) ⟨a ⊗ₜ b, fun g ↦ by
+        simp only [Representation.mem_invariants, up_obj, Functor.id_obj, Rep.coind₁'_obj,
+          Action.tensorObj_V, Rep.tensor_ρ, Rep.of_ρ, Equivalence.symm_inverse,
+          Action.functorCategoryEquivalence_functor,
+          Action.FunctorCategoryEquivalence.functor_obj_obj] at ha hb ⊢
+        erw [Representation.tprod_apply, map_tmul]
+        simp [ha, hb]⟩
+  simp only [← LinearMap.comp_apply]
+  erw [← LinearMap.comp_apply]
+  congr 1
+  rw [← ModuleCat.hom_comp, ← ModuleCat.hom_comp, ← ModuleCat.hom_comp, ← ModuleCat.hom_comp,
+    ← ModuleCat.hom_comp, ← ModuleCat.hom_comp]
+  congr 1
+  rw [Category.assoc, Category.assoc, ← Category.assoc]
+  have : (Rep.invariantsFunctor R G).map ((up.obj A) ◁ (up.π B)) ≫
+    (H0Iso (cokernel (Rep.coind₁'_ι.app A) ⊗ cokernel (Rep.coind₁'_ι.app B))).inv =
+    (H0Iso (cokernel (Rep.coind₁'_ι.app A) ⊗ Rep.of B.ρ.coind₁')).inv ≫
+    groupCohomology.map (MonoidHom.id G) (up.obj A ◁ up.π B) 0 := by
+    apply_fun (fun f ↦ (H0Iso _).hom ≫ f ≫ (H0Iso _).hom) using by aesop_cat
+    simp only [← Category.assoc, ← up_obj, ← Rep.coind₁'_obj,
+      (Iso.hom_comp_eq_id (H0Iso _)).2 rfl, Category.id_comp]
+    simp only [Category.assoc, Iso.inv_comp_eq_id (H0Iso _)|>.2]
+    erw [Category.comp_id]
+    rw [map_id_comp_H0Iso_hom]
+  rw [this, Category.assoc, Category.assoc]
+  congr 1
+  rw [← Category.assoc, ← map_id_comp]
+  have eq2 : up.obj A ◁ up.π B ≫ (upTensor A (up.obj B)).hom =
+    (upTensor A _).hom ≫ up.map (A ◁ up.π B) := by
+    simp only [coequalizer_as_cokernel, Functor.id_obj, upTensor, Iso.trans_hom,
+      whiskerRightIso_hom, upIsoCoaugTensor_hom, Iso.symm_hom,
+      upIsoCoaugTensor_inv, coaugTensorToUp, ShortComplex.map_X₂, Functor.flip_obj_obj,
+      curriedTensor_obj_obj, up_map, Category.assoc]
+    rw [← Category.assoc, ← MonoidalCategory.tensorHom_def', MonoidalCategory.tensorHom_def,
+      Category.assoc]
+    congr 1
+    rw [associator_naturality_right_assoc]
+    congr 1
+    rw [← cancel_epi ((upSES₀ R G).map (tensorRight (A ⊗ Rep.coind₁'.obj B))).g,
+      ShortComplex.Exact.g_desc_assoc, Category.assoc, cokernel.π_desc,
+      ShortComplex.map_g, Functor.flip_obj_map, curriedTensor_map_app,
+      ← Category.assoc, show ((upSES₀ R G).g ▷ (A ⊗ Rep.coind₁'.obj B) ≫
+        coaug R G ◁ A ◁ cokernel.π (Rep.coind₁'_ι.app B)) = (_ ◁ _ ◁ up.π _) ≫
+        ((upSES₀ R G).map (tensorRight (A ⊗ up.obj B))).g by
+        ext : 2
+        simp only [Rep.coind₁'_obj, Action.tensorObj_V, Functor.id_obj, upSES₀_X₃, upSES₀_g,
+          whiskerRight_tensor, Category.assoc, Action.comp_hom, Action.associator_inv_hom,
+          Action.whiskerRight_hom, Action.associator_hom_hom, Action.whiskerLeft_hom,
+          ModuleCat.hom_comp, ModuleCat.hom_whiskerLeft, ModuleCat.hom_whiskerRight,
+          upSES₀_X₂_V_carrier, upSES₀_X₂_V_isAddCommGroup, upSES₀_X₂_V_isModule, up_obj,
+          ShortComplex.map_X₃, Functor.flip_obj_obj, curriedTensor_obj_obj, coequalizer_as_cokernel,
+          ShortComplex.map_g, Functor.flip_obj_map, curriedTensor_map_app]
+        refine TensorProduct.ext ?_
+        ext1 (f : Rep.leftRegular R G)
+        refine TensorProduct.ext ?_
+        simp only [upSES₀_X₂_V_carrier, upSES₀_X₂_V_isAddCommGroup, upSES₀_X₂_V_isModule]
+        ext a fb
+        simp only [compr₂ₛₗ_apply, mk_apply]
+        erw [compr₂ₛₗ_apply], Category.assoc, ShortComplex.Exact.g_desc]
+    rw [← Category.assoc, ← Category.assoc]
+    congr 1
+    simp only [Rep.coind₁'_obj, ShortComplex.map_X₂, Functor.flip_obj_obj, curriedTensor_obj_obj,
+      up_obj, Functor.id_obj, Action.tensorObj_V, Rep.tensor_ρ, coequalizer_as_cokernel, Rep.of_ρ]
+    ext : 2
+    simp only [Action.tensorObj_V, Action.comp_hom, Action.whiskerLeft_hom, tensorToFun_hom,
+      Equivalence.symm_inverse, Action.functorCategoryEquivalence_functor,
+      Action.FunctorCategoryEquivalence.functor_obj_obj, ModuleCat.hom_comp, ModuleCat.hom_ofHom]
+    apply TensorProduct.ext
+    ext1 (f : Rep.leftRegular R G)
+    simp only [upSES₀_X₂_V_carrier, upSES₀_X₂_V_isAddCommGroup, upSES₀_X₂_V_isModule]
+    apply TensorProduct.ext
+    ext a (fb : G → B.V) : 2
+    simp only [compr₂ₛₗ_apply, mk_apply]
+    erw [compr₂ₛₗ_apply]
+  conv_lhs => enter [1, 2]; erw [eq2]
+  rw [map_id_comp, Category.assoc]
+  congr 1
+  have := groupCohomology.δ_naturality (shortExact_upSES (A ⊗ Rep.of B.ρ.coind₁'))
+    (shortExact_upSES (A ⊗ cokernel (Rep.coind₁'_ι.app B))) {
+      τ₁ := A ◁ cokernel.π (Rep.coind₁'_ι.app B)
+      τ₂ := Rep.coind₁'.map (A ◁ up.π B)
+      τ₃ := up.map (A ◁ up.π B)
+      comm₁₂ := by
+        ext : 2
+        simp only [upSES_X₁, Action.tensorObj_V, Functor.id_obj, Rep.coind₁', upSES_X₂,
+          Rep.tensor_ρ, upSES_f, Action.comp_hom, Action.whiskerLeft_hom, Rep.coind₁'_ι_app_hom,
+          ModuleCat.hom_comp, ModuleCat.hom_ofHom, ModuleCat.hom_whiskerLeft, Rep.of_ρ,
+          coequalizer_as_cokernel]
+        apply TensorProduct.ext'
+        intro a (f : G → B.V)
+        simp only [LinearMap.coe_comp, Function.comp_apply]
+        erw [lTensor_tmul]
+        simp only [LinearMap.compLeft, Rep.coe_hom, Representation.coind₁'_ι, coe_mk, AddHom.coe_mk,
+          Function.comp_const, Function.const_inj]
+        erw [lTensor_tmul]
+      comm₂₃ := by simp
+    } 0 1 rfl
+  rw [this]
+
+def cup11Aux' (σ : H1 A) : H1 B ⟶ H2 (A ⊗ B) :=
+  haveI : Epi (mapShortComplex₃ (shortExact_upSES B) (Nat.zero_add 1)).g :=
+    δ_up_zero_epi B
+  (mapShortComplex₃_exact (shortExact_upSES B) (Nat.zero_add 1)).desc
+    (ModuleCat.ofHom ((cup1Aux A (up.obj B)).flip σ) ≫
+    ((functor R G 1).mapIso (upTensor' A B)).hom ≫ (δUpIso (A ⊗ B) 0).hom) <| by
+  change groupCohomology.map _ _ 0 ≫ _ = 0
+  dsimp [-up_obj]
+  rw [← Category.assoc]
+  -- rw [commSq11 B A]
   sorry
+  -- sorry
+
 
 noncomputable def CupProduct [Fintype G] (p q r : ℕ) (h : r = p + q) (A B : Rep R G) :
     -- do I want the aditional r = p + q condition?
+    -- how to add the neg condition?
     groupCohomology A p ⊗ groupCohomology B q ⟶ groupCohomology (A ⊗ B) r :=
   match p, q with
   | 0, 0 => cup0' A B ≫ eqToHom (by rw [h])
-  | _, 1 => sorry--(sorry : _ ⟶ groupCohomology (A ⊗ B) 1) ≫ eqToHom _
-  | 1, q => sorry
+  | 0, 1 => sorry--(sorry : _ ⟶ groupCohomology (A ⊗ B) 1) ≫ eqToHom _
+  | 1, 0 => cup1 A B ≫ eqToHom (by rw [h])
+  | 1, 1 => sorry
   | (n + 2), q => (δUpIso A n).inv ▷ (groupCohomology B q) ≫
     CupProduct (n + 1) q (n + q + 1) (by omega) (up.obj A) B ≫
     ((functor R G (n + q + 1)).mapIso (upTensor A B)).hom ≫
