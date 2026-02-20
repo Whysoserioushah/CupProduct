@@ -48,15 +48,28 @@ instance : (forget₂ (Rep R G) Ab).PreservesHomology :=
   { preservesKernels _ _ _ := Limits.comp_preservesLimit _ _
     preservesCokernels _ _ _:= Limits.comp_preservesColimit _ _ }
 
+variable (A : Rep R G) in
+#synth (tensorRight A).Additive
 open ShortComplex
+
+def split_upSES' [Fintype G] : (((upSES₀ R G).map (tensorRight A)).map (forget₂ (Rep R G)
+    (ModuleCat R))).Splitting := by
+  rw [← map_comp, show (upSES₀ R G).map ((tensorRight A) ⋙ (forget₂ (Rep R G) (ModuleCat R))) =
+    ((upSES₀ R G).map (forget₂ (Rep R G) (ModuleCat R))).map (tensorRight A.V) by rfl]
+  exact .map (split_upSES₀_forget R G) _
+
 lemma exact_upSES' [Fintype G] : ((upSES₀ R G).map (tensorRight A)).Exact :=
   exact_iff_exact_map_forget₂ _|>.2 <| by
   change (((upSES₀ R G).map _).map (_ ⋙ _)).Exact
   rw [map_comp, ← exact_iff_exact_map_forget₂]
-  apply Splitting.exact
-  rw [← map_comp, show (upSES₀ R G).map ((tensorRight A) ⋙ (forget₂ (Rep R G) (ModuleCat R))) =
-    ((upSES₀ R G).map (forget₂ (Rep R G) (ModuleCat R))).map (tensorRight A.V) by rfl]
-  exact .map (split_upSES₀_forget R G) _
+  exact split_upSES' R G |>.exact
+
+lemma shortExact_upSES' [Fintype G] : ((upSES₀ R G).map (tensorRight A)).ShortExact where
+  exact := exact_upSES' R G
+  mono_f := Functor.ReflectsMonomorphisms.reflects (F := (forget₂ (Rep R G) (ModuleCat R))) _
+    (split_upSES' R G (A := A)).shortExact.mono_f
+  epi_g := Functor.ReflectsEpimorphisms.reflects (F := (forget₂ (Rep R G) (ModuleCat R))) _
+    (split_upSES' R G (A := A)).shortExact.epi_g
 
 open Rep TensorProduct Limits Rep.dimensionShift
 
