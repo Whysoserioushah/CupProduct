@@ -1,6 +1,5 @@
 import CupProduct.Cohomology.AugmentationModule
 import CupProduct.Cohomology.Functors.UpDown
--- import Mathlib.Algebra.Lie.OfAssociative
 import Mathlib.LinearAlgebra.TensorProduct.RightExactness
 
 open CategoryTheory Rep.leftRegular MonoidalCategory
@@ -19,17 +18,6 @@ def upSES₀ [Fintype G] : ShortComplex (Rep R G) where
   f := μ R G
   g := Limits.cokernel.π _
   zero := by ext1; simp
-
-
-
-
-  -- sorry
-    -- where
-  -- r := by dsimp [upSES₀]; sorry
-  -- s := (Rep.forgetCokernelIso (μ R G)).hom ≫ Limits.cokernel.desc _ (𝟙 _) (by simp)
-  -- f_r := sorry
-  -- s_g := sorry
-  -- id := sorry
 
 lemma shortExact_upSES₀ [Fintype G] : (upSES₀ R G).ShortExact where
   exact := ShortComplex.exact_cokernel _
