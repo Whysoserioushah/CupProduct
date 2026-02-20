@@ -1,5 +1,5 @@
 import Mathlib
-import CupProduct.UpIso
+import CupProduct.Old.UpIso
 
 open CategoryTheory groupCohomology Rep.dimensionShift
 
@@ -43,8 +43,27 @@ noncomputable def cup0' : H0 A ⊗ H0 B ⟶ H0 (A ⊗ B) :=
 
 @[simp]
 lemma cup0_apply (a : H0 A) (b : H0 B) : cup0 A B a b = (H0Iso (A ⊗ B)).inv.hom
-  ⟨((H0Iso A).hom.hom a).1 ⊗ₜ ((H0Iso B).hom b).1, mem_tensorInvariants A B
+  ⟨((H0Iso A).hom.hom a).1 ⊗ₜ ((H0Iso B).hom.hom b).1, mem_tensorInvariants A B
     (H0Iso A|>.hom.hom a) (H0Iso B|>.hom.hom b)⟩ := rfl
+
+lemma map_id_tensor_comp_H0Iso_inv {M1 M2 N1 N2 : Rep R G} (f : M1 ⟶ M2) (g : N1 ⟶ N2) :
+    (Rep.invariantsFunctor R G).map (f ⊗ₘ g) ≫ (H0Iso (M2 ⊗ N2)).inv =
+    (H0Iso (M1 ⊗ N1)).inv ≫ map (MonoidHom.id G) (f ⊗ₘ g) 0 := by
+  apply_fun (fun f ↦ (H0Iso _).hom ≫ f ≫ (H0Iso _).hom) using by aesop_cat
+  simp only [← Category.assoc, (Iso.hom_comp_eq_id (H0Iso _)).2 rfl, Category.id_comp]
+  simp only [Action.tensorObj_V, Rep.tensor_ρ, Category.assoc, Iso.inv_comp_eq_id (H0Iso _) |>.2,
+    map_id_comp_H0Iso_hom]
+  change _ = (H0Iso (M1 ⊗ N1)).hom ≫ _
+  erw [Category.comp_id]
+
+lemma map_id_tensor_comp_H0Iso_inv_apply {M1 M2 N1 N2 : Rep R G} (f : M1 ⟶ M2) (g : N1 ⟶ N2)
+    (x : (M1 ⊗ N1).ρ.invariants) :
+    ((H0Iso (M2 ⊗ N2)).inv.hom (((Rep.invariantsFunctor R G).map (f ⊗ₘ g)).hom x)) =
+    (map (MonoidHom.id G) (f ⊗ₘ g) 0).hom ((H0Iso (M1 ⊗ N1)).inv.hom x) := by
+  erw [← LinearMap.comp_apply, ← ModuleCat.hom_comp]
+  conv_rhs => erw [← LinearMap.comp_apply, ← ModuleCat.hom_comp]
+  rw [map_id_tensor_comp_H0Iso_inv f g]
+  rfl
 
 @[reassoc]
 lemma smallcommSq1 {M N : Rep R G} (φ : M ⟶ N) : (Rep.invariantsFunctor R G).map (A ◁ φ) ≫
@@ -59,71 +78,149 @@ lemma smallcommSq1 {M N : Rep R G} (φ : M ⟶ N) : (Rep.invariantsFunctor R G).
 lemma smallcommSq1_apply {M N : Rep R G} (φ : M ⟶ N) (x : (A ⊗ M).ρ.invariants) :
     (H0Iso (A ⊗ N)).inv.hom (((Rep.invariantsFunctor R G).map (A ◁ φ)).hom x) =
     (groupCohomology.map (MonoidHom.id G) (A ◁ φ) 0).hom ((H0Iso (A ⊗ M)).inv.hom x) := by
-  -- aesop_cat (add safe smallcommSq1)
   rw [← LinearMap.comp_apply, ← ModuleCat.hom_comp]
   erw [← LinearMap.comp_apply]
   rw [← ModuleCat.hom_comp, smallcommSq1 A φ]
   rfl
 
+noncomputable section
+
 open TensorProduct in
-noncomputable def cup0NatTrans : (.prod (functor R G 0) (functor R G 0)) ⋙ tensor (ModuleCat R) ⟶
+def cup0NatTrans' : .prod (functor R G 0) (functor R G 0) ⋙ tensor (ModuleCat R) ⟶
     tensor (Rep R G) ⋙ functor R G 0 where
   app MN := cup0' MN.1 MN.2
-  naturality {MN MN'} f := by
-    obtain ⟨f1, f2⟩ := f
+  naturality {MN MN'} := fun ⟨f1, f2⟩ ↦ by
     dsimp
     ext1
     simp only [ModuleCat.hom_comp, ModuleCat.hom_tensorHom]
-    apply TensorProduct.ext'
-    intro m n
-    simp only [LinearMap.coe_comp, Function.comp_apply]
-    simp only [cup0', ModuleCat.hom_ofHom]
-    erw [lift.tmul, lift.tmul, cup0_apply, cup0_apply]
-    dsimp
-    -- simp? [cup0]
-    sorry
-#exit
-noncomputable def cup0NatTrans (σ : H0 A) : functor R G 0 ⟶ tensorLeft A ⋙ functor R G 0 where
-  app B := ModuleCat.ofHom <| cup0 A B σ
-  naturality {M N} φ := by
-    dsimp
-    ext x
-    simp only [ModuleCat.hom_comp, ModuleCat.hom_ofHom, LinearMap.coe_comp, Function.comp_apply,
-      cup0_apply, Action.tensorObj_V, Rep.tensor_ρ, Equivalence.symm_inverse,
-      Action.functorCategoryEquivalence_functor, Action.FunctorCategoryEquivalence.functor_obj_obj,
-      ]
-    conv_rhs => erw [← smallcommSq1_apply A φ]
-    congr 1
-    ext1
-    simp only [map_id_comp_H0Iso_hom_apply, Rep.invariantsFunctor_map_hom, Action.tensorObj_V,
-      Rep.tensor_ρ, Action.whiskerLeft_hom]
-    conv_rhs => erw [codRestrict_apply]
-    rw [LinearMap.comp_apply]
-    erw [Submodule.subtype_apply]
-    simp only [ModuleCat.MonoidalCategory.whiskerLeft_apply, Rep.hom_apply]
-    congr 1
+    refine TensorProduct.ext' fun m n ↦ by
+      simp only [ModuleCat.MonoidalCategory.tensorObj_carrier, cup0', ModuleCat.hom_ofHom,
+        LinearMap.coe_comp, Function.comp_apply, map_tmul]
+      erw [lift.tmul, lift.tmul, cup0_apply]
+      dsimp
+      conv_rhs => erw [cup0_apply MN.1 MN.2 m n,
+        ← map_id_tensor_comp_H0Iso_inv_apply]
+      congr 1
+      ext1
+      simp only [map_id_comp_H0Iso_hom_apply, Rep.invariantsFunctor_map_hom, Action.tensorObj_V,
+        Rep.tensor_ρ, Action.tensorHom_hom, Equivalence.symm_inverse]
+      conv_rhs => erw [codRestrict_apply, LinearMap.comp_apply]
+      change (Subtype.val <| (((H0Iso MN.1).hom ≫ (Rep.invariantsFunctor R G).map f1)).hom m) ⊗ₜ
+        (Subtype.val <| ((H0Iso MN.2).hom ≫ (Rep.invariantsFunctor R G).map f2).hom n) = _
+      simp only [ModuleCat.hom_comp, Rep.invariantsFunctor_map_hom, LinearMap.coe_comp,
+        Function.comp_apply, ModuleCat.hom_tensorHom]
+      erw [codRestrict_apply, codRestrict_apply, LinearMap.comp_apply,
+        Submodule.subtype_apply, Submodule.subtype_apply]
+      conv_lhs => enter [3]; erw [LinearMap.comp_apply, Submodule.subtype_apply]
+      erw [map_tmul]
 
-noncomputable def cup0NatTrans' (σ : H0 B) : functor R G 0 ⟶ tensorRight B ⋙ functor R G 0 where
-  app A := ModuleCat.ofHom <| flip (cup0 A B) σ
-  naturality {M N} φ := by
-    dsimp
-    ext x
-    simp only [ModuleCat.hom_comp, ModuleCat.hom_ofHom, LinearMap.coe_comp, Function.comp_apply,
-      flip_apply, cup0_apply, Action.tensorObj_V, Rep.tensor_ρ, Equivalence.symm_inverse,
-      Action.functorCategoryEquivalence_functor, Action.FunctorCategoryEquivalence.functor_obj_obj,
-      map_id_comp_H0Iso_hom_apply]
-    -- need a right version of smallcommSq1
-    -- conv_rhs => erw [← smallcommSq1_apply B φ]
-    -- congr 1
-    -- ext1
-    -- simp only [map_id_comp_H0Iso_hom_apply, Rep.invariantsFunctor_map_hom, Action.tensorObj_V,
-    --   Rep.tensor_ρ, Action.whiskerLeft_hom]
-    -- conv_rhs => erw [codRestrict_apply]
-    -- rw [LinearMap.comp_apply]
-    -- erw [Submodule.subtype_apply]
-    -- simp only [ModuleCat.MonoidalCategory.whiskerRight_apply, Rep.hom_apply]
-    -- congr 1
-    sorry
+variable (R G) in
+abbrev cup0NatTrans :=
+  Functor.curry.map <| @cup0NatTrans' R G _ _
+
+abbrev cup0NatTransLeft := cup0NatTrans R G|>.app A
+
+-- #check tensorLeft
+-- lemma cup0Left_naturality {B1 B2 : Rep R G} (f : B1 ⟶ B2) (σ : H0 A) : ({
+--   app B := ModuleCat.ofHom <| TensorProduct.mk _ _ _ σ
+--   naturality X Y f := by ext; simp [ModuleCat.hom_whiskerLeft]; erw [TensorProduct.mk_apply]
+-- } : functor R G 0 ⟶ _) ≫ (cup0NatTransLeft A) = _ := by sorry
+
+-- @[simps! obj map_app_app]
+-- def Functor.flipFunctor {C D E : Type*} [Category C] [Category D] [Category E] :
+--     (C ⥤ D ⥤ E) ⥤ (D ⥤ C ⥤ E) where
+--   obj F := F.flip
+--   map {X Y} f := {
+--     app M := {
+--       app N := (f.app N).app M
+--       naturality {X' Y'} f' := by
+--         dsimp
+--         rw [← NatTrans.comp_app, ← NatTrans.comp_app]
+--         congr 1
+--         exact f.naturality _
+--     }
+--     naturality {X' Y'} f' := by
+--       ext M
+--       dsimp [NatTrans.comp_app]
+--       exact (f.app M).naturality _
+--   }
+
+abbrev cup0NatTransRight := (CategoryTheory.flipFunctor _ _ _).map (cup0NatTrans R G)
+
+--NatTrans.vcomp _ (@cup0NatTrans' R G _ _)
+
+  -- Functor.map (CategoryTheory.Functor.flip (C := Rep R G) (D := Rep R G) (E := ModuleCat R) tensor) _
+  --(CategoryTheory.Prod.swap (Rep R G) (Rep R G)).map  (@cup0NatTrans' R G _ _)
+
+lemma cup0_naturality {M1 M2 N1 N2 : Rep R G} (f : M1 ⟶ N1) (g : M2 ⟶ N2) :
+    (groupCohomology.map (MonoidHom.id G) f 0 ⊗ₘ groupCohomology.map (MonoidHom.id G) g 0) ≫
+    (cup0NatTrans R G|>.app N1).app N2 = (cup0NatTrans R G|>.app M1).app M2 ≫
+    groupCohomology.map (MonoidHom.id G) (f ⊗ₘ g) 0 := by
+  -- have := ((cup0NatTrans.app M1).app M2)  --⟨M1, M2⟩ ⟨N1, N2⟩ ⟨f, g⟩
+  -- dsimp at this
+  sorry
+
+-- lemma cup0_naturality_left {M N P : Rep R G} (f : M ⟶ N) :
+--     (groupCohomology.map (MonoidHom.id G) f 0 ▷ H0 P) ≫ cup0NatTrans.app (N, P) =
+--     cup0NatTrans.app (M, P) ≫ groupCohomology.map (MonoidHom.id G) (f ▷ P) 0 := by
+--   convert cup0_naturality f (𝟙 _)
+--   simp
+#exit
+-- def ModuleCat.tensorRightHom {X Y : ModuleCat R} (x : X) :
+--     Y ⟶ X ⊗ Y := ModuleCat.ofHom (TensorProduct.mk R X Y x)
+
+-- noncomputable abbrev cup0NatTransLeft (σ : H0 A) :
+--     functor R G 0 ⟶ tensorLeft A ⋙ functor R G 0 := sorry
+--   -- ModuleCat.ofHom (TensorProduct.mk _ _ _ σ) ≫ (cup0NatTrans.app ⟨A, B⟩ : H0 A ⊗ H0 B ⟶ _)
+
+-- noncomputable abbrev cup0NatTransRight (σ : H0 B) :
+--     functor R G 0 ⟶ tensorRight B ⋙ functor R G 0 := sorry
+
+-- -- #check .prod ()
+--   -- ModuleCat.ofHom (flip (TensorProduct.mk _ _ _ σ)) ≫ (cup0NatTrans.app ⟨A, B⟩ : H0 A ⊗ H0 B ⟶ _)
+
+-- #exit
+-- noncomputable def cup0NatTrans (σ : H0 A) : functor R G 0 ⟶ tensorLeft A ⋙ functor R G 0 where
+--   app B := ModuleCat.ofHom <| cup0 A B σ
+--   naturality {M N} φ := by
+--     dsimp
+--     ext x
+--     simp only [ModuleCat.hom_comp, ModuleCat.hom_ofHom, LinearMap.coe_comp, Function.comp_apply,
+--       cup0_apply, Action.tensorObj_V, Rep.tensor_ρ, Equivalence.symm_inverse,
+--       Action.functorCategoryEquivalence_functor, Action.FunctorCategoryEquivalence.functor_obj_obj,
+--       ]
+--     conv_rhs => erw [← smallcommSq1_apply A φ]
+--     congr 1
+--     ext1
+--     simp only [map_id_comp_H0Iso_hom_apply, Rep.invariantsFunctor_map_hom, Action.tensorObj_V,
+--       Rep.tensor_ρ, Action.whiskerLeft_hom]
+--     conv_rhs => erw [codRestrict_apply]
+--     rw [LinearMap.comp_apply]
+--     erw [Submodule.subtype_apply]
+--     simp only [ModuleCat.MonoidalCategory.whiskerLeft_apply, Rep.hom_apply]
+--     congr 1
+
+-- noncomputable def cup0NatTrans' (σ : H0 B) : functor R G 0 ⟶ tensorRight B ⋙ functor R G 0 where
+--   app A := ModuleCat.ofHom <| flip (cup0 A B) σ
+--   naturality {M N} φ := by
+--     dsimp
+--     ext x
+--     simp only [ModuleCat.hom_comp, ModuleCat.hom_ofHom, LinearMap.coe_comp, Function.comp_apply,
+--       flip_apply, cup0_apply, Action.tensorObj_V, Rep.tensor_ρ, Equivalence.symm_inverse,
+--       Action.functorCategoryEquivalence_functor, Action.FunctorCategoryEquivalence.functor_obj_obj,
+--       map_id_comp_H0Iso_hom_apply]
+--     -- need a right version of smallcommSq1
+--     -- conv_rhs => erw [← smallcommSq1_apply B φ]
+--     -- congr 1
+--     -- ext1
+--     -- simp only [map_id_comp_H0Iso_hom_apply, Rep.invariantsFunctor_map_hom, Action.tensorObj_V,
+--     --   Rep.tensor_ρ, Action.whiskerLeft_hom]
+--     -- conv_rhs => erw [codRestrict_apply]
+--     -- rw [LinearMap.comp_apply]
+--     -- erw [Submodule.subtype_apply]
+--     -- simp only [ModuleCat.MonoidalCategory.whiskerRight_apply, Rep.hom_apply]
+--     -- congr 1
+--     sorry
 
 structure IsCupProduct (map : (p q r : ℕ) → (h : r = p + q) → (A B : Rep R G) →
     groupCohomology A p ⊗ groupCohomology B q ⟶ groupCohomology (A ⊗ B) r) : Prop where
@@ -184,24 +281,22 @@ def cup1Aux0 (σ : H0 B) : H1 A ⟶ H1 (A ⊗ B) := by
   haveI : Epi (mapShortComplex₃ (shortExact_upSES A) (Nat.zero_add 1)).g :=
     δ_up_zero_epi A
   refine (mapShortComplex₃_exact (shortExact_upSES A) (Nat.zero_add 1)).desc
-    (((cup0NatTrans' B σ).app (up.obj A)) ≫
-    ((groupCohomology.functor R G _).mapIso (upTensor A B)).hom ≫
-    (δ (shortExact_upSES (A ⊗ B)) 0 1 rfl : _ ⟶ H1 (A ⊗ B))) ?_
+    ((ModuleCat.ofHom <| (TensorProduct.mk R (H0 (up.obj A)) _).flip σ) ≫
+      (cup0NatTrans.app ⟨up.obj A, B⟩) ≫ map (MonoidHom.id G) (upTensor A B).hom _
+      ≫ δ (shortExact_upSES (A ⊗ B)) 0 1 rfl) ?_
   change (functor R G 0).map (up.π _) ≫ _ = 0
-  rw [(cup0NatTrans' B σ).naturality_assoc (up.π A)]
-  dsimp only [Functor.comp_obj, Functor.flip_obj_obj,
-    curriedTensor_obj_obj, Functor.id_obj, coequalizer_as_cokernel, Functor.comp_map,
-    Functor.flip_obj_map, curriedTensor_map_app, Action.tensorObj_V, Rep.tensor_ρ,
-    Functor.mapIso_hom]
-  nth_rw 2 [← Category.assoc]
-  rw [commSq12]
-  simp only [up_obj, Functor.id_obj, Rep.coind₁'_obj, Action.tensorObj_V, Rep.tensor_ρ,
-    ModuleCat.of_coe, functor_obj, Functor.mapIso_hom, functor_map, coequalizer_as_cokernel,
+  rw [← Category.assoc, show (functor R G 0).map (up.π A) ≫ ModuleCat.ofHom
+    ((TensorProduct.mk R ↑(H0 (up.obj A)) ↑(H0 B)).flip σ) = (ModuleCat.ofHom <|
+    (TensorProduct.mk R (H0 (Rep.coind₁'.obj A)) (H0 B)).flip σ) ≫
+    groupCohomology.map (MonoidHom.id G) (up.π A) 0 ▷ H0 B by rfl,
     Category.assoc]
-  have := (mapShortComplex₃ (shortExact_upSES (A ⊗ B)) (Nat.zero_add 1)).zero
-  dsimp at this
-  change groupCohomology.map (MonoidHom.id G) _ 0 ≫ δ (shortExact_upSES (A ⊗ B)) 0 1 _ = 0 at this
-  simp [this]
+  nth_rw 2 [← Category.assoc]
+  rw [cup0_naturality_left (P := B) (up.π A), Category.assoc]
+  nth_rw 3 [← Category.assoc]
+  rw [← map_id_comp, upTensor_coind_comm, map_id_comp, Category.assoc]
+  have : groupCohomology.map (MonoidHom.id G) _ 0 ≫ δ (shortExact_upSES (A ⊗ B)) 0 1 _ = 0 :=
+    (mapShortComplex₃ (shortExact_upSES (A ⊗ B)) (Nat.zero_add 1)).zero
+  simp_all
 
 lemma cup1Aux0_add (σ1 σ2 : H0 B) : cup1Aux0 A B (σ1 + σ2) =
     cup1Aux0 A B σ1 + cup1Aux0 A B σ2 := by
@@ -209,34 +304,78 @@ lemma cup1Aux0_add (σ1 σ2 : H0 B) : cup1Aux0 A B (σ1 + σ2) =
     δ_up_zero_epi A
   rw [← cancel_epi (mapShortComplex₃ (shortExact_upSES A) (Nat.zero_add 1)).g]
   simp only [cup1Aux0, Preadditive.comp_add, ShortComplex.Exact.g_desc]
-  rw [map_add, ModuleCat.ofHom_add, Preadditive.add_comp]
+  rw [map_add, @ModuleCat.ofHom_add R _ (H0 (up.obj A))
+    (H0 (up.obj A) ⊗ H0 B), Preadditive.add_comp]
 
 lemma cup1Aux0_smul (r : R) (σ : H0 B) : cup1Aux0 A B (r • σ) = r • cup1Aux0 A B σ := by
   haveI : Epi (mapShortComplex₃ (shortExact_upSES A) (Nat.zero_add 1)).g :=
     δ_up_zero_epi A
   rw [← cancel_epi (mapShortComplex₃ (shortExact_upSES A) (Nat.zero_add 1)).g]
   simp only [cup1Aux0, ShortComplex.Exact.g_desc, Linear.comp_smul]
-  rw [map_smul, ModuleCat.ofHom_smul, Linear.smul_comp]
+  rw [map_smul, @ModuleCat.ofHom_smul R _ r (H0 (up.obj A)) (H0 (up.obj A) ⊗ _),
+    Linear.smul_comp]
 
 def cup1Aux : H0 B →ₗ[R] H1 A →ₗ[R] H1 (A ⊗ B) where
   toFun σ := (cup1Aux0 A B σ).hom
   map_add' := by simp [cup1Aux0_add]
   map_smul' := by simp [cup1Aux0_smul]
 
+lemma cup1Aux_apply (σ : H0 B) : cup1Aux A B σ = (cup1Aux0 A B σ).hom := rfl
+
+lemma cup1Aux_apply_apply (σ : H0 B) (x : H1 A) :
+    cup1Aux A B σ x = (cup1Aux0 A B σ).hom x := rfl
+
 abbrev cup1 : H1 A ⊗ H0 B ⟶ H1 (A ⊗ B) :=
   ModuleCat.ofHom <| TensorProduct.lift <| LinearMap.flip (cup1Aux A B)
 
-def cup1NatTrans (σ : H1 A) : functor R G 0 ⟶ tensorLeft A ⋙ functor R G 1  where
-  app B := ModuleCat.ofHom ((LinearMap.flip (cup1Aux A B)) σ : H0 B →ₗ[R] H1 (A ⊗ B))
+abbrev map_upSES_ofMap {M N : Rep R G} (f : M ⟶ N) : upSES M ⟶ upSES N where
+  τ₁ := f
+  τ₂ := Rep.coind₁'.map f
+  τ₃ := up.map f
+  comm₁₂ := by
+    ext
+    simp only [upSES_X₂, Rep.coind₁', upSES_X₁, upSES_f, Action.comp_hom, Rep.coind₁'_ι_app_hom,
+      Functor.id_obj, ModuleCat.hom_comp, ModuleCat.hom_ofHom, LinearMap.coe_comp, Rep.coe_hom,
+      Function.comp_apply]
+    ext
+    simp
+  comm₂₃ := by ext; simp
+
+def cup1NatTrans : .prod (functor R G 1) (functor R G 0) ⋙ tensor (ModuleCat R) ⟶
+    tensor (Rep R G) ⋙ functor R G 1  where
+  app AB := cup1 AB.1 AB.2
   naturality {M N} φ := by
-    -- choose σ' hσ' using
-    -- simp
+    dsimp
+    ext1
+    simp only [ModuleCat.hom_comp, ModuleCat.hom_ofHom, ModuleCat.hom_tensorHom]
+    refine TensorProduct.ext' fun (m1 : H1 M.1) (m2 : H0 M.2) ↦ ?_
+    simp only [LinearMap.coe_comp, Function.comp_apply]
+    erw [TensorProduct.lift.tmul, TensorProduct.lift.tmul]
+    simp only [flip_apply]
+    erw [cup1Aux_apply_apply]
+    conv_rhs => enter [2]; erw [cup1Aux_apply_apply]
+    simp only [← LinearMap.comp_apply, ← ModuleCat.hom_comp]
+    congr 2
+    haveI : Epi (mapShortComplex₃ (shortExact_upSES M.1) (Nat.zero_add 1)).g :=
+      δ_up_zero_epi M.1
+    rw [← cancel_epi (mapShortComplex₃ (shortExact_upSES M.1) (Nat.zero_add 1)).g]
+    conv_rhs => rw [cup1Aux0, ShortComplex.Exact.g_desc_assoc]
+    dsimp
+    change δ (shortExact_upSES M.1) 0 1 rfl ≫ _ = _
+    have := groupCohomology.δ_naturality (shortExact_upSES M.1) (shortExact_upSES N.1)
+      (map_upSES_ofMap φ.1) 0 1 rfl
+    rw [← Category.assoc, this, Category.assoc]
+    change _ ≫ (mapShortComplex₃ (shortExact_upSES N.1) (Nat.zero_add 1)).g ≫ _ = _
+    rw [cup1Aux0, ShortComplex.Exact.g_desc]
+    -- apply_fun ((δ (shortExact_upSES N.1) 0 1 rfl).hom ·) using by sorry
+    -- simp [cup1Aux0]
+
+
+    -- erw [TensorProduct.map_tmul]
     sorry
--- lemma quantum (M N : Rep R G) (φ : M ⟶ N) (σ : H1 A) : (ModuleCat.ofHom (cup1Aux A M).flip σ) ≫
---     groupCohomology.map (MonoidHom.id G) _ 1
 
 
-
+#exit
 open TensorProduct in
 lemma smallcommSq2 : up.obj A ◁ up.π B ≫ (upTensor A (up.obj B)).hom =
     (upTensor A _).hom ≫ up.map (A ◁ up.π B) := by
@@ -305,6 +444,7 @@ abbrev tensorShortComplexHom : (upSES (A ⊗ Rep.of B.ρ.coind₁')) ⟶ (upSES 
     erw [lTensor_tmul]
   comm₂₃ := by simp
 
+#exit
 open TensorProduct in
 set_option maxHeartbeats 400000 in -- richard did this
 lemma commSq11' (σ : H1 A) : @groupCohomology.map R G G _ _ _ (Rep.of B.ρ.coind₁') (up.obj B)
