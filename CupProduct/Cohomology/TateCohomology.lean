@@ -263,13 +263,13 @@ variable (M : Rep R G)
 namespace zeroIso
 
 /-- The concrete short complex computing `0`-th Tate cohomology. -/
-@[simps] private def sc : ShortComplex (ModuleCat R) :=
+@[simps] protected def sc : ShortComplex (ModuleCat R) :=
   .mk M.norm.hom (d₀₁ M) (norm_comp_d_eq_zero M)
 
 /-- The isomorphism between the concrete short complex computing `0`-th Tate cohomology
   and the corresponding parts of the Tate complex. -/
-@[simps!] private def isoShortComplexH0 :
-    (tateComplex M).sc 0 ≅ sc M :=
+@[simps!] protected def isoShortComplexH0 :
+    (tateComplex M).sc 0 ≅ groupCohomology.TateCohomology.zeroIso.sc M :=
   (tateComplex M).isoSc' (-1) 0 1 (by simp) (by simp) ≪≫
     ShortComplex.isoMk (by exact chainsIso₀ M) (cochainsIso₀ M) (cochainsIso₁ M)
       (by simp [tateComplex_d_neg_one, tateNorm]) (comp_d₀₁_eq M)

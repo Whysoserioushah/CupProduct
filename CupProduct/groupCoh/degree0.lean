@@ -1,19 +1,18 @@
-import CupProduct.Cohomology.AugmentationModule
-import CupProduct.Cohomology.Functors.UpDown
+import Mathlib.RepresentationTheory.Homological.GroupCohomology.Functoriality
 import Mathlib.LinearAlgebra.TensorProduct.RightExactness
 
-open CategoryTheory Rep.leftRegular MonoidalCategory groupCohomology
+open CategoryTheory MonoidalCategory groupCohomology
 
 variable (R G : Type u) [CommRing R] [Group G]
 
-instance : HasForget₂ (Rep R G) Ab := .trans (Rep R G) (ModuleCat R) Ab
+-- instance : HasForget₂ (Rep R G) Ab := .trans (Rep R G) (ModuleCat R) Ab
 
-instance : (forget₂ (Rep R G) Ab).Additive :=
-  inferInstanceAs (_ ⋙ _).Additive
+-- instance : (forget₂ (Rep R G) Ab).Additive :=
+--   inferInstanceAs (_ ⋙ _).Additive
 
-instance : (forget₂ (Rep R G) Ab).PreservesHomology :=
-  { preservesKernels _ _ _ := Limits.comp_preservesLimit _ _
-    preservesCokernels _ _ _:= Limits.comp_preservesColimit _ _ }
+-- instance : (forget₂ (Rep R G) Ab).PreservesHomology :=
+--   { preservesKernels _ _ _ := Limits.comp_preservesLimit _ _
+--     preservesCokernels _ _ _:= Limits.comp_preservesColimit _ _ }
 
 noncomputable section
 
@@ -269,7 +268,7 @@ lemma cup0Right_unitor {X : Rep R G} : H0 X ◁ (H0IsoOfIsTrivial (Rep.trivial R
 open TensorProduct
 
 theorem cup0_assoc (X Y Z : Rep R G) :
-  ((cup0NatTrans R G).app X).app Y ▷ (functor R G 0).obj Z ≫
+    ((cup0NatTrans R G).app X).app Y ▷ (functor R G 0).obj Z ≫
       ((cup0NatTrans R G).app (X ⊗ Y)).app Z ≫ (functor R G 0).map (α_ X Y Z).hom =
     (α_ ((functor R G 0).obj X) ((functor R G 0).obj Y) ((functor R G 0).obj Z)).hom ≫
       (functor R G 0).obj X ◁ ((cup0NatTrans R G).app Y).app Z ≫
