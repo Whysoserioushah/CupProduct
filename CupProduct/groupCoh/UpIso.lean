@@ -48,8 +48,6 @@ instance : (forget₂ (Rep R G) Ab).PreservesHomology :=
   { preservesKernels _ _ _ := Limits.comp_preservesLimit _ _
     preservesCokernels _ _ _:= Limits.comp_preservesColimit _ _ }
 
-variable (A : Rep R G) in
-#synth (tensorRight A).Additive
 open ShortComplex
 
 def split_upSES' [Fintype G] : (((upSES₀ R G).map (tensorRight A)).map (forget₂ (Rep R G)
@@ -176,21 +174,21 @@ def tensorToFun (A : Rep R G) : leftRegular R G ⊗ A ⟶ coind₁'.obj A where
       RingEquiv.coe_mk, Equiv.coe_fn_mk, Function.comp_apply, ModuleCat.hom_ofHom, ρ_hom]
     refine TensorProduct.ext' fun f a ↦ ?_
     simp only [LinearMap.coe_comp, Function.comp_apply, lift.tmul, tensorToFun'_apply]
-
     conv_lhs => enter [2]; erw [map_tmul]
     erw [lift.tmul]
     ext
     simp
 
-instance [Fintype G] (C : Rep R G) : Epi ((upSES₀ R G).map (tensorRight C)).g := by
-  simp only [upSES₀, map_X₂, Functor.flip_obj_obj, curriedTensor_obj_obj, map_X₃, map_g,
-    Functor.flip_obj_map, curriedTensor_map_app, Rep.epi_iff_surjective, Action.tensorObj_V,
-    Action.whiskerRight_hom]
-  change Function.Surjective (ModuleCat.Hom.hom _)
-  rw [ModuleCat.hom_whiskerRight]
-  exact LinearMap.rTensor_surjective _ (Rep.epi_iff_surjective _|>.1 coequalizer.π_epi)
+-- instance [Fintype G] (C : Rep R G) : Epi ((upSES₀ R G).map (tensorRight C)).g := by
+--   simp only [upSES₀, map_X₂, Functor.flip_obj_obj, curriedTensor_obj_obj, map_X₃, map_g,
+--     Functor.flip_obj_map, curriedTensor_map_app, Rep.epi_iff_surjective, Action.tensorObj_V,
+--     Action.whiskerRight_hom]
+--   change Function.Surjective (ModuleCat.Hom.hom _)
+--   rw [ModuleCat.hom_whiskerRight]
+--   exact LinearMap.rTensor_surjective _ (Rep.epi_iff_surjective _|>.1 coequalizer.π_epi)
 
 def coaugTensorToUp [Fintype G] (A : Rep R G) : coaug R G ⊗ A ⟶ up.obj A :=
+  haveI : Epi ((upSES₀ R G).map (tensorRight A)).g := (shortExact_upSES' R G).3
   (exact_upSES' R G).desc (tensorToFun A ≫ cokernel.π _) <| by
   ext : 2
   simp only [upSES₀, map_X₁, Functor.flip_obj_obj, curriedTensor_obj_obj, Action.tensorObj_V,
@@ -265,14 +263,27 @@ def coindIsoTensor [Fintype G] (A : Rep R G) : coind₁'.obj A ≅ leftRegular R
   hom_inv_id := tensorToFun_mapToTensor A
   inv_hom_id := mapToTensor_tensorToFun A
 
+def coindIsoTensorFunctor [Fintype G] : coind₁' ≅ tensorLeft (leftRegular R G) :=
+  NatIso.ofComponents coindIsoTensor fun {X Y} f ↦ by
+    simp only [coind₁'_obj, curriedTensor_obj_obj, coindIsoTensor_hom, curriedTensor_obj_map]
+    ext (x : G → X.V)
+    simp [coind₁', ModuleCat.hom_whiskerLeft, ModuleCat.MonoidalCategory.tensorObj_carrier,
+      (mapToTensorLinear_apply)]
+
+@[reassoc]
+lemma mapToTensor_naturality [Fintype G] {X Y : Rep R G} (f : X ⟶ Y) :
+    coind₁'.map f ≫ mapToTensor Y = mapToTensor X ≫ leftRegular R G ◁ f :=
+  @coindIsoTensorFunctor R G _ _ _ |>.hom.naturality f
+
+set_option linter.unusedFintypeInType false
+
+@[reassoc]
+lemma tensorToFun_naturality [Fintype G] {X Y : Rep R G} (f : X ⟶ Y) :
+    leftRegular R G ◁ f ≫ tensorToFun Y = tensorToFun X ≫ coind₁'.map f :=
+  @coindIsoTensorFunctor R G _ _ _ |>.inv.naturality f
+
 lemma inv_comp_upToTensor [Fintype G] (A : Rep R G) : coaugTensorToUp A ≫ upToTensor A = 𝟙 _ := by
-  haveI : Epi ((upSES₀ R G).map (tensorRight A)).g := by
-    simp only [upSES₀, map_X₂, Functor.flip_obj_obj, curriedTensor_obj_obj, map_X₃, map_g,
-      Functor.flip_obj_map, curriedTensor_map_app, Rep.epi_iff_surjective, Action.tensorObj_V,
-      Action.whiskerRight_hom]
-    change Function.Surjective (ModuleCat.Hom.hom _)
-    rw [ModuleCat.hom_whiskerRight]
-    exact LinearMap.rTensor_surjective _ (Rep.epi_iff_surjective _|>.1 coequalizer.π_epi)
+  haveI : Epi ((upSES₀ R G).map (tensorRight A)).g := (shortExact_upSES' R G).3
   simp only [up_obj, Functor.id_obj, coind₁'_obj, coaugTensorToUp, map_X₂, Functor.flip_obj_obj,
     curriedTensor_obj_obj, upToTensor, upSES_X₂]
   rw [← cancel_epi ((upSES₀ R G).map (tensorRight A)).g, ← Category.assoc, Exact.g_desc]
@@ -291,9 +302,42 @@ def upIsoCoaugTensor [Fintype G] (A : Rep R G) : up.obj A ≅ coaug R G ⊗ A wh
   hom_inv_id := upToTensor_comp_inv A
   inv_hom_id := inv_comp_upToTensor A
 
+def upIsoCoaugTensorFunctor [Fintype G] : up ≅ tensorLeft (coaug R G) :=
+  NatIso.ofComponents upIsoCoaugTensor fun {X Y} f ↦ by
+    simp only [curriedTensor_obj_obj, up_map, upIsoCoaugTensor_hom,
+      upToTensor, upSES_X₂, curriedTensor_obj_map]
+    rw [← cancel_epi (up.π X), cokernel.π_desc_assoc, Category.assoc]
+    change _ ≫ (upSES Y).g ≫ _ = (upSES X).g ≫ _
+    rw [Exact.g_desc, Exact.g_desc_assoc, mapToTensor_naturality_assoc,
+      Category.assoc, whisker_exchange]
+    rfl
+
+@[reassoc]
+lemma upToTensor_naturality [Fintype G] {X Y : Rep R G} (f : X ⟶ Y) :
+    up.map f ≫ upToTensor Y = upToTensor X ≫ coaug R G ◁ f :=
+  upIsoCoaugTensorFunctor (R := R) (G := G)|>.hom.naturality f
+
+@[reassoc]
+lemma coaugTensorToUp_naturality [Fintype G] {X Y : Rep R G} (f : X ⟶ Y) :
+    (coaug R G) ◁ f ≫ coaugTensorToUp Y = coaugTensorToUp X ≫ up.map f :=
+  upIsoCoaugTensorFunctor (R := R) (G := G)|>.inv.naturality f
+
 def coindTensor [Fintype G] (A B : Rep R G) : coind₁'.obj A ⊗ B ≅ coind₁'.obj (A ⊗ B) :=
   MonoidalCategory.whiskerRightIso (coindIsoTensor A) _ ≪≫ α_ _ _ _ ≪≫
     (coindIsoTensor (A ⊗ B)).symm
+
+def coindTensorFunc [Fintype G] (B : Rep R G) :
+    coind₁' ⋙ tensorRight B ≅ tensorRight B ⋙ coind₁' :=
+  NatIso.ofComponents (fun A ↦ coindTensor A B) fun {X Y} f ↦ by
+    dsimp [coindTensor]
+    rw [← comp_whiskerRight_assoc, mapToTensor_naturality, comp_whiskerRight_assoc,
+      associator_naturality_middle_assoc, tensorToFun_naturality,
+      Category.assoc, Category.assoc]
+
+@[reassoc]
+lemma coindTensor_naturality [Fintype G] (B : Rep R G) {X Y : Rep R G} (f : X ⟶ Y) :
+    coind₁'.map f ▷ B ≫ (coindTensor Y B).hom = (coindTensor X B).hom ≫ coind₁'.map (f ▷ B) :=
+  coindTensorFunc B|>.hom.naturality f
 
 abbrev coindTensor' [Fintype G] (A B : Rep R G) : A ⊗ coind₁'.obj B ≅ coind₁'.obj (A ⊗ B) :=
   (β_ _ _) ≪≫ coindTensor B A ≪≫ coind₁'.mapIso (β_ _ _)
@@ -301,6 +345,17 @@ abbrev coindTensor' [Fintype G] (A B : Rep R G) : A ⊗ coind₁'.obj B ≅ coin
 def upTensor [Fintype G] (A B : Rep R G) : up.obj A ⊗ B ≅ up.obj (A ⊗ B) :=
   MonoidalCategory.whiskerRightIso (upIsoCoaugTensor A) _ ≪≫ α_ _ _ _ ≪≫
     (upIsoCoaugTensor (A ⊗ B)).symm
+
+def upTensorFunc [Fintype G] (B : Rep R G) : up ⋙ tensorRight B ≅ tensorRight B ⋙ up :=
+  NatIso.ofComponents (fun A ↦ upTensor A B) fun {X Y} f ↦ by
+    dsimp [-up_obj, -up_map, upTensor]
+    rw [← comp_whiskerRight_assoc, upToTensor_naturality, comp_whiskerRight_assoc,
+      associator_naturality_middle_assoc, coaugTensorToUp_naturality,
+      Category.assoc, Category.assoc]
+
+lemma upTensor_naturality [Fintype G] (B : Rep R G) {X Y : Rep R G} (f : X ⟶ Y) :
+    up.map f ▷ B ≫ (upTensor Y B).hom = (upTensor X B).hom ≫ up.map (f ▷ B) :=
+  upTensorFunc B|>.hom.naturality f
 
 abbrev upTensor' [Fintype G] (A B : Rep R G) : A ⊗ up.obj B ≅ up.obj (A ⊗ B) :=
   (β_ _ _) ≪≫ upTensor B A ≪≫ up.mapIso (β_ _ _)
@@ -311,9 +366,9 @@ lemma upTensor_coind_comm [Fintype G] (A B : Rep R G) :
   simp only [coequalizer_as_cokernel, Functor.id_obj, upTensor, Iso.trans_hom, whiskerRightIso_hom,
     upIsoCoaugTensor_hom, Iso.symm_hom, upIsoCoaugTensor_inv, coindTensor, coindIsoTensor_hom,
     coindIsoTensor_inv, Category.assoc]
-  rw [← Category.assoc, ← comp_whiskerRight, upToTensor]
+  rw [← comp_whiskerRight_assoc, upToTensor]
   change ((upSES A).g ≫ _) ▷ B ≫ _ = _
-  rw [Exact.g_desc, comp_whiskerRight, Category.assoc]
+  rw [Exact.g_desc, comp_whiskerRight_assoc]
   nth_rw 2 [← Category.assoc]
   unfold coaug
   rw [associator_naturality_left, Category.assoc, coaugTensorToUp]

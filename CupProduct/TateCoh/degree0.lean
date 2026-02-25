@@ -1,5 +1,6 @@
 import CupProduct.Cohomology.TateCohomology
 import CupProduct.Cohomology.Functors.UpDown
+import CupProduct.groupCoh.UpIso
 import CupProduct.groupCoh.degree0
 
 open CategoryTheory groupCohomology MonoidalCategory Rep.dimensionShift
@@ -101,15 +102,19 @@ def Rep.invariantsQuotFunctor : Rep R G ⥤ ModuleCat R where
 
 #check δUpIsoTate
 
--- def CupProduct (A B : Rep R G) (p q r : ℤ) (h : r = p + q) :
---     (tateCohomology p).obj A ⊗ (tateCohomology q).obj B ⟶ (tateCohomology r).obj (A ⊗ B) :=
---   match p, q with
---   | 0, 0 => cup0' A B ≫ eqToHom (by rw [h, zero_add])
---   | Nat.succ n, q => (δUpIsoTate A n).inv ▷ _ ≫ CupProduct (up.obj A) B n q (n + q) rfl ≫ (tateCohomology (n + q)).map _ ≫ _
---   | _, Nat.succ n => sorry
---   | Int.negSucc n, _ => sorry
---   | _, Int.negSucc n => sorry
--- def cup
+-- what is this error about termination??
+unsafe def CupProduct (A B : Rep R G) (p q r : ℤ) (h : r = p + q) :
+    (tateCohomology p).obj A ⊗ (tateCohomology q).obj B ⟶ (tateCohomology r).obj (A ⊗ B) :=
+  match p, q with
+  | 0, 0 => cup0' A B ≫ eqToHom (by rw [h, zero_add])
+  | Nat.succ n, q => (δUpIsoTate A n).inv ▷ _ ≫ CupProduct (up.obj A) B n q (n + q) rfl ≫
+      (tateCohomology (n + q)).map (upTensor A B).hom ≫ (δUpIsoTate (A ⊗ B) (n + q)).hom ≫
+      eqToHom (by rw [h, add_assoc, add_comm q 1, ← add_assoc, Nat.cast_succ])
+  | p, Nat.succ n => sorry
+  | Int.negSucc n, q => sorry
+  | _, Int.negSucc n => sorry
+  -- decreasing_by
+  --   sorry
 
 #exit
 abbrev TateCohomology.π (A : Rep R G) (n : ℕ) :

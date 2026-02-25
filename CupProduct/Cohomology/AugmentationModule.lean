@@ -38,7 +38,9 @@ open
   groupCohomology
   BigOperators
 
-variable (R G : Type) [CommRing R] [Group G]
+universe u
+
+variable (R G : Type u) [CommRing R] [Group G]
 
 noncomputable section AugmentationModule
 
@@ -112,7 +114,7 @@ The sequence
 
 is a short exact sequence of `H`-modules for any `H →* G`.
 -/
-lemma aug_isShortExact' {H : Type} [Group H] (φ : H →* G) :
+lemma aug_isShortExact' {H : Type u} [Group H] (φ : H →* G) :
     ((aug_shortExactSequence R G).map (res φ)).ShortExact :=
   CategoryTheory.ShortComplex.ShortExact.map_of_exact (aug_isShortExact R G) _
 
@@ -222,7 +224,7 @@ lemma H2_aug_isZero [Fintype G] [IsAddTorsionFree R] : IsZero (H2 (aug R G)) :=
 If `H` is a subgroup of a finite group `G` then the connecting homomorphism
 from `Hⁿ⁺¹(H,R)` to `Hⁿ⁺²(H,aug R G)` is an isomorphism.
 -/
-lemma cohomology_aug_succ_iso' [Fintype G] {H : Type} [Group H] {φ : H →* G}
+lemma cohomology_aug_succ_iso' [Fintype G] {H : Type u} [Group H] {φ : H →* G}
     (inj : Function.Injective φ) (n : ℕ) :
     IsIso (δ (aug_isShortExact' R G φ) (n + 1) (n + 2) rfl) :=
   /-
@@ -301,9 +303,7 @@ def H1_iso [Fintype G] :
   The image of such a function in `H⁰(H,R)` is `|H|`, since every element of the
   group is mapped by `ε` to `1`.
   -/
-
-set_option maxHeartbeats 400000 in -- sorry
-def H1_iso' [Fintype G] {H : Type} [Group H] [Fintype H] {φ : H →* G}
+def H1_iso' [Fintype G] {H : Type u} [Group H] [Fintype H] {φ : H →* G}
     (inj : Function.Injective φ) :
     H1 (aug R G ↓ φ) ≅ ModuleCat.of R (R ⧸ Ideal.span {(Nat.card H : R)}) := by
   have := Rep.trivialCohomology_iff_res.1 (trivialCohomology R G) φ inj
