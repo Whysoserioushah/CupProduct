@@ -1,5 +1,6 @@
 import CupProduct.Cohomology.AugmentationModule
 import CupProduct.Cohomology.Functors.UpDown
+import CupProduct.groupCoh.Rep
 import Mathlib.LinearAlgebra.TensorProduct.RightExactness
 
 open CategoryTheory Rep.leftRegular MonoidalCategory
@@ -38,15 +39,6 @@ def split_upSES₀_forget [Fintype G] : ((upSES₀ R G).map (forget₂ (Rep R G)
     (ModuleCat.ofHom <| upSES₀_retract R G) (by ext; simp [upSES₀, μ, of]) <| by
   haveI := (shortExact_upSES₀ R G).3
   simpa using Rep.instEpiModuleCatHom _
-
-instance : HasForget₂ (Rep R G) Ab := .trans (Rep R G) (ModuleCat R) Ab
-
-instance : (forget₂ (Rep R G) Ab).Additive :=
-  inferInstanceAs (_ ⋙ _).Additive
-
-instance : (forget₂ (Rep R G) Ab).PreservesHomology :=
-  { preservesKernels _ _ _ := Limits.comp_preservesLimit _ _
-    preservesCokernels _ _ _:= Limits.comp_preservesColimit _ _ }
 
 open ShortComplex
 
