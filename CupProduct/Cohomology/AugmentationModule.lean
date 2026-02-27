@@ -376,6 +376,21 @@ lemma _root_.Rep.quotient_V {G} [Monoid G] (A : Rep R G) (W : Submodule R A) (h 
     Submodule.comap (A.ρ g) W) : (Rep.quotient A W h).V = (A.V ⧸ W) := by
   simp
 
+noncomputable def _root_.Rep.forgetKernelIso {R G : Type u} [CommRing R] [Group G] {A B : Rep R G}
+    (f : A ⟶ B) : (Limits.kernel f).V ≅ Limits.kernel f.hom :=
+  (preservesLimitIso (forget₂ (Rep R G) (ModuleCat R)) (Limits.parallelPair f 0)).trans
+    (Limits.HasLimit.isoOfNatIso (Limits.parallelPair.ext (Iso.refl _) (Iso.refl _)
+      (by simp [forget₂_map]) (by simp)))
+
+lemma kernel_ι_comp_forgetKernelIso {R G : Type u} [CommRing R] [Group G]
+    {A B : Rep R G} (f : A ⟶ B) : (forgetKernelIso f).hom ≫ Limits.kernel.ι f.hom =
+    (Limits.kernel.ι f).hom := by
+  simp [forgetKernelIso]
+
+lemma forgetKernelIso_inv_comp_kernel_ι {R G : Type u} [CommRing R] [Group G] {A B : Rep R G}
+    (f : A ⟶ B) : (forgetKernelIso f).inv ≫ (Limits.kernel.ι f).hom = Limits.kernel.ι f.hom := by
+  rw [← kernel_ι_comp_forgetKernelIso, Iso.inv_hom_id_assoc]
+
 /-- The forgetful functor from `Rep R G` to `ModuleCat R` preserves cokernels,
 giving an isomorphism between the underlying module of the cokernel and
 the cokernel of the underlying module map. -/

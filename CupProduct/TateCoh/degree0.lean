@@ -100,10 +100,8 @@ def Rep.invariantsQuotFunctor : Rep R G ⥤ ModuleCat R where
     simpa [← ha] using LinearMap.ext_iff.1 congr(ModuleCat.Hom.hom
       $(congr(Action.Hom.hom $(A.norm_comm f)))) a
 
-#check δUpIsoTate
-
 -- what is this error about termination??
-unsafe def CupProduct (A B : Rep R G) (p q r : ℤ) (h : r = p + q) :
+def CupProduct (A B : Rep R G) (p q r : ℤ) (h : r = p + q) :
     (tateCohomology p).obj A ⊗ (tateCohomology q).obj B ⟶ (tateCohomology r).obj (A ⊗ B) :=
   match p, q with
   | 0, 0 => cup0' A B ≫ eqToHom (by rw [h, zero_add])
@@ -113,8 +111,9 @@ unsafe def CupProduct (A B : Rep R G) (p q r : ℤ) (h : r = p + q) :
   | p, Nat.succ n => sorry
   | Int.negSucc n, q => sorry
   | _, Int.negSucc n => sorry
-  -- decreasing_by
-  --   sorry
+  termination_by p.natAbs
+    -- grind
+    -- sorry
 
 #exit
 abbrev TateCohomology.π (A : Rep R G) (n : ℕ) :
