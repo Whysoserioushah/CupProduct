@@ -376,6 +376,8 @@ lemma _root_.Rep.quotient_V {G} [Monoid G] (A : Rep R G) (W : Submodule R A) (h 
     Submodule.comap (A.ρ g) W) : (Rep.quotient A W h).V = (A.V ⧸ W) := by
   simp
 
+-- for any Cat that has a forgetful functor to ModuleCat R, there is an iso
+-- between (forget₂ _ _).obj (Limits.kernel f) and Limits.kernel ((forget₂ _ _).map f)
 noncomputable def _root_.Rep.forgetKernelIso {R G : Type u} [CommRing R] [Group G] {A B : Rep R G}
     (f : A ⟶ B) : (Limits.kernel f).V ≅ Limits.kernel f.hom :=
   (preservesLimitIso (forget₂ (Rep R G) (ModuleCat R)) (Limits.parallelPair f 0)).trans
@@ -387,6 +389,7 @@ lemma kernel_ι_comp_forgetKernelIso {R G : Type u} [CommRing R] [Group G]
     (Limits.kernel.ι f).hom := by
   simp [forgetKernelIso]
 
+@[reassoc]
 lemma forgetKernelIso_inv_comp_kernel_ι {R G : Type u} [CommRing R] [Group G] {A B : Rep R G}
     (f : A ⟶ B) : (forgetKernelIso f).inv ≫ (Limits.kernel.ι f).hom = Limits.kernel.ι f.hom := by
   rw [← kernel_ι_comp_forgetKernelIso, Iso.inv_hom_id_assoc]

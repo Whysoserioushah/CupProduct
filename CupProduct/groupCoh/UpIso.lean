@@ -372,3 +372,5 @@ lemma upTensor_coind_comm' [Fintype G] (A B : Rep R G) :
   dsimp only [upTensor', coindTensor', Iso.trans_hom]
   rw [BraidedCategory.braiding_naturality_right_assoc, upTensor_coind_comm_assoc]
   simp
+
+-- TODO : make a shortcomplex iso between upSES (functor version) and (upSES₀ functor)

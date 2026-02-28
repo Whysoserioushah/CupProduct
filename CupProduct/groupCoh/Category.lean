@@ -19,13 +19,10 @@ abbrev upCat : C ⥤ C := tensorLeft RGSES.X₃
 def μNatIso (M : C) : tensorRight M ⋙ F ≅ F ⋙ tensorRight (F.obj M) :=
   NatIso.ofComponents (fun X ↦ hF.μIso _ X _|>.symm)
 
-#check ShortComplex.map_comp
 def Isoμ_shortComplex (M : C) : (RGSES.map (tensorRight M) |>.map F) ≅
     (RGSES.map F).map (tensorRight <|F.obj M) := by
   rw [← ShortComplex.map_comp, ← ShortComplex.map_comp]
   exact ShortComplex.mapNatIso _ <| μNatIso _ _ _ _
-  -- eqToIso _ ≪≫ ShortComplex.mapNatIso (RGSES.map (tensorRight M ⋙ F)) _ ≪≫
-  --   eqToIso (ShortComplex.map_comp RGSES (tensorRight M) F)
 
 def splitAux (M : C) : ((RGSES.map F).map (tensorRight (F.obj M))).Splitting where
   r := h1.r ▷ F.obj M
@@ -128,11 +125,67 @@ noncomputable def ShortComplex.toHomotopyCatSc : ShortComplex C ⥤
         Hzero.mapHomotopy <|
           InjectiveResolution.descCompHomotopy _ _ _ _ _
 
-lemma ShortComplex.toHomotopyCatSc.map_exact {S : ShortComplex C} (hS : S.ShortExact) :
-    ((ShortComplex.toHomotopyCatSc C D Hzero).obj S).ShortExact where
-  exact := sorry
-  mono_f := sorry
-  epi_g := sorry
+variable {C}
+def myX2 {S : ShortComplex C} (hS : S.ShortExact) (I1 : InjectiveResolution S.X₁)
+  (I3 : InjectiveResolution S.X₃) : InjectiveResolution S.X₂ := sorry
+
+noncomputable def ShortExact.mapInjectiveResol {S : ShortComplex C} (hS : S.ShortExact) :
+    ShortComplex (CochainComplex C ℕ) where
+  X₁ := (InjectiveResolution.of S.X₁).cocomplex
+  X₂ := (myX2 hS (InjectiveResolution.of S.X₁) (InjectiveResolution.of S.X₃)).cocomplex
+  X₃ := (InjectiveResolution.of S.X₃).cocomplex
+  f := sorry
+  g := sorry
+  zero := sorry
+
+lemma ShortExact.mapInjectiveResol_shortExact {S : ShortComplex C} (hS : S.ShortExact) :
+    ((ShortExact.mapInjectiveResol hS).map
+    (Hzero.mapHomologicalComplex (ComplexShape.up ℕ))).ShortExact := sorry
+
+#check DerivedCategory.triangleOfSES
+#check homologySequenceComposableArrows₅
+-- def
+#check CategoryTheory.ShortComplex.ShortExact.δ
+
+#check rightDerived
+
+#check groupCohomology.δ
+#check CategoryTheory.ShortComplex.SnakeInput.naturality_δ
+#check HomologicalComplex.HomologySequence.δ_naturality
+-- there is groupCohomology.δ_naturality in CFT need to be imported here
+noncomputable def Category.upIso (i j : ℕ) (h : j = i + 1) :
+    ((ShortExact.mapInjectiveResol (shortExact_upCat C E F RGSES h1 M)).map
+    (Hzero.mapHomologicalComplex (ComplexShape.up ℕ))).X₃.homology (i + 1) ≅
+    ((ShortExact.mapInjectiveResol (shortExact_upCat C E F RGSES h1 M)).map
+    (Hzero.mapHomologicalComplex (ComplexShape.up ℕ))).X₁.homology (j + 1) := by
+  have h0 := ShortComplex.ShortExact.homology_exact₁ (ShortExact.mapInjectiveResol_shortExact
+    D Hzero (shortExact_upCat C E F RGSES h1 M)) j (j + 1) rfl
+  have h0' := ShortComplex.ShortExact.homology_exact₃ (ShortExact.mapInjectiveResol_shortExact
+    D Hzero (shortExact_upCat C E F RGSES h1 M))
+  have zero' := by simpa using (h3 j).obj M
+  simp only [ShortComplex.map_X₃, ShortComplex.map_X₁, ShortComplex.map_X₂,
+    ShortComplex.map_f] at h0
+  unfold ShortExact.mapInjectiveResol at h0 h0' ⊢
+  simp only [ShortComplex.map_X₁, flip_obj_obj, curriedTensor_obj_obj, ShortComplex.map_X₂,
+    ShortComplex.map_X₃] at h0
+  have := by simpa using InjectiveResolution.isoRightDerivedObj (myX2 (shortExact_upCat C E F
+    RGSES h1 M) (InjectiveResolution.of _) (InjectiveResolution.of _)) Hzero (j + 1)
+
+  have hEpi := by simpa using ShortComplex.Exact.epi_f h0 (IsZero.eq_zero_of_tgt
+    (IsZero.of_iso zero' this.symm) _)
+  simp only [ComplexShape.up_Rel, ShortComplex.map_X₁, flip_obj_obj, curriedTensor_obj_obj,
+    ShortComplex.map_X₂, ShortComplex.map_X₃, ShortComplex.map_g] at h0'
+  specialize h0' j (j + 1) rfl
+  have zero'' := by simpa [← h] using (h3 i).obj M
+  have e := by simpa using InjectiveResolution.isoRightDerivedObj (myX2 (shortExact_upCat C E F
+    RGSES h1 M) (InjectiveResolution.of _) (InjectiveResolution.of _)) Hzero j
+  have := by simpa using ShortComplex.Exact.mono_g h0' (IsZero.eq_zero_of_src
+    (IsZero.of_iso zero'' e.symm) _)
+  have := @CategoryTheory.isIso_of_mono_of_epi _ _ _ _ _ _ this hEpi
+  simp only [ShortComplex.map_X₁, flip_obj_obj, curriedTensor_obj_obj, ShortComplex.map_X₂,
+    ShortComplex.map_X₃, ← h]
+  exact @asIso _ _ _ _ _ this
+
 
 -- write one instance for enough injectives for Rep passing equivalence to R[G]-Mod
 
