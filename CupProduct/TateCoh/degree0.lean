@@ -1,6 +1,7 @@
 import CupProduct.Cohomology.TateCohomology
 import CupProduct.Cohomology.Functors.UpDown
 import CupProduct.groupCoh.UpIso
+import CupProduct.groupCoh.DownIso
 import CupProduct.groupCoh.degree0
 
 open CategoryTheory groupCohomology MonoidalCategory Rep.dimensionShift
@@ -109,11 +110,13 @@ def CupProduct (A B : Rep R G) (p q r : ℤ) (h : r = p + q) :
       (tateCohomology (n + q)).map (upTensor A B).hom ≫ (δUpIsoTate (A ⊗ B) (n + q)).hom ≫
       eqToHom (by rw [h, add_assoc, add_comm q 1, ← add_assoc, Nat.cast_succ])
   | p, Nat.succ n => sorry
-  | Int.negSucc n, q => sorry
+  | Int.negSucc n, q => (δDownIsoTate A (Int.negSucc n)).hom ▷ _ ≫ CupProduct (down.obj A) B
+      (Int.negSucc n + 1) q (-n + q) (by omega) ≫ (tateCohomology (-n + q)).map
+      (downTensorIso A B).hom ≫ eqToHom (by rw [sub_add, sub_self, sub_zero]) ≫
+      (δDownIsoTate (A ⊗ B) (-n + q - 1)).inv ≫ eqToHom (by
+      rw [h, Int.negSucc_eq, neg_add, add_assoc, add_comm (-1), ← add_assoc, ← sub_eq_add_neg])
   | _, Int.negSucc n => sorry
   termination_by p.natAbs
-    -- grind
-    -- sorry
 
 #exit
 abbrev TateCohomology.π (A : Rep R G) (n : ℕ) :
