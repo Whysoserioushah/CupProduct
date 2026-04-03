@@ -1,4 +1,3 @@
-import CupProduct.Basic
 import CupProduct.Cohomology.AugmentationModule
 import CupProduct.Cohomology.FiniteCyclic.ExplicitTate
 import CupProduct.Cohomology.FiniteCyclic.HerbrandQuotient.Defs
@@ -77,3 +76,11 @@ import CupProduct.Mathlib.RingTheory.RootsOfUnity.PrimitiveRoots
 import CupProduct.Mathlib.RingTheory.Unramified.Basic
 import CupProduct.Mathlib.RingTheory.Unramified.LocalRing
 import CupProduct.Mathlib.SetTheory.Cardinal.Finite
+import CupProduct.Old.Basic
+import CupProduct.Old.Useless
+import CupProduct.TateCoh.degree0
+import CupProduct.groupCoh.Category
+import CupProduct.groupCoh.DownIso
+import CupProduct.groupCoh.Rep
+import CupProduct.groupCoh.UpIso
+import CupProduct.groupCoh.degree0
