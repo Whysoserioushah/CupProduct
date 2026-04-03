@@ -38,8 +38,6 @@ import CupProduct.Mathlib.Algebra.Order.GroupWithZero.Canonical
 import CupProduct.Mathlib.Algebra.Order.Hom.Monoid
 import CupProduct.Mathlib.CategoryTheory.Category.Basic
 import CupProduct.Mathlib.CategoryTheory.Category.Cat
-import CupProduct.Mathlib.Data.Finset.Range
-import CupProduct.Mathlib.Data.Finsupp.Single
 import CupProduct.Mathlib.Data.Int.WithZero
 import CupProduct.Mathlib.FieldTheory.Finite.Basic
 import CupProduct.Mathlib.FieldTheory.Finite.IntermediateField
@@ -77,6 +75,7 @@ import CupProduct.Mathlib.RingTheory.Unramified.Basic
 import CupProduct.Mathlib.RingTheory.Unramified.LocalRing
 import CupProduct.Mathlib.SetTheory.Cardinal.Finite
 import CupProduct.Old.Basic
+import CupProduct.Old.UpIso
 import CupProduct.Old.Useless
 import CupProduct.TateCoh.degree0
 import CupProduct.groupCoh.Category
