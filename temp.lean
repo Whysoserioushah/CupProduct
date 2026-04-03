@@ -86,6 +86,20 @@ theorem Polynomial.Monic.degree_mul' {R : Type*} [Semiring R] {p q : Polynomial 
     (p * q).degree = p.degree + q.degree := by
   rw [hp.degree_mul_comm, hp.degree_mul, add_comm]
 
+section
+variable {R S : Type*} [Ring R] [Semiring S] {f : R →+* S} (hf : Function.Surjective ⇑f)
+
+theorem RingHom.quotientKerEquivOfSurjective_comp :
+    (RingHom.quotientKerEquivOfSurjective hf : _ →+* _).comp (Ideal.Quotient.mk (ker f)) = f := rfl
+
+theorem RingHom.quotientKerEquivOfSurjective_symm_comp :
+    ((RingHom.quotientKerEquivOfSurjective hf).symm : _ →+* _).comp f =
+    Ideal.Quotient.mk (ker f) := by
+  conv => enter [1,2]; rw [← quotientKerEquivOfSurjective_comp hf]
+  rw [← comp_assoc, RingEquiv.symm_comp, id_comp]
+
+end
+
 end Lemmas
 
 open Ideal Quotient
@@ -333,11 +347,11 @@ theorem map_surjective_of_sqZero (mf : f.Monic) :
   -- a(f-pq) = qr+s
   let r := a * (f - p * q) /ₘ q
   let s := a * (f - p * q) %ₘ q
-  have hrs : a * (f - p * q) = s + q * r := ( (a * (f - p * q)).modByMonic_add_div q ).symm
+  have hrs : a * (f - p * q) = s + q * r := (modByMonic_add_div _ mq).symm
   -- b(f-pq) = pt+u
   let t := b * (f - p * q) /ₘ p
   let u := b * (f - p * q) %ₘ p
-  have htu : b * (f - p * q) = u + p * t := ( (b * (f - p * q)).modByMonic_add_div p ).symm
+  have htu : b * (f - p * q) = u + p * t := (modByMonic_add_div _ mp).symm
   have hfpq : f - p * q ∈ RingHom.ker (mapRingHom φ) := by simp [hpq, φ]
   have hs : s ∈ RingHom.ker (mapRingHom φ) :=
     hφ ▸ (modByMonic_mem_map <| mul_mem_left _ _ <| hφ ▸ hfpq)
@@ -395,24 +409,11 @@ variable (φ : R →+* S) (hφ : (⇑φ).Surjective)
 include hφ in
 /-- `R →+* S` surjective with square-zero kernel induces a bijection between factorisations. -/
 theorem map_bijective_of_sqZero_ker (hφ2 : RingHom.ker φ ^ 2 = ⊥) (mf : f.Monic) :
-    (map φ (f := f)).Bijective := by
-  let e : R ⧸ RingHom.ker φ ≃+* S := RingHom.quotientKerEquivOfSurjective hφ
-  have h_eq : (e.symm : S →+* R ⧸ RingHom.ker φ).comp φ = Ideal.Quotient.mk (RingHom.ker φ) :=
-    RingHom.quotientKerEquivOfSurjective_symm_comp hφ
-  have h1 : Function.Bijective (map φ (f := f)) := by
-    have h_main : Function.Bijective (map (Ideal.Quotient.mk (RingHom.ker φ)) (f := f)) :=
-      map_bijective_of_sqZero f (RingHom.ker φ) hφ2 mf
-    have h2 : Function.Bijective (map (e.symm : S →+* R ⧸ RingHom.ker φ) (f := f.map φ)) :=
-      (mapEquiv e.symm (f := f.map φ)).bijective
-    have h3 : Function.Bijective ((map (e.symm : S →+* R ⧸ RingHom.ker φ) (f := f.map φ)) ∘ map φ (f := f)) := by
-      have h4 : (map (e.symm : S →+* R ⧸ RingHom.ker φ) (f := f.map φ)) ∘ map φ (f := f) =
-          map (Ideal.Quotient.mk (RingHom.ker φ)) (f := f) := by
-        rw [← map_comp]
-        <;> simp [h_eq]
-      rw [h4]
-      exact h_main
-    exact Function.Bijective.of_comp h2 h3
-  exact h1
+    (map φ (f := f)).Bijective :=
+  (Equiv.comp_bijective _ <| mapEquiv (RingHom.quotientKerEquivOfSurjective hφ).symm).mp <| by
+    rw [coe_mapEquiv, map_comp_map, Equiv.comp_bijective,
+    RingHom.quotientKerEquivOfSurjective_symm_comp]
+    exact map_bijective_of_sqZero f (RingHom.ker φ) hφ2 mf
 
 /-- Monic coprime factorisations in `R` bijects onto those in `R ⧸ I` if `I ^ n = ⊥`. -/
 theorem map_bijective_of_isNilpotent (hi : IsNilpotent I) (mf : f.Monic) :
@@ -435,24 +436,11 @@ theorem map_bijective_of_isNilpotent (hi : IsNilpotent I) (mf : f.Monic) :
 include hφ in
 /-- `R →+* S` surjective with nilpotent kernel induces a bijection between factorisations. -/
 theorem map_bijective_of_isNilpotent_ker (hφ0 : IsNilpotent (RingHom.ker φ)) (mf : f.Monic) :
-    (map φ (f := f)).Bijective := by
-  let e : R ⧸ RingHom.ker φ ≃+* S := RingHom.quotientKerEquivOfSurjective hφ
-  have h_eq : (e.symm : S →+* R ⧸ RingHom.ker φ).comp φ = Ideal.Quotient.mk (RingHom.ker φ) :=
-    RingHom.quotientKerEquivOfSurjective_symm_comp hφ
-  have h1 : Function.Bijective (map φ (f := f)) := by
-    have h_main : Function.Bijective (map (Ideal.Quotient.mk (RingHom.ker φ)) (f := f)) :=
-      map_bijective_of_isNilpotent f (RingHom.ker φ) hφ0 mf
-    have h2 : Function.Bijective (map (e.symm : S →+* R ⧸ RingHom.ker φ) (f := f.map φ)) :=
-      (mapEquiv e.symm (f := f.map φ)).bijective
-    have h3 : Function.Bijective ((map (e.symm : S →+* R ⧸ RingHom.ker φ) (f := f.map φ)) ∘ map φ (f := f)) := by
-      have h4 : (map (e.symm : S →+* R ⧸ RingHom.ker φ) (f := f.map φ)) ∘ map φ (f := f) =
-          map (Ideal.Quotient.mk (RingHom.ker φ)) (f := f) := by
-        rw [← map_comp]
-        <;> simp [h_eq]
-      rw [h4]
-      exact h_main
-    exact Function.Bijective.of_comp h2 h3
-  exact h1
+    (map φ (f := f)).Bijective :=
+  (Equiv.comp_bijective _ <| mapEquiv (RingHom.quotientKerEquivOfSurjective hφ).symm).mp <| by
+    rw [coe_mapEquiv, map_comp_map, Equiv.comp_bijective,
+    RingHom.quotientKerEquivOfSurjective_symm_comp]
+    exact map_bijective_of_isNilpotent f (RingHom.ker φ) hφ0 mf
 
 variable {f : R[X]} {mf : f.Monic} {n : ℕ}
 

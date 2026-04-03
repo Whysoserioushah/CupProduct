@@ -1,4 +1,3 @@
-import CupProduct.Basic
 import CupProduct.Cohomology.AugmentationModule
 import CupProduct.Cohomology.FiniteCyclic.ExplicitTate
 import CupProduct.Cohomology.FiniteCyclic.HerbrandQuotient.Defs
