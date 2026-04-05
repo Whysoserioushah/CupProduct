@@ -1,7 +1,6 @@
 import Mathlib
-import CupProduct.Old.UpIso
 
-open CategoryTheory groupCohomology Rep.dimensionShift
+open CategoryTheory groupCohomology --Rep.dimensionShift
 
 universe u
 
@@ -11,13 +10,9 @@ open MonoidalCategory
 
 variable {R G}
 
-lemma mem_tensorInvariants (a : A.ρ.invariants) (b : B.ρ.invariants) :
-  ∀ g : G, ((A ⊗ B).ρ g) (a.1 ⊗ₜ b.1) = a.1 ⊗ₜ b.1 := by
-  intro g
-  simp only [Action.tensorObj_V, Rep.tensor_ρ, Equivalence.symm_inverse,
-    Action.functorCategoryEquivalence_functor, Action.FunctorCategoryEquivalence.functor_obj_obj]
-  erw [Representation.tprod_apply, TensorProduct.map_tmul]
-  rw [a.2, b.2]
+lemma mem_tensorInvariants (a : A.ρ.invariants) (b : B.ρ.invariants) (g : G) :
+    ((A ⊗ B).ρ g) (a.1 ⊗ₜ b.1) = a.1 ⊗ₜ b.1 := by
+  simp [a.2 g, b.2 g]
 
 def cup0Aux' (a : A.ρ.invariants) : B.ρ.invariants →ₗ[R] (A ⊗ B).ρ.invariants where
   toFun b := ⟨TensorProduct.tmul R a.1 b.1, mem_tensorInvariants A B a b⟩
@@ -46,45 +41,39 @@ lemma cup0_apply (a : H0 A) (b : H0 B) : cup0 A B a b = (H0Iso (A ⊗ B)).inv.ho
   ⟨((H0Iso A).hom.hom a).1 ⊗ₜ ((H0Iso B).hom.hom b).1, mem_tensorInvariants A B
     (H0Iso A|>.hom.hom a) (H0Iso B|>.hom.hom b)⟩ := rfl
 
+set_option backward.isDefEq.respectTransparency false in
 lemma map_id_tensor_comp_H0Iso_inv {M1 M2 N1 N2 : Rep R G} (f : M1 ⟶ M2) (g : N1 ⟶ N2) :
     (Rep.invariantsFunctor R G).map (f ⊗ₘ g) ≫ (H0Iso (M2 ⊗ N2)).inv =
     (H0Iso (M1 ⊗ N1)).inv ≫ map (MonoidHom.id G) (f ⊗ₘ g) 0 := by
-  apply_fun (fun f ↦ (H0Iso _).hom ≫ f ≫ (H0Iso _).hom) using by aesop_cat
+  apply_fun (fun f ↦ (H0Iso (M1 ⊗ N1)).hom ≫ f ≫ (H0Iso (M2 ⊗ N2)).hom) using by aesop_cat
   simp only [← Category.assoc, (Iso.hom_comp_eq_id (H0Iso _)).2 rfl, Category.id_comp]
-  simp only [Action.tensorObj_V, Rep.tensor_ρ, Category.assoc, Iso.inv_comp_eq_id (H0Iso _) |>.2,
-    map_id_comp_H0Iso_hom]
-  change _ = (H0Iso (M1 ⊗ N1)).hom ≫ _
-  erw [Category.comp_id]
+  rw [map_id_comp_H0Iso_hom, Category.assoc, Iso.inv_hom_id, Category.comp_id]
+  rfl
 
 lemma map_id_tensor_comp_H0Iso_inv_apply {M1 M2 N1 N2 : Rep R G} (f : M1 ⟶ M2) (g : N1 ⟶ N2)
     (x : (M1 ⊗ N1).ρ.invariants) :
     ((H0Iso (M2 ⊗ N2)).inv.hom (((Rep.invariantsFunctor R G).map (f ⊗ₘ g)).hom x)) =
     (map (MonoidHom.id G) (f ⊗ₘ g) 0).hom ((H0Iso (M1 ⊗ N1)).inv.hom x) := by
-  erw [← LinearMap.comp_apply, ← ModuleCat.hom_comp]
-  conv_rhs => erw [← LinearMap.comp_apply, ← ModuleCat.hom_comp]
-  rw [map_id_tensor_comp_H0Iso_inv f g]
+  rw [← LinearMap.comp_apply, ← ModuleCat.hom_comp, ← map_id_tensor_comp_H0Iso_inv]
   rfl
 
+set_option backward.isDefEq.respectTransparency false in
 @[reassoc]
 lemma smallcommSq1 {M N : Rep R G} (φ : M ⟶ N) : (Rep.invariantsFunctor R G).map (A ◁ φ) ≫
     (H0Iso (A ⊗ N)).inv = (H0Iso (A ⊗ M)).inv ≫
     groupCohomology.map (MonoidHom.id G) (A ◁ φ) 0 := by
   apply_fun (fun f ↦ (H0Iso _).hom ≫ f ≫ (H0Iso _).hom) using by aesop_cat
-  simp only [← Category.assoc, (Iso.hom_comp_eq_id (H0Iso _)).2 rfl, Category.id_comp]
-  simp only [Action.tensorObj_V, Rep.tensor_ρ, Category.assoc, Iso.inv_comp_eq_id (H0Iso _) |>.2,
-    map_id_comp_H0Iso_hom, Iso.cancel_iso_hom_left]
-  rfl
+  simp [map_id_comp_H0Iso_hom]
 
 lemma smallcommSq1_apply {M N : Rep R G} (φ : M ⟶ N) (x : (A ⊗ M).ρ.invariants) :
     (H0Iso (A ⊗ N)).inv.hom (((Rep.invariantsFunctor R G).map (A ◁ φ)).hom x) =
     (groupCohomology.map (MonoidHom.id G) (A ◁ φ) 0).hom ((H0Iso (A ⊗ M)).inv.hom x) := by
-  rw [← LinearMap.comp_apply, ← ModuleCat.hom_comp]
-  erw [← LinearMap.comp_apply]
-  rw [← ModuleCat.hom_comp, smallcommSq1 A φ]
+  rw [← LinearMap.comp_apply, ← ModuleCat.hom_comp, ← smallcommSq1]
   rfl
 
 noncomputable section
 
+set_option backward.isDefEq.respectTransparency false in
 open TensorProduct in
 def cup0NatTrans' : .prod (functor R G 0) (functor R G 0) ⋙ tensor (ModuleCat R) ⟶
     tensor (Rep R G) ⋙ functor R G 0 where
@@ -94,25 +83,19 @@ def cup0NatTrans' : .prod (functor R G 0) (functor R G 0) ⋙ tensor (ModuleCat 
     ext1
     simp only [ModuleCat.hom_comp, ModuleCat.hom_tensorHom]
     refine TensorProduct.ext' fun m n ↦ by
-      simp only [ModuleCat.MonoidalCategory.tensorObj_carrier, cup0', ModuleCat.hom_ofHom,
-        LinearMap.coe_comp, Function.comp_apply, map_tmul]
-      erw [lift.tmul, lift.tmul, cup0_apply]
+      simp only [ModuleCat.MonoidalCategory.tensorObj_carrier, cup0', ModuleCat.hom_ofHom, coe_comp,
+        Function.comp_apply, map_tmul]
+      conv_lhs =>
+        tactic => with_reducible convert lift.tmul .. -- why would this work and `rw` doesn't?
+      rw [cup0_apply]
       dsimp
-      conv_rhs => erw [cup0_apply MN.1 MN.2 m n,
-        ← map_id_tensor_comp_H0Iso_inv_apply]
+      conv_rhs => enter [2]; tactic => with_reducible convert lift.tmul ..
+      conv_rhs => rw [cup0_apply]
+      conv_rhs => tactic => with_reducible
+        convert (map_id_tensor_comp_H0Iso_inv_apply f1 f2 ..).symm
       congr 1
       ext1
-      simp only [map_id_comp_H0Iso_hom_apply, Rep.invariantsFunctor_map_hom, Action.tensorObj_V,
-        Rep.tensor_ρ, Action.tensorHom_hom, Equivalence.symm_inverse]
-      conv_rhs => erw [codRestrict_apply, LinearMap.comp_apply]
-      change (Subtype.val <| (((H0Iso MN.1).hom ≫ (Rep.invariantsFunctor R G).map f1)).hom m) ⊗ₜ
-        (Subtype.val <| ((H0Iso MN.2).hom ≫ (Rep.invariantsFunctor R G).map f2).hom n) = _
-      simp only [ModuleCat.hom_comp, Rep.invariantsFunctor_map_hom, LinearMap.coe_comp,
-        Function.comp_apply, ModuleCat.hom_tensorHom]
-      erw [codRestrict_apply, codRestrict_apply, LinearMap.comp_apply,
-        Submodule.subtype_apply, Submodule.subtype_apply]
-      conv_lhs => enter [3]; erw [LinearMap.comp_apply, Submodule.subtype_apply]
-      erw [map_tmul]
+      simp [Rep.invariantsFunctor]
 
 variable (R G) in
 abbrev cup0NatTrans :=
@@ -146,11 +129,6 @@ abbrev cup0NatTransLeft := cup0NatTrans R G|>.app A
 --   }
 
 abbrev cup0NatTransRight := (CategoryTheory.flipFunctor _ _ _).map (cup0NatTrans R G)
-
---NatTrans.vcomp _ (@cup0NatTrans' R G _ _)
-
-  -- Functor.map (CategoryTheory.Functor.flip (C := Rep R G) (D := Rep R G) (E := ModuleCat R) tensor) _
-  --(CategoryTheory.Prod.swap (Rep R G) (Rep R G)).map  (@cup0NatTrans' R G _ _)
 
 lemma cup0_naturality {M1 M2 N1 N2 : Rep R G} (f : M1 ⟶ N1) (g : M2 ⟶ N2) :
     (groupCohomology.map (MonoidHom.id G) f 0 ⊗ₘ groupCohomology.map (MonoidHom.id G) g 0) ≫

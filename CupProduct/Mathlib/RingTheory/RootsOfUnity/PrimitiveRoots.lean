@@ -1,5 +1,5 @@
 import Mathlib.RingTheory.RootsOfUnity.PrimitiveRoots
-import CupProduct.Mathlib.Data.Finset.Range
+import Mathlib.Data.Finset.Range
 import CupProduct.Mathlib.FieldTheory.Separable
 
 open Polynomial

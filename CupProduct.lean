@@ -31,6 +31,7 @@ import CupProduct.Mathlib.Algebra.Homology.ConcreteCategory
 import CupProduct.Mathlib.Algebra.Homology.ShortComplex.ConcreteCategory
 import CupProduct.Mathlib.Algebra.Homology.ShortComplex.Exact
 import CupProduct.Mathlib.Algebra.Homology.ShortComplex.ModuleCat
+import CupProduct.Mathlib.Algebra.Homology.ShortComplex.Rep
 import CupProduct.Mathlib.Algebra.Homology.ShortComplex.ShortExact
 import CupProduct.Mathlib.Algebra.Module.Torsion.Basic
 import CupProduct.Mathlib.Algebra.Order.Group.OrderIso
@@ -75,8 +76,8 @@ import CupProduct.Mathlib.RingTheory.Unramified.Basic
 import CupProduct.Mathlib.RingTheory.Unramified.LocalRing
 import CupProduct.Mathlib.SetTheory.Cardinal.Finite
 import CupProduct.Old.Basic
-import CupProduct.Old.UpIso
 import CupProduct.Old.Useless
+import CupProduct.Old.exp
 import CupProduct.TateCoh.degree0
 import CupProduct.groupCoh.Category
 import CupProduct.groupCoh.DownIso
