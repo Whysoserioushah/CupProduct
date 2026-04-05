@@ -1,7 +1,7 @@
 import CupProduct.Cohomology.AugmentationModule
 import CupProduct.Cohomology.Functors.UpDown
--- import CupProduct.groupCoh.Rep
 import Mathlib.LinearAlgebra.TensorProduct.RightExactness
+import CupProduct.Mathlib.Algebra.Homology.ShortComplex.Rep
 
 open CategoryTheory Rep.leftRegular MonoidalCategory
 
@@ -36,12 +36,14 @@ def upSES₀_retract [Fintype G] : (G →₀ R) →ₗ[R] R where
 set_option backward.isDefEq.respectTransparency false in
 def split_upSES₀_forget [Fintype G] : ((upSES₀ R G).map (forget₂ (Rep R G)
     (ModuleCat R))).Splitting :=
+  let hepi : Epi (((upSES₀ R G).map (forget₂ (Rep R G) (ModuleCat R))).g) := by
+    rw [ModuleCat.epi_iff_surjective]
+    have h : Epi (upSES₀ R G).g := (shortExact_upSES₀ R G).3
+    have h' : Function.Surjective ((upSES₀ R G).g.hom) := by
+      exact (Rep.epi_iff_surjective (f := (upSES₀ R G).g)).mp h
+    exact h'
   .ofExactOfRetraction _ (.map (shortExact_upSES₀ R G).1 _)
-    (ModuleCat.ofHom <| upSES₀_retract R G) (by ext; simp [upSES₀, μ]) <| by
-  haveI := (shortExact_upSES₀ R G).3
-  -- infer_instance
-  -- simpa using Rep.instEpiModuleCatHom _
-  sorry
+    (ModuleCat.ofHom <| upSES₀_retract R G) (by ext; simp [upSES₀, μ]) hepi
 
 open ShortComplex
 
@@ -53,11 +55,7 @@ def split_upSES' [Fintype G] : (((upSES₀ R G).map (tensorRight A)).map (forget
   exact .map (split_upSES₀_forget R G) _
 
 lemma exact_upSES' [Fintype G] : ((upSES₀ R G).map (tensorRight A)).Exact :=
-  -- exact_iff_exact_map_forget₂ _|>.2 <| by
-  -- change (((upSES₀ R G).map _).map (_ ⋙ _)).Exact
-  -- rw [map_comp, ← exact_iff_exact_map_forget₂]
-  -- exact split_upSES' R G |>.exact
-  sorry
+  (exact_map_iff_of_faithful _ _).1 (split_upSES' R G (A := A)).exact
 
 lemma shortExact_upSES' [Fintype G] : ((upSES₀ R G).map (tensorRight A)).ShortExact where
   exact := exact_upSES' R G
@@ -146,11 +144,28 @@ abbrev tensorToFun (A : Rep R G) : leftRegular R G ⊗ A ⟶ coind₁'.obj A :=
 --   rw [ModuleCat.hom_whiskerRight]
 --   exact LinearMap.rTensor_surjective _ (Rep.epi_iff_surjective _|>.1 coequalizer.π_epi)
 
+#check cokernel.condition
+set_option backward.isDefEq.respectTransparency false in
 def coaugTensorToUp [Fintype G] (A : Rep R G) : coaug R G ⊗ A ⟶ up.obj A :=
   haveI : Epi ((upSES₀ R G).map (tensorRight A)).g := (shortExact_upSES' R G).3
   (exact_upSES' R G).desc (tensorToFun A ≫ cokernel.π _) <| by
-  sorry
+  rw [← Category.assoc]
+
   -- ext : 2
+  -- simp only [map_X₁, Functor.flip_obj_obj, curriedTensor_obj_obj, tensor_V, upSES₀_X₁_V, up_obj, Functor.id_obj,
+  --   coind₁'_obj, coind₁'_ι_app, tensor_ρ, upSES₀_X₁_ρ, map_X₂, map_f, upSES₀_f, Functor.flip_obj_map,
+  --   curriedTensor_map_app, Rep.hom_comp, upSES₀_X₂_V, upSES₀_X₂_ρ, hom_ofHom, hom_whiskerRight,
+  --   Representation.IntertwiningMap.comp_toLinearMap, Representation.tensorToFun_toLinearMap,
+  --   Representation.IntertwiningMap.toLinearMap_rTensor, zero_hom, Representation.IntertwiningMap.zero_toLinearMap]
+  -- ext a
+  -- simp only [AlgebraTensorModule.curry_apply, LinearMap.restrictScalars_self, curry_apply, LinearMap.coe_comp,
+  --   Representation.IntertwiningMap.coe_toLinearMap, Function.comp_apply, LinearMap.rTensor_tmul, lift.tmul,
+  --   tensorToFun'_apply, LinearMap.zero_apply]
+  -- change (cokernel.π (coind₁'_ι.app A)).hom _ = _
+
+
+  -- simp
+  sorry
   -- simp only [upSES₀, map_X₁, Functor.flip_obj_obj, curriedTensor_obj_obj, Action.tensorObj_V,
   --   up_obj, Functor.id_obj, coind₁'_obj, map_X₂, map_f, Functor.flip_obj_map, curriedTensor_map_app,
   --   Action.comp_hom, Action.whiskerRight_hom, ModuleCat.hom_comp, ModuleCat.hom_whiskerRight,
