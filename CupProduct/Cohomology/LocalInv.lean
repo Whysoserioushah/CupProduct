@@ -114,10 +114,13 @@ def localInvAux : H2 (.trivial ℤ (ZMod n)ᵐ ℤ) →+ ZMod n := by
 private def carryH2Aux (i : ZMod n) : H2 (.trivial ℤ (ZMod n)ᵐ ℤ) :=
   i.val • (H2Iso _).inv.hom (QuotientAddGroup.mk (carryCocycle n))
 
+set_option backward.isDefEq.respectTransparency false in
 /-- By a computation, `localInvAux n ∘ carryH2Aux = id`. -/
 private lemma rightInverse_carryH2Aux_localInvAux : carryH2Aux.RightInverse (localInvAux n) := by
   intro i
-  simp [carryH2Aux, localInvAux]
+  simp only [localInvAux, ShortComplex.moduleCatLeftHomologyData_H, carryH2Aux,
+    AddMonoidHom.coe_comp, LinearMap.toAddMonoidHom_coe, Function.comp_apply,
+    Iso.inv_hom_id_apply, map_nsmul, nsmul_eq_mul, ZMod.natCast_val, ZMod.cast_id', id_eq]
   convert mul_one _
   exact localInvAuxAux_carryCocycle n
 
@@ -145,6 +148,7 @@ def localInv : H2 (.trivial ℤ (ZMod n)ᵐ ℤ) ≃+ ZMod n where
   right_inv := rightInverse_carryH2Aux_localInvAux
   map_add' := by simp
 
+set_option backward.isDefEq.respectTransparency false in
 @[simp] lemma localInv_H2π_hom (f : cocycles₂ (.trivial ℤ (ZMod n)ᵐ ℤ)) :
     localInv n ((H2π _).hom f) = ∑ i : ZMod n, Int.cast (f (.ofAdd i, .ofAdd 1)) := by
   simp [localInv, localInvAux]; rfl

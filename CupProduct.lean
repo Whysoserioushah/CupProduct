@@ -76,8 +76,6 @@ import CupProduct.Mathlib.RingTheory.Unramified.Basic
 import CupProduct.Mathlib.RingTheory.Unramified.LocalRing
 import CupProduct.Mathlib.SetTheory.Cardinal.Finite
 import CupProduct.Old.Basic
-import CupProduct.Old.Useless
-import CupProduct.Old.exp
 import CupProduct.TateCoh.degree0
 import CupProduct.groupCoh.Category
 import CupProduct.groupCoh.DownIso

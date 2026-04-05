@@ -14,6 +14,7 @@ variable (R G : Type u) [CommRing R] [Group G]
 --   { preservesKernels _ _ _ := Limits.comp_preservesLimit _ _
 --     preservesCokernels _ _ _:= Limits.comp_preservesColimit _ _ }
 
+#exit
 noncomputable section
 
 open LinearMap
