@@ -115,18 +115,9 @@ def Representation.indToTensor {R G M : Type*} [CommRing R] [Group G] [AddCommGr
       apply Finset.sum_bij' (fun (i : G) _ ↦ i * g) (fun (j : G) _ ↦ j * g⁻¹)
       <;> simp [mul_assoc]
       -- <;> group
-    have h2 : ∀ (j : G), Finsupp.single (j * g⁻¹)⁻¹ (1 : R) ⊗ₜ[R] ((ρ.ind₁' g) f) (j * g⁻¹)
+    have h2 (j : G) : Finsupp.single (j * g⁻¹)⁻¹ (1 : R) ⊗ₜ[R] ((ρ.ind₁' g) f) (j * g⁻¹)
         = ((leftRegular R G).tprod ρ) g (Finsupp.single j⁻¹ (1 : R) ⊗ₜ[R] (f j)) := by
-      intro j
-      have h_ind1 : ((ρ.ind₁' g) f) (j * g⁻¹) = ρ g (f ((j * g⁻¹) * g)) := by
-        rw [ind₁'_apply₂]
-      rw [h_ind1]
-      have h_group1 : (j * g⁻¹) * g = j := by group
-      rw [h_group1]
-      have h_group2 : (j * g⁻¹)⁻¹ = g * j⁻¹ := by group
-      rw [h_group2]
-      simp [Representation.tprod_apply, Representation.leftRegular]
-      -- <;> aesop
+      simp [-ind₁'_apply, ind₁'_apply₂ ρ f g (j * g⁻¹)]
     have h3 : Finset.sum Finset.univ (fun (j : G) ↦ Finsupp.single (j * g⁻¹)⁻¹ (1 : R) ⊗ₜ[R] ((ρ.ind₁' g) f) (j * g⁻¹))
         = Finset.sum Finset.univ (fun (j : G) ↦ ((leftRegular R G).tprod ρ) g (Finsupp.single j⁻¹ (1 : R) ⊗ₜ[R] (f j))) := by
       apply Finset.sum_congr rfl
