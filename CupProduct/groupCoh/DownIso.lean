@@ -107,9 +107,38 @@ def Representation.indToTensor {R G M : Type*} [CommRing R] [Group G] [AddCommGr
     ρ.ind₁'.IntertwiningMap ((leftRegular R G).tprod ρ) where
   __ := indToTensorLinear M
   isIntertwining' g := by
-    ext g' m
-    simp
-    sorry
+    apply LinearMap.ext
+    intro f
+    -- dsimp only [indToTensorLinear]
+    have h1 : Finset.sum Finset.univ (fun (i : G) ↦ Finsupp.single i⁻¹ (1 : R) ⊗ₜ[R] ((ρ.ind₁' g) f) i)
+        = Finset.sum Finset.univ (fun (j : G) ↦ Finsupp.single (j * g⁻¹)⁻¹ (1 : R) ⊗ₜ[R] ((ρ.ind₁' g) f) (j * g⁻¹)) := by
+      apply Finset.sum_bij' (fun (i : G) _ ↦ i * g) (fun (j : G) _ ↦ j * g⁻¹)
+      <;> simp [mul_assoc]
+      -- <;> group
+    have h2 : ∀ (j : G), Finsupp.single (j * g⁻¹)⁻¹ (1 : R) ⊗ₜ[R] ((ρ.ind₁' g) f) (j * g⁻¹)
+        = ((leftRegular R G).tprod ρ) g (Finsupp.single j⁻¹ (1 : R) ⊗ₜ[R] (f j)) := by
+      intro j
+      have h_ind1 : ((ρ.ind₁' g) f) (j * g⁻¹) = ρ g (f ((j * g⁻¹) * g)) := by
+        rw [ind₁'_apply₂]
+      rw [h_ind1]
+      have h_group1 : (j * g⁻¹) * g = j := by group
+      rw [h_group1]
+      have h_group2 : (j * g⁻¹)⁻¹ = g * j⁻¹ := by group
+      rw [h_group2]
+      simp [Representation.tprod_apply, Representation.leftRegular]
+      -- <;> aesop
+    have h3 : Finset.sum Finset.univ (fun (j : G) ↦ Finsupp.single (j * g⁻¹)⁻¹ (1 : R) ⊗ₜ[R] ((ρ.ind₁' g) f) (j * g⁻¹))
+        = Finset.sum Finset.univ (fun (j : G) ↦ ((leftRegular R G).tprod ρ) g (Finsupp.single j⁻¹ (1 : R) ⊗ₜ[R] (f j))) := by
+      apply Finset.sum_congr rfl
+      intro j _
+      exact h2 j
+    have h4 : Finset.sum Finset.univ (fun (j : G) ↦ ((leftRegular R G).tprod ρ) g (Finsupp.single j⁻¹ (1 : R) ⊗ₜ[R] (f j)))
+        = ((leftRegular R G).tprod ρ) g (Finset.sum Finset.univ (fun (j : G) ↦ Finsupp.single j⁻¹ (1 : R) ⊗ₜ[R] (f j))) := by
+      rw [map_sum]
+    have h_main : Finset.sum Finset.univ (fun (i : G) ↦ Finsupp.single i⁻¹ (1 : R) ⊗ₜ[R] ((ρ.ind₁' g) f) i)
+        = ((leftRegular R G).tprod ρ) g (Finset.sum Finset.univ (fun (j : G) ↦ Finsupp.single j⁻¹ (1 : R) ⊗ₜ[R] (f j))) := by
+      rw [h1, h3, h4]
+    simpa using h_main
 
 
 abbrev indToTensor [Fintype G] (A : Rep R G) : ind₁'.obj A ⟶ leftRegular R G ⊗ A :=
