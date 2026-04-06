@@ -14,14 +14,14 @@ noncomputable section
 
 -- weird morphism I cook up with
 set_option backward.isDefEq.respectTransparency false in
-def aug_shortExactSequence_split [Fintype G] : ((aug_shortExactSequence R G).map
+def aug_shortExactSequence_split : ((aug_shortExactSequence R G).map
     (forget₂ (Rep R G) (ModuleCat R))).Splitting :=
   .ofExactOfSection _ ((aug_isShortExact R G).1.map _) (ModuleCat.ofHom
     ((LinearMap.lsmul R (Rep.leftRegular R G)).flip (.single 1 1)))
     (by ext; simp) <|
     (forget₂ (Rep R G) (ModuleCat R)).map_mono (ι R G)
 
-def split_downSES' [Fintype G] (A : Rep R G) : (((aug_shortExactSequence R G).map
+def split_downSES' (A : Rep R G) : (((aug_shortExactSequence R G).map
     (tensorRight A)).map (forget₂ (Rep R G) (ModuleCat R))).Splitting := by
   rw [← ShortComplex.map_comp, show (aug_shortExactSequence R G).map ((tensorRight A) ⋙
     (forget₂ (Rep R G) (ModuleCat R))) = ((aug_shortExactSequence R G).map
@@ -29,12 +29,12 @@ def split_downSES' [Fintype G] (A : Rep R G) : (((aug_shortExactSequence R G).ma
   exact .map (aug_shortExactSequence_split R G) _
 
 set_option linter.unusedFintypeInType false in
-lemma exact_downSES' [Fintype G] (A : Rep R G) : ((aug_shortExactSequence R G).map
+lemma exact_downSES' (A : Rep R G) : ((aug_shortExactSequence R G).map
     (tensorRight A)).Exact :=
-  rep_exact_iff.2  sorry
+  (exact_map_iff_of_faithful _ _).1 (split_downSES' R G A).exact
 
 set_option linter.unusedFintypeInType false in
-lemma shortExact_downSES' [Fintype G] (A : Rep R G) : ((aug_shortExactSequence R G).map
+lemma shortExact_downSES' (A : Rep R G) : ((aug_shortExactSequence R G).map
     (tensorRight A)).ShortExact where
   exact := exact_downSES' R G A
   mono_f := Functor.ReflectsMonomorphisms.reflects (F := forget₂ (Rep R G) (ModuleCat R)) _ <|
@@ -79,7 +79,7 @@ set_option backward.isDefEq.respectTransparency false in
 def Representation.tensorToInd {R G M : Type*} [CommRing R] [Group G] [AddCommGroup M] [Module R M]
     (ρ : Representation R G M) : ((leftRegular R G).tprod ρ).IntertwiningMap ρ.ind₁' where
   __ := lift <| tensorToIndLinear M
-  isIntertwining' g := by sorry
+  isIntertwining' g := by ext; simp
 
 abbrev tensorToInd (A : Rep R G) : leftRegular R G ⊗ A ⟶ ind₁'.obj A :=
   ofHom A.ρ.tensorToInd
@@ -88,15 +88,11 @@ abbrev tensorToInd (A : Rep R G) : leftRegular R G ⊗ A ⟶ ind₁'.obj A :=
 def tensorToIndNatTrans : tensorLeft (leftRegular R G) ⟶ ind₁' where
   app A := tensorToInd A
   naturality {X Y} f := by
-    -- ext : 2
-    -- simp only [curriedTensor_obj_obj, Action.tensorObj_V,
-    --   ModuleCat.MonoidalCategory.tensorObj_carrier, ind₁'_obj, curriedTensor_obj_map,
-    --   Action.comp_hom, Action.whiskerLeft_hom, tensorToInd_hom, Equivalence.symm_inverse,
-    --   Action.functorCategoryEquivalence_functor, Action.FunctorCategoryEquivalence.functor_obj_obj,
-    --   ModuleCat.hom_comp, ModuleCat.hom_ofHom, ModuleCat.hom_whiskerLeft]
-    -- ext g x h
-    -- simp [ind₁']
-    sorry
+    ext : 2
+    simp only [curriedTensor_obj_obj, tensor_V, ind₁', tensor_ρ, curriedTensor_obj_map,
+      Rep.hom_comp, hom_ofHom, hom_whiskerLeft, Representation.IntertwiningMap.comp_toLinearMap,
+      Representation.tensorToInd_toLinearMap, Representation.IntertwiningMap.toLinearMap_lTensor]
+    ext; simp
 
 @[simps]
 def indToTensorLinear {R G : Type*} (M : Type*) [CommRing R] [Group G] [AddCommGroup M] [Module R M]
@@ -110,34 +106,14 @@ def Representation.indToTensor {R G M : Type*} [CommRing R] [Group G] [AddCommGr
     [Fintype G] (ρ : Representation R G M) :
     ρ.ind₁'.IntertwiningMap ((leftRegular R G).tprod ρ) where
   __ := indToTensorLinear M
-  isIntertwining' g := by sorry
+  isIntertwining' g := by
+    ext g' m
+    simp
+    sorry
+
 
 abbrev indToTensor [Fintype G] (A : Rep R G) : ind₁'.obj A ⟶ leftRegular R G ⊗ A :=
   ofHom A.ρ.indToTensor
-    -- ext1
-    -- simp only [ind₁'_obj, Action.tensorObj_V, ModuleCat.MonoidalCategory.tensorObj_carrier,
-    --   ModuleCat.endRingEquiv, RingEquiv.symm_mk, RingHom.toMonoidHom_eq_coe,
-    --   RingEquiv.toRingHom_eq_coe, MonoidHom.coe_comp, MonoidHom.coe_coe, RingHom.coe_coe,
-    --   RingEquiv.coe_mk, Equiv.coe_fn_mk, Function.comp_apply, Representation.ind₁'_apply,
-    --   ModuleCat.ofHom_comp, Equivalence.symm_inverse, Action.functorCategoryEquivalence_functor,
-    --   Action.FunctorCategoryEquivalence.functor_obj_obj, Category.assoc, ModuleCat.hom_comp,
-    --   ModuleCat.hom_ofHom]
-    -- ext h a
-    -- rw [Action.tensor_ρ]
-    -- simp only [LinearMap.coe_comp, Finsupp.coe_lmapDomain, Function.comp_apply,
-    --   Finsupp.lsingle_apply, Finsupp.mapRange.linearMap_apply, Finsupp.mapRange_single,
-    --   Finsupp.mapDomain_single, indToTensorLinear_apply, ModuleCat.endRingEquiv, RingEquiv.symm_mk,
-    --   RingHom.toMonoidHom_eq_coe, RingEquiv.toRingHom_eq_coe, MonoidHom.coe_comp, MonoidHom.coe_coe,
-    --   RingHom.coe_coe, RingEquiv.coe_mk, Equiv.coe_fn_mk, ModuleCat.hom_tensorHom,
-    --   ModuleCat.hom_ofHom, ρ_hom, map_sum, map_tmul]
-    -- change ∑ y, _ = ∑ x, ((leftRegular R G).ρ g (leftRegular.of x⁻¹)) ⊗ₜ _
-    -- conv_rhs => enter [2, x]; rw [leftRegular.ρ_apply_of]
-    -- conv_lhs => rw [Finset.sum_equiv (t := Finset.univ) (g := fun y ↦ leftRegular.of (g * y⁻¹)
-    --   ⊗ₜ[R] (fun₀ | h * g⁻¹ => (A.ρ g) a) (y * g⁻¹)) (Equiv.mulRight g) (by simp) (by simp)]
-    -- classical
-    -- congr!
-    -- simp only [Finsupp.single_apply, mul_left_inj]
-    -- split_ifs <;> simp
 
 @[simps]
 def indToTensorNatTrans [Fintype G] : ind₁' ⟶ tensorLeft (leftRegular R G) where
@@ -308,6 +284,7 @@ abbrev downTensorIso [Fintype G] (A B : Rep R G) : down.obj A ⊗ B ≅ down.obj
 @[simps! hom_app inv_app]
 def downTensorNatIso [Fintype G] (B : Rep R G) : down ⋙ tensorRight B ≅ tensorRight B ⋙ down :=
   NatIso.ofComponents (downTensorIso · B) <| fun {X Y} f ↦ by
+
     -- simp only [Functor.comp_map, downTensorIso, Iso.trans_hom, Category.assoc,
     --   Functor.mapIso_hom, Iso.symm_hom, downIso_inv, ← tensorToDownFunc_app,
     --   ← tensorToDownFunc.naturality, curriedTensor_obj_map, Functor.flip_obj_map,
