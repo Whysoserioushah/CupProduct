@@ -46,7 +46,6 @@ noncomputable section AugmentationModule
 
 /--
 The augmentation module `aug R G` is the kernel of the augmentation map
-
   `ε : leftRegular R G ⟶ trivial R G R`.
 -/
 abbrev Rep.aug : Rep R G := kernel (ε R G)
@@ -60,16 +59,16 @@ abbrev ι : aug R G ⟶ leftRegular R G := kernel.ι (ε R G)
 
 lemma ε_comp_ι : ι R G ≫ ε R G = 0 := kernel.condition (ε R G)
 
-lemma ε_apply_ι (v : aug R G) : (ε R G).hom.hom (ι R G|>.hom v) = 0 := congr($(ε_comp_ι R G) v)
+lemma ε_apply_ι (v : aug R G) : (ε R G).hom (ι R G|>.hom v) = 0 := congr($(ε_comp_ι R G) v)
 
-lemma sum_coeff_ι [Fintype G] (v : aug R G) : ∑ g : G, (ι R G|>.hom.hom v) g = 0 := by
+lemma sum_coeff_ι [Fintype G] (v : aug R G) : ∑ g : G, (ι R G).hom v g = 0 := by
   rw [← ε_apply_ι R G v, ε_eq_sum]
 
 /--
 There is an element of `aug R G` whose image in the left regular representation is `of g - of 1`.
 -/
-lemma exists_ofSubOfOne (g : G) : ∃ v : aug R G, (ι R G).hom.hom v =
-    leftRegular.of g - leftRegular.of 1 := by
+lemma exists_ofSubOfOne (g : G) : ∃ v : aug R G, (ι R G).hom v =
+    Finsupp.single g 1 - Finsupp.single 1 1 := by
   apply exists_kernelι_eq
   rw [map_sub, ε_of, ε_of, sub_self]
 
@@ -79,14 +78,10 @@ The element of `aug R G` whose image in `leftRegular R G` is `of g - of 1`.
 def ofSubOfOne (g : G) : aug R G := (exists_ofSubOfOne R G g).choose
 
 @[simp] lemma ofSubOfOne_spec (g : G) :
-    ι R G (ofSubOfOne R G g) = leftRegular.of g - leftRegular.of 1 :=
+    ι R G (ofSubOfOne R G g) = .single g 1 - .single 1 1 :=
   (exists_ofSubOfOne R G g).choose_spec
 
-/--
-The short exact sequence
-
-    `0 ⟶ aug R G ⟶ R[G] ⟶ R ⟶ 0`.
--/
+/-- The short exact sequence `0 ⟶ aug R G ⟶ R[G] ⟶ R ⟶ 0`. -/
 abbrev aug_shortExactSequence : ShortComplex (Rep R G) where
   X₁ := aug R G
   X₂ := leftRegular R G
@@ -115,7 +110,7 @@ The sequence
 is a short exact sequence of `H`-modules for any `H →* G`.
 -/
 lemma aug_isShortExact' {H : Type u} [Group H] (φ : H →* G) :
-    ((aug_shortExactSequence R G).map (res φ)).ShortExact :=
+    ((aug_shortExactSequence R G).map (resFunctor φ)).ShortExact :=
   CategoryTheory.ShortComplex.ShortExact.map_of_exact (aug_isShortExact R G) _
 
 open Finsupp
@@ -132,18 +127,12 @@ lemma leftRegularToInd₁'_comp_lsingle (x : G) :
 
 lemma leftRegularToInd₁'_comm (g : G) : leftRegularToInd₁' R G ∘ₗ (leftRegular R G).ρ g
     = (Representation.trivial R G R).ind₁' g ∘ₗ leftRegularToInd₁' R G := by
-  ext : 1
-  rw [LinearMap.comp_assoc, ρ_comp_lsingle, leftRegularToInd₁'_comp_lsingle,
-    LinearMap.comp_assoc, leftRegularToInd₁'_comp_lsingle, Representation.ind₁'_comp_lsingle,
-    mul_inv_rev, Representation.isTrivial_def, LinearMap.comp_id]
+  ext; simp
 
 lemma leftRegularToInd₁'_comm' (g : G) :
     leftRegularToInd₁' R G ∘ₗ (Representation.trivial R G R).ind₁' g =
     (leftRegular R G).ρ g ∘ₗ leftRegularToInd₁' R G := by
-  ext : 1
-  rw [LinearMap.comp_assoc, Representation.ind₁'_comp_lsingle, Representation.isTrivial_def,
-    LinearMap.comp_id, leftRegularToInd₁'_comp_lsingle, LinearMap.comp_assoc,
-    leftRegularToInd₁'_comp_lsingle, ρ_comp_lsingle, mul_inv_rev, inv_inv]
+  ext; simp
 
 lemma leftRegularToInd₁'_comp_leftRegularToInd₁' :
     leftRegularToInd₁' R G ∘ₗ leftRegularToInd₁' R G = 1 := by
@@ -156,18 +145,8 @@ lemma leftRegularToInd₁'_comp_leftRegularToInd₁' :
 The left regular representation is isomorphic to `ind₁'.obj (trivial R G R)`
 -/
 def _root_.Rep.leftRegular.iso_ind₁' : leftRegular R G ≅ ind₁'.obj (trivial R G R) where
-  hom := {
-    hom := ofHom (leftRegularToInd₁' R G)
-    comm g := by
-      ext : 1
-      apply leftRegularToInd₁'_comm
-  }
-  inv := {
-    hom := ofHom (leftRegularToInd₁' R G)
-    comm g := by
-      ext : 1
-      apply leftRegularToInd₁'_comm'
-  }
+  hom := ofHom ⟨leftRegularToInd₁' R G, fun g ↦ leftRegularToInd₁'_comm R G g⟩
+  inv := ofHom ⟨leftRegularToInd₁' R G, fun g ↦ leftRegularToInd₁'_comm' R G g⟩
   hom_inv_id := by
     ext : 2
     apply leftRegularToInd₁'_comp_leftRegularToInd₁'
@@ -175,12 +154,10 @@ def _root_.Rep.leftRegular.iso_ind₁' : leftRegular R G ≅ ind₁'.obj (trivia
     ext : 2
     apply leftRegularToInd₁'_comp_leftRegularToInd₁'
 
-set_option linter.unusedFintypeInType false
-
 /--
 For a finite group, the left regular representation is acyclic for cohomology.
 -/
-instance _root_.Rep.leftRegular.trivialCohomology [Fintype G] :
+instance _root_.Rep.leftRegular.trivialCohomology [Finite G] :
     (leftRegular R G).TrivialCohomology := .of_iso (iso_ind₁' R G)
 
 /--
@@ -189,6 +166,7 @@ The left regular representation is acyclic for homology.
 instance _root_.Rep.leftRegular.trivialHomology :
     (leftRegular R G).TrivialHomology := .of_iso (iso_ind₁' R G)
 
+set_option linter.unusedFintypeInType false in
 /--
 For a finite group, the left regular representation is acyclic for Tate cohomology.
 -/
@@ -198,11 +176,11 @@ instance _root_.Rep.leftRegular.trivialTateCohomology [Fintype G] :
 /--
 The connecting homomorphism from `Hⁿ⁺¹(G,R)` to `Hⁿ⁺²(G,aug R G)` is an isomorphism.
 -/
-lemma cohomology_aug_succ_iso [Fintype G] (n : ℕ) :
+lemma cohomology_aug_succ_iso [Finite G] (n : ℕ) :
     IsIso (δ (aug_isShortExact R G) (n + 1) (n + 2) rfl) :=
   /-
-  This connecting homomorphism is sandwiched between two modules H^{n+1}(G,R[G])
-  and H^{n+2}(G,R[G]), where P is the left regular representation.
+  This connecting homomorphism is sandwiched between two modules `H^{n + 1}(G, R[G])` and
+  `H^{n + 2}(G, R[G])`, where `P` is the left regular representation.
   Then use `Rep.leftRegular.trivialCohomology` to show that both of these are zero.
   -/
   groupCohomology.isIso_δ_of_isZero _ _ Rep.isZero_of_trivialCohomology
@@ -213,7 +191,7 @@ lemma tateCohomology_auc_succ_iso [Fintype G] (n : ℤ) :
   have : TrivialTateCohomology (leftRegular R G) := inferInstance
   exact TateCohomology.isIso_δ _ this _
 
-lemma H2_aug_isZero [Fintype G] [IsAddTorsionFree R] : IsZero (H2 (aug R G)) :=
+lemma H2_aug_isZero [Finite G] [IsAddTorsionFree R] : IsZero (H2 (aug R G)) :=
   /-
   This follows from `cohomology_aug_succ_iso` and `groupCohomology.H1_isZero_of_trivial`.
   -/
@@ -224,7 +202,7 @@ lemma H2_aug_isZero [Fintype G] [IsAddTorsionFree R] : IsZero (H2 (aug R G)) :=
 If `H` is a subgroup of a finite group `G` then the connecting homomorphism
 from `Hⁿ⁺¹(H,R)` to `Hⁿ⁺²(H,aug R G)` is an isomorphism.
 -/
-lemma cohomology_aug_succ_iso' [Fintype G] {H : Type u} [Group H] {φ : H →* G}
+lemma cohomology_aug_succ_iso' [Finite G] {H : Type u} [Group H] {φ : H →* G}
     (inj : Function.Injective φ) (n : ℕ) :
     IsIso (δ (aug_isShortExact' R G φ) (n + 1) (n + 2) rfl) :=
   /-
@@ -246,7 +224,7 @@ lemma cohomology_aug_succ_iso' [Fintype G] {H : Type u} [Group H] {φ : H →* G
   i.e. the sum of all elements of `G`. The image of the norm element in `H⁰(G,R)` is `|G|`,
   since every element of the group is mapped by `ε` to `1`.
   -/
-
+set_option backward.isDefEq.respectTransparency false in
 def H1_iso [Fintype G] :
     H1 (aug R G) ≅ ModuleCat.of R (R ⧸ Ideal.span {(Nat.card G : R)}) :=
   LinearEquiv.toModuleIso <| LinearEquiv.symm <| by
@@ -275,7 +253,7 @@ def H1_iso [Fintype G] :
       Function.comp_apply, smul_eq_mul]
     conv_lhs => enter [2, 2]; tactic => convert leftRegular.zeroι_norm R G
     rw [map_sum]
-    simp [ε, leftRegular.of] -- here we should use `ε_of` but somehow this requires `erw` and `conv`
+    simp
   · change _ ≤ Submodule.map (H0trivial R G).symm.toLinearEquiv.toLinearMap _
     rw [Submodule.map_equiv_eq_comap_symm]
     rw [LinearMap.range_eq_map, ← leftRegular.span_norm, Submodule.map_le_iff_le_comap,
@@ -289,7 +267,7 @@ def H1_iso [Fintype G] :
       SetLike.mem_coe]
     rw [Iso.toLinearEquiv_symm, Iso.symm_symm_eq, Iso.toLinearEquiv_apply, map_comp_H0trivial_apply,
       leftRegular.zeroι_norm, map_sum]
-    simpa [ε, leftRegular.of, Ideal.mem_span_singleton'] using ⟨1, one_mul _⟩
+    simpa [Ideal.mem_span_singleton'] using ⟨1, one_mul _⟩
 
   /-
   If Tate cohomology is defined, then this is proved in the same way as a previous
@@ -303,7 +281,8 @@ def H1_iso [Fintype G] :
   The image of such a function in `H⁰(H,R)` is `|H|`, since every element of the
   group is mapped by `ε` to `1`.
   -/
-def H1_iso' [Fintype G] {H : Type u} [Group H] [Fintype H] {φ : H →* G}
+set_option backward.isDefEq.respectTransparency false in
+def H1_iso' [Finite G] {H : Type u} [Group H] [Fintype H] {φ : H →* G}
     (inj : Function.Injective φ) :
     H1 (aug R G ↓ φ) ≅ ModuleCat.of R (R ⧸ Ideal.span {(Nat.card H : R)}) := by
   have := Rep.trivialCohomology_iff_res.1 (trivialCohomology R G) φ inj
@@ -318,15 +297,20 @@ def H1_iso' [Fintype G] {H : Type u} [Group H] [Fintype H] {φ : H →* G}
   rw [LinearMap.range_eq_map, ← leftRegular.res_span_norm R G φ inj, Submodule.map_span,
     ← Set.range_comp, Ideal.span, Submodule.map_span]
   congr 1
-  ext
-  simp only [Nat.card_eq_fintype_card, Set.image_singleton, Set.mem_singleton_iff, Nat.reduceAdd,
-    ShortComplex.SnakeInput.L₁'_X₂, HomologicalComplex.HomologySequence.snakeInput_L₀,
-    Functor.mapShortComplex_obj, ShortComplex.map_X₃, cochainsFunctor_obj,
-    HomologicalComplex.homologyFunctor_obj, ShortComplex.SnakeInput.L₁'_X₁, ShortComplex.map_X₂,
-    ShortComplex.SnakeInput.L₁'_f, ShortComplex.map_g, cochainsFunctor_map,
+  ext x
+  simp only [Iso.toLinearMap_toLinearEquiv, Iso.symm_hom, Set.image_singleton,
+    Nat.card_eq_fintype_card, Set.mem_singleton_iff, Nat.reduceAdd, ShortComplex.SnakeInput.L₁'_X₂,
+    HomologicalComplex.HomologySequence.snakeInput_L₀, Functor.mapShortComplex_obj,
+    ShortComplex.map_X₃, cochainsFunctor_obj, HomologicalComplex.homologyFunctor_obj,
+    ShortComplex.SnakeInput.L₁'_X₁, ShortComplex.map_X₂, ShortComplex.SnakeInput.L₁'_f,
+    ShortComplex.map_g, hom_ofHom, Representation.isTrivial_def, LinearMap.id_coe, id_eq,
+    Representation.IntertwiningMap.coe_eq_toLinearMap, cochainsFunctor_map,
     HomologicalComplex.homologyFunctor_map, Set.mem_range, Function.comp_apply]
-  change _ ↔ ∃ y : G, (groupCohomology.map (.id H) _ 0).hom (res_norm R φ y) = _
-  simpa [leftRegular.groupCoh_map_res_norm, eq_comm] using by rfl
+  have : (resFunctor φ).map (ε R G) = ofHom ⟨lift R R G (fun _ ↦ 1), fun _ ↦ by ext; simp⟩ := rfl
+  change _  ↔ ∃ g, groupCohomology.map (MonoidHom.id H) (ofHom _) 0 _ = _
+  rw [← this]
+  simp only [leftRegular.groupCoh_map_res_norm R G φ, eq_comm, exists_const]
+  rfl
 
 end Rep.aug
 
@@ -335,73 +319,71 @@ namespace Rep.leftRegular
 variable (R G : Type u) [CommRing R] [Group G] [Fintype G]
 
 /-- `Rep.norm` applied to `1 : R[G]` is indeed `∑ g, g`. -/
-lemma norm_of_one : (Rep.norm (Rep.leftRegular R G)).hom.hom (Rep.leftRegular.of 1) =
-    ∑ g, Rep.leftRegular.of g := by
+lemma norm_of_one : (Rep.norm (Rep.leftRegular R G)).hom (.single 1 1) =
+    ∑ g, .single g 1 := by
   ext g'
-  simp [Representation.norm, Rep.leftRegular.of]
+  simp [Rep.norm, Representation.norm]
 
 /-- the map from `R ⟶ R[G]` that sends `r : R` to `r • N` where `N` is the "norm" element. -/
-def μ : trivial R G R ⟶ leftRegular R G where
-  hom := ModuleCat.ofHom <| (LinearMap.lsmul R (leftRegular R G)).flip (∑ g, Rep.leftRegular.of g)
-  comm g := by
+def μ : trivial R G R ⟶ leftRegular R G := ofHom {
+  __ := (LinearMap.lsmul R (leftRegular R G)).flip (∑ g, .single g 1)
+  isIntertwining' g := by
     ext g'
-    simp only [ModuleCat.endRingEquiv, RingEquiv.symm_mk, RingHom.toMonoidHom_eq_coe,
-      RingEquiv.toRingHom_eq_coe, MonoidHom.coe_comp, MonoidHom.coe_coe, RingHom.coe_coe,
-      RingEquiv.coe_mk, Equiv.coe_fn_mk, Function.comp_apply, Representation.isTrivial_def,
-      ModuleCat.ofHom_id, map_sum, LinearMap.lsmul_flip_apply, CategoryTheory.Category.id_comp,
-      ModuleCat.hom_ofHom, LinearMap.coe_sum, Finset.sum_apply, LinearMap.toSpanSingleton_apply,
-      one_smul, Finsupp.coe_finset_sum, ModuleCat.hom_comp, LinearMap.coe_comp,
-      Representation.ofMulAction_apply, smul_eq_mul]
-    refine Finset.sum_equiv (Equiv.mulLeft g⁻¹) (by simp) (fun i ↦ ?_)
-    classical
-    simp only [Finset.mem_univ, Equiv.coe_mulLeft, forall_const]
-    rw [of_apply, of_apply]
-    split_ifs with h1 h2 h3
-    all_goals try grind [mul_right_inj]
+    classical simp only [map_sum, LinearMap.lsmul_flip_apply, Representation.isTrivial_def,
+      LinearMap.comp_id, LinearMap.coe_sum, Finset.sum_apply, LinearMap.toSpanSingleton_apply,
+      one_smul, Finsupp.coe_finset_sum, Finsupp.single_apply, Finset.sum_ite_eq', Finset.mem_univ,
+      ↓reduceIte, LinearMap.coe_comp, Function.comp_apply, Representation.ofMulAction_single,
+      smul_eq_mul, Finset.sum_boole, @eq_comm _ (1 : R)]
+    rw [← Nat.cast_one]
+    refine _root_.congr_arg _ (Finset.card_eq_one.2 ⟨g⁻¹ * g', ?_⟩)
+    ext
+    simp [eq_comm, ← inv_mul_eq_iff_eq_mul (a := g)]}
 
 @[simp]
-lemma μ_one : (μ R G).hom (1 : R) = ∑ g, Rep.leftRegular.of g := by
+lemma μ_one : (μ R G).hom (1 : R) = ∑ g, .single g 1 := by
   simp [μ]
 
 @[simp]
 lemma μ_zero : (μ R G).hom (0 : R) = 0 := by simp [μ]
 
 @[simp]
-lemma μ_apply (r : R) : (μ R G).hom r = r • ∑ g, Rep.leftRegular.of g := by rfl
+lemma μ_apply (r : R) : (μ R G).hom r = r • ∑ g, .single g 1 := by rfl
 
-def coaug : Rep R G := CategoryTheory.Limits.cokernel (μ R G)
+abbrev coaug : Rep R G := CategoryTheory.Limits.cokernel (μ R G)
 
 @[simp]
-lemma _root_.Rep.quotient_V {G} [Monoid G] (A : Rep R G) (W : Submodule R A) (h : ∀ (g : G), W ≤
-    Submodule.comap (A.ρ g) W) : (Rep.quotient A W h).V = (A.V ⧸ W) := by
-  simp
+lemma ModuleCat.ofHom_zero {R : Type u} {M N : Type v} [Ring R] [AddCommGroup M] [Module R M]
+    [AddCommGroup N] [Module R N] :
+  ModuleCat.ofHom (0 : M →ₗ[R] N) = 0 := rfl
 
 -- for any Cat that has a forgetful functor to ModuleCat R, there is an iso
 -- between (forget₂ _ _).obj (Limits.kernel f) and Limits.kernel ((forget₂ _ _).map f)
 noncomputable def _root_.Rep.forgetKernelIso {R G : Type u} [CommRing R] [Group G] {A B : Rep R G}
-    (f : A ⟶ B) : (Limits.kernel f).V ≅ Limits.kernel f.hom :=
+    (f : A ⟶ B) : ModuleCat.of R (Limits.kernel f).V ≅ Limits.kernel f.toModuleCatHom :=
   (preservesLimitIso (forget₂ (Rep R G) (ModuleCat R)) (Limits.parallelPair f 0)).trans
     (Limits.HasLimit.isoOfNatIso (Limits.parallelPair.ext (Iso.refl _) (Iso.refl _)
-      (by simp [forget₂_map]) (by simp)))
+      (by simp) (by simp)))
 
+set_option backward.isDefEq.respectTransparency false in
 lemma kernel_ι_comp_forgetKernelIso {R G : Type u} [CommRing R] [Group G]
-    {A B : Rep R G} (f : A ⟶ B) : (forgetKernelIso f).hom ≫ Limits.kernel.ι f.hom =
-    (Limits.kernel.ι f).hom := by
+    {A B : Rep R G} (f : A ⟶ B) : (forgetKernelIso f).hom ≫ Limits.kernel.ι f.toModuleCatHom =
+    (Limits.kernel.ι f).toModuleCatHom := by
   simp [forgetKernelIso]
 
 @[reassoc]
 lemma forgetKernelIso_inv_comp_kernel_ι {R G : Type u} [CommRing R] [Group G] {A B : Rep R G}
-    (f : A ⟶ B) : (forgetKernelIso f).inv ≫ (Limits.kernel.ι f).hom = Limits.kernel.ι f.hom := by
+    (f : A ⟶ B) : (forgetKernelIso f).inv ≫ (Limits.kernel.ι f).toModuleCatHom =
+      Limits.kernel.ι f.toModuleCatHom := by
   rw [← kernel_ι_comp_forgetKernelIso, Iso.inv_hom_id_assoc]
 
 /-- The forgetful functor from `Rep R G` to `ModuleCat R` preserves cokernels,
 giving an isomorphism between the underlying module of the cokernel and
 the cokernel of the underlying module map. -/
 noncomputable def _root_.Rep.forgetCokernelIso {R G : Type u} [CommRing R] [Group G] {A B : Rep R G}
-    (f : A ⟶ B) : (Limits.cokernel f).V ≅ Limits.cokernel f.hom :=
+    (f : A ⟶ B) : ModuleCat.of R (Limits.cokernel f).V ≅ Limits.cokernel f.toModuleCatHom :=
   (preservesColimitIso (forget₂ (Rep R G) (ModuleCat R)) (Limits.parallelPair f 0)).trans
     (Limits.HasColimit.isoOfNatIso (Limits.parallelPair.ext (Iso.refl _) (Iso.refl _)
-      (by simp [forget₂_map]) (by simp)))
+      (by simp) (by simp)))
 
 noncomputable instance (ι R : Type*) [Ring R] [Fintype ι] : Ring (ι →₀ R) where
   __ := Finsupp.instNonUnitalRing
@@ -409,19 +391,20 @@ noncomputable instance (ι R : Type*) [Ring R] [Fintype ι] : Ring (ι →₀ R)
   one_mul f := show Finsupp.equivFunOnFinite.symm 1 * f = f by ext; simp
   mul_one f := show f * Finsupp.equivFunOnFinite.symm 1 = f by ext; simp
 
-lemma range_μ : (μ R G).hom.hom.range = Submodule.span R {∑ g, Rep.leftRegular.of g} := by
+lemma range_μ : (μ R G).hom.range.1 = Submodule.span R {∑ g, .single g 1} := by
   ext x
-  simp +contextual only [LinearMap.mem_range, Submodule.mem_span_singleton]
+  simp +contextual only [Representation.IntertwiningMap.range_toSubmodule, LinearMap.mem_range,
+    Representation.IntertwiningMap.coe_toLinearMap, Submodule.mem_span_singleton]
   constructor
   all_goals exact fun ⟨y, hy⟩ ↦ ⟨y, by rwa [μ_apply] at *⟩
 
-lemma le_comap (g : G) : R ∙ ∑ g, of g ≤ Submodule.comap ((leftRegular R G).ρ g)
-    (R ∙ ∑ g, of g) := by
-  simp only [Submodule.span_singleton_le_iff_mem, Submodule.mem_comap, map_sum]
-  conv => enter [2, 2, x]; rw [ρ_apply_of]
-  nth_rw 2 [Finset.sum_equiv (t := Finset.univ) (g := fun i ↦ of i)
-    (Equiv.mulLeft g) (by simp) (by simp)]
-  exact Submodule.mem_span_singleton_self _
+-- lemma le_comap (g : G) : R ∙ ∑ g, of g ≤ Submodule.comap ((leftRegular R G).ρ g)
+--     (R ∙ ∑ g, of g) := by
+--   simp only [Submodule.span_singleton_le_iff_mem, Submodule.mem_comap, map_sum]
+--   conv => enter [2, 2, x]; rw [ρ_apply_of]
+--   nth_rw 2 [Finset.sum_equiv (t := Finset.univ) (g := fun i ↦ of i)
+--     (Equiv.mulLeft g) (by simp) (by simp)]
+--   exact Submodule.mem_span_singleton_self _
 
 -- is this correct?
 -- def coaugIsoQuot : coaug R G ≅ Rep.quotient (Rep.leftRegular R G)

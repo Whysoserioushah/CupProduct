@@ -4,6 +4,7 @@ import CupProduct.groupCoh.UpIso
 import CupProduct.groupCoh.DownIso
 import CupProduct.groupCoh.degree0
 
+#exit
 open CategoryTheory groupCohomology MonoidalCategory Rep.dimensionShift
 
 universe u

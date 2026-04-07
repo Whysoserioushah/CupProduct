@@ -10,8 +10,7 @@ of `B` is the product of the Herbrand quotients of `A` and `C`.
 -/
 
 noncomputable section
-
-variable {R G : Type} [CommRing R] [Group G] [Fintype G] [IsCyclic G]
+variable {R G : Type} [CommRing R] [Group G] [Finite G] [IsCyclic G]
 
 open CategoryTheory
   groupCohomology
@@ -24,6 +23,7 @@ variable {S : ShortComplex (Rep R G)} (hS : S.ShortExact)
 
 include hS
 
+set_option backward.isDefEq.respectTransparency false in
 /-- Given a short exact sequence of representations of a finite cyclic group, the long exact
 sequence in cohomology is periodic with period six. -/
 def herbrandSixTermSequence : CochainComplex (ModuleCat R) (Fin 6) where
@@ -61,9 +61,11 @@ def herbrandSixTermSequence : CochainComplex (ModuleCat R) (Fin 6) where
     · rw [← ShortComplex.map_f]
       erw [(mapShortComplex₁ hS (Eq.refl 2)).zero]
 
+set_option backward.isDefEq.respectTransparency false in
 lemma herbrandSixTermSequence_exactAt (i : Fin 6) : (herbrandSixTermSequence hS).ExactAt i := by
   fin_cases i <;>
       change ShortComplex.Exact (ShortComplex.mk ..) <;>
+      -- FIXME: This `erw` appeared in v4.27.0
       erw [CochainComplex.prev, CochainComplex.next]
   · exact mapShortComplex₁_exact hS (Eq.refl 2)
   · exact mapShortComplex₂_exact hS 2
@@ -79,8 +81,6 @@ lemma herbrandSixTermSequence_exactAt (i : Fin 6) : (herbrandSixTermSequence hS)
       cat_disch
   · exact mapShortComplex₂_exact hS 1
   · exact mapShortComplex₃_exact hS (Eq.refl 2)
-
-set_option linter.unusedFintypeInType false
 
 lemma herbrandQuotient_ne_zero_of_shortExact₃
     (h₁ : S.X₁.herbrandQuotient ≠ 0) (h₂ : S.X₂.herbrandQuotient ≠ 0) :

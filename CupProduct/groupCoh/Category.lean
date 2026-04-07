@@ -24,6 +24,7 @@ def Isoμ_shortComplex (M : C) : (RGSES.map (tensorRight M) |>.map F) ≅
   rw [← ShortComplex.map_comp, ← ShortComplex.map_comp]
   exact ShortComplex.mapNatIso _ <| μNatIso _ _ _ _
 
+set_option backward.isDefEq.respectTransparency false in
 def splitAux (M : C) : ((RGSES.map F).map (tensorRight (F.obj M))).Splitting where
   r := h1.r ▷ F.obj M
   s := h1.s ▷ F.obj M
@@ -142,16 +143,16 @@ lemma ShortExact.mapInjectiveResol_shortExact {S : ShortComplex C} (hS : S.Short
     ((ShortExact.mapInjectiveResol hS).map
     (Hzero.mapHomologicalComplex (ComplexShape.up ℕ))).ShortExact := sorry
 
-#check DerivedCategory.triangleOfSES
-#check homologySequenceComposableArrows₅
--- def
-#check CategoryTheory.ShortComplex.ShortExact.δ
+-- #check DerivedCategory.triangleOfSES
+-- #check homologySequenceComposableArrows₅
+-- -- def
+-- #check CategoryTheory.ShortComplex.ShortExact.δ
 
-#check rightDerived
+-- #check rightDerived
 
-#check groupCohomology.δ
-#check CategoryTheory.ShortComplex.SnakeInput.naturality_δ
-#check HomologicalComplex.HomologySequence.δ_naturality
+-- #check groupCohomology.δ
+-- #check CategoryTheory.ShortComplex.SnakeInput.naturality_δ
+-- #check HomologicalComplex.HomologySequence.δ_naturality
 -- there is groupCohomology.δ_naturality in CFT need to be imported here
 noncomputable def Category.upIso (i j : ℕ) (h : j = i + 1) :
     ((ShortExact.mapInjectiveResol (shortExact_upCat C E F RGSES h1 M)).map

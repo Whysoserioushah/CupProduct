@@ -27,7 +27,7 @@ omit [IsCyclic G] in
     (trivial ℤ G ℤ).tateB0 = Ideal.span {(Nat.card G : ℤ)} := by
   ext; simp [tateB0, Ideal.mem_span_singleton', mul_comm]
 
-def tateH0TrivIntAddEquivQuotCard :
+noncomputable def tateH0TrivIntAddEquivQuotCard :
     (trivial ℤ G ℤ).TateH0 ≃ₗ[ℤ] ℤ ⧸ Ideal.span {(Nat.card G : ℤ)} :=
   Submodule.Quotient.equiv _ _
     (LinearEquiv.ofEq _ _ tateZ0_trivial_int_eq_top ≪≫ₗ Submodule.topEquiv) <| by
@@ -61,6 +61,7 @@ theorem herbrandQuotient_trivial_int_eq_card : herbrandQuotient (trivial ℤ G �
 
 end Representation
 
+set_option linter.unusedFintypeInType false in
 variable (G) in
 lemma Rep.herbrandQuotient_trivial_int_eq_card : herbrandQuotient (trivial ℤ G ℤ) = Nat.card G := by
   classical rw [trivial, herbrandQuotient_of, Representation.herbrandQuotient_trivial_int_eq_card]

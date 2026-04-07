@@ -1,4 +1,3 @@
-import CupProduct.Basic
 import CupProduct.Cohomology.AugmentationModule
 import CupProduct.Cohomology.FiniteCyclic.ExplicitTate
 import CupProduct.Cohomology.FiniteCyclic.HerbrandQuotient.Defs
@@ -32,6 +31,7 @@ import CupProduct.Mathlib.Algebra.Homology.ConcreteCategory
 import CupProduct.Mathlib.Algebra.Homology.ShortComplex.ConcreteCategory
 import CupProduct.Mathlib.Algebra.Homology.ShortComplex.Exact
 import CupProduct.Mathlib.Algebra.Homology.ShortComplex.ModuleCat
+import CupProduct.Mathlib.Algebra.Homology.ShortComplex.Rep
 import CupProduct.Mathlib.Algebra.Homology.ShortComplex.ShortExact
 import CupProduct.Mathlib.Algebra.Module.Torsion.Basic
 import CupProduct.Mathlib.Algebra.Order.Group.OrderIso
@@ -39,8 +39,6 @@ import CupProduct.Mathlib.Algebra.Order.GroupWithZero.Canonical
 import CupProduct.Mathlib.Algebra.Order.Hom.Monoid
 import CupProduct.Mathlib.CategoryTheory.Category.Basic
 import CupProduct.Mathlib.CategoryTheory.Category.Cat
-import CupProduct.Mathlib.Data.Finset.Range
-import CupProduct.Mathlib.Data.Finsupp.Single
 import CupProduct.Mathlib.Data.Int.WithZero
 import CupProduct.Mathlib.FieldTheory.Finite.Basic
 import CupProduct.Mathlib.FieldTheory.Finite.IntermediateField
@@ -77,3 +75,10 @@ import CupProduct.Mathlib.RingTheory.RootsOfUnity.PrimitiveRoots
 import CupProduct.Mathlib.RingTheory.Unramified.Basic
 import CupProduct.Mathlib.RingTheory.Unramified.LocalRing
 import CupProduct.Mathlib.SetTheory.Cardinal.Finite
+import CupProduct.Old.Basic
+import CupProduct.TateCoh.degree0
+import CupProduct.groupCoh.Category
+import CupProduct.groupCoh.DownIso
+import CupProduct.groupCoh.Rep
+import CupProduct.groupCoh.UpIso
+import CupProduct.groupCoh.degree0

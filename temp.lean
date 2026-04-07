@@ -3,7 +3,6 @@ Copyright (c) 2025 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau
 -/
-
 import CupProduct.Mathlib.RingTheory.AdicCompletion.Ring
 import CupProduct.Mathlib.RingTheory.LiftingCoprime
 import CupProduct.Mathlib.RingTheory.Nilpotent.Lemmas
@@ -26,7 +25,6 @@ irreducible in `R/I`.
   in `R`.
 
 -/
-
 
 section Lemmas
 
@@ -87,6 +85,20 @@ theorem Polynomial.degree_sub_lt' {R : Type*} [Ring R] {p q : R[X]} {n}
 theorem Polynomial.Monic.degree_mul' {R : Type*} [Semiring R] {p q : Polynomial R} (hp : p.Monic) :
     (p * q).degree = p.degree + q.degree := by
   rw [hp.degree_mul_comm, hp.degree_mul, add_comm]
+
+section
+variable {R S : Type*} [Ring R] [Semiring S] {f : R →+* S} (hf : Function.Surjective ⇑f)
+
+theorem RingHom.quotientKerEquivOfSurjective_comp :
+    (RingHom.quotientKerEquivOfSurjective hf : _ →+* _).comp (Ideal.Quotient.mk (ker f)) = f := rfl
+
+theorem RingHom.quotientKerEquivOfSurjective_symm_comp :
+    ((RingHom.quotientKerEquivOfSurjective hf).symm : _ →+* _).comp f =
+    Ideal.Quotient.mk (ker f) := by
+  conv => enter [1,2]; rw [← quotientKerEquivOfSurjective_comp hf]
+  rw [← comp_assoc, RingEquiv.symm_comp, id_comp]
+
+end
 
 end Lemmas
 
@@ -250,16 +262,20 @@ section
 variable [Nontrivial S] {fac : MonicCoprimeFactors f} (φ : R →+* S)
 
 /-- Degree is preserved by `map`. -/
-theorem degree_fst_map : (fac.map φ).fst.degree = fac.fst.degree := fac.3.degree_map _
+theorem degree_fst_map  : (fac.map φ).fst.degree = fac.fst.degree :=
+  fac.3.degree_map _
 
 /-- Degree is preserved by `map`. -/
-theorem degree_snd_map : (fac.map φ).snd.degree = fac.snd.degree := fac.4.degree_map _
+theorem degree_snd_map  : (fac.map φ).snd.degree = fac.snd.degree :=
+  fac.4.degree_map _
 
 /-- Degree is preserved by `map`. -/
-theorem natDegree_fst_map : (fac.map φ).fst.natDegree = fac.fst.natDegree := fac.3.natDegree_map _
+theorem natDegree_fst_map  : (fac.map φ).fst.natDegree = fac.fst.natDegree :=
+  fac.3.natDegree_map _
 
 /-- Degree is preserved by `map`. -/
-theorem natDegree_snd_map : (fac.map φ).snd.natDegree = fac.snd.natDegree := fac.4.natDegree_map _
+theorem natDegree_snd_map  : (fac.map φ).snd.natDegree = fac.snd.natDegree :=
+  fac.4.natDegree_map _
 
 end
 end CommSemiring
@@ -331,11 +347,11 @@ theorem map_surjective_of_sqZero (mf : f.Monic) :
   -- a(f-pq) = qr+s
   let r := a * (f - p * q) /ₘ q
   let s := a * (f - p * q) %ₘ q
-  have hrs : a * (f - p * q) = s + q * r := (modByMonic_add_div _ q).symm
+  have hrs : a * (f - p * q) = s + q * r := (modByMonic_add_div _ mq).symm
   -- b(f-pq) = pt+u
   let t := b * (f - p * q) /ₘ p
   let u := b * (f - p * q) %ₘ p
-  have htu : b * (f - p * q) = u + p * t := (modByMonic_add_div _ p).symm
+  have htu : b * (f - p * q) = u + p * t := (modByMonic_add_div _ mp).symm
   have hfpq : f - p * q ∈ RingHom.ker (mapRingHom φ) := by simp [hpq, φ]
   have hs : s ∈ RingHom.ker (mapRingHom φ) :=
     hφ ▸ (modByMonic_mem_map <| mul_mem_left _ _ <| hφ ▸ hfpq)
@@ -395,8 +411,8 @@ include hφ in
 theorem map_bijective_of_sqZero_ker (hφ2 : RingHom.ker φ ^ 2 = ⊥) (mf : f.Monic) :
     (map φ (f := f)).Bijective :=
   (Equiv.comp_bijective _ <| mapEquiv (RingHom.quotientKerEquivOfSurjective hφ).symm).mp <| by
-    erw [coe_mapEquiv, map_comp_map, Equiv.comp_bijective,
-    RingHom.quotientKerEquivOfSurjective_symm_comp hφ]
+    rw [coe_mapEquiv, map_comp_map, Equiv.comp_bijective,
+    RingHom.quotientKerEquivOfSurjective_symm_comp]
     exact map_bijective_of_sqZero f (RingHom.ker φ) hφ2 mf
 
 /-- Monic coprime factorisations in `R` bijects onto those in `R ⧸ I` if `I ^ n = ⊥`. -/
@@ -422,8 +438,8 @@ include hφ in
 theorem map_bijective_of_isNilpotent_ker (hφ0 : IsNilpotent (RingHom.ker φ)) (mf : f.Monic) :
     (map φ (f := f)).Bijective :=
   (Equiv.comp_bijective _ <| mapEquiv (RingHom.quotientKerEquivOfSurjective hφ).symm).mp <| by
-    erw [coe_mapEquiv, map_comp_map, Equiv.comp_bijective,
-    RingHom.quotientKerEquivOfSurjective_symm_comp hφ]
+    rw [coe_mapEquiv, map_comp_map, Equiv.comp_bijective,
+    RingHom.quotientKerEquivOfSurjective_symm_comp]
     exact map_bijective_of_isNilpotent f (RingHom.ker φ) hφ0 mf
 
 variable {f : R[X]} {mf : f.Monic} {n : ℕ}
