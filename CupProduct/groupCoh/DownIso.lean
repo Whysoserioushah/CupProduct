@@ -106,31 +106,10 @@ def Representation.indToTensor {R G M : Type*} [CommRing R] [Group G] [AddCommGr
     [Fintype G] (ρ : Representation R G M) :
     ρ.ind₁'.IntertwiningMap ((leftRegular R G).tprod ρ) where
   __ := indToTensorLinear M
-  isIntertwining' g := by
-    apply LinearMap.ext
-    intro f
-    -- dsimp only [indToTensorLinear]
-    have h1 : Finset.sum Finset.univ (fun (i : G) ↦ Finsupp.single i⁻¹ (1 : R) ⊗ₜ[R] ((ρ.ind₁' g) f) i)
-        = Finset.sum Finset.univ (fun (j : G) ↦ Finsupp.single (j * g⁻¹)⁻¹ (1 : R) ⊗ₜ[R] ((ρ.ind₁' g) f) (j * g⁻¹)) := by
-      apply Finset.sum_bij' (fun (i : G) _ ↦ i * g) (fun (j : G) _ ↦ j * g⁻¹)
-      <;> simp [mul_assoc]
-      -- <;> group
-    have h2 (j : G) : Finsupp.single (j * g⁻¹)⁻¹ (1 : R) ⊗ₜ[R] ((ρ.ind₁' g) f) (j * g⁻¹)
-        = ((leftRegular R G).tprod ρ) g (Finsupp.single j⁻¹ (1 : R) ⊗ₜ[R] (f j)) := by
-      simp [-ind₁'_apply, ind₁'_apply₂ ρ f g (j * g⁻¹)]
-    have h3 : Finset.sum Finset.univ (fun (j : G) ↦ Finsupp.single (j * g⁻¹)⁻¹ (1 : R) ⊗ₜ[R] ((ρ.ind₁' g) f) (j * g⁻¹))
-        = Finset.sum Finset.univ (fun (j : G) ↦ ((leftRegular R G).tprod ρ) g (Finsupp.single j⁻¹ (1 : R) ⊗ₜ[R] (f j))) := by
-      apply Finset.sum_congr rfl
-      intro j _
-      exact h2 j
-    have h4 : Finset.sum Finset.univ (fun (j : G) ↦ ((leftRegular R G).tprod ρ) g (Finsupp.single j⁻¹ (1 : R) ⊗ₜ[R] (f j)))
-        = ((leftRegular R G).tprod ρ) g (Finset.sum Finset.univ (fun (j : G) ↦ Finsupp.single j⁻¹ (1 : R) ⊗ₜ[R] (f j))) := by
-      rw [map_sum]
-    have h_main : Finset.sum Finset.univ (fun (i : G) ↦ Finsupp.single i⁻¹ (1 : R) ⊗ₜ[R] ((ρ.ind₁' g) f) i)
-        = ((leftRegular R G).tprod ρ) g (Finset.sum Finset.univ (fun (j : G) ↦ Finsupp.single j⁻¹ (1 : R) ⊗ₜ[R] (f j))) := by
-      rw [h1, h3, h4]
-    simpa using h_main
-
+  isIntertwining' g := LinearMap.ext fun f ↦ by
+    simp only [LinearMap.coe_comp, Function.comp_apply, indToTensorLinear_apply, ind₁'_apply₂,
+      tprod_apply, map_sum, map_tmul, ofMulAction_single, smul_eq_mul]
+    exact Finset.sum_equiv (Equiv.mulRight g) (by simp) (by simp)
 
 abbrev indToTensor [Fintype G] (A : Rep R G) : ind₁'.obj A ⟶ leftRegular R G ⊗ A :=
   ofHom A.ρ.indToTensor
@@ -139,20 +118,12 @@ abbrev indToTensor [Fintype G] (A : Rep R G) : ind₁'.obj A ⟶ leftRegular R G
 def indToTensorNatTrans [Fintype G] : ind₁' ⟶ tensorLeft (leftRegular R G) where
   app A := indToTensor A
   naturality {X Y} f := by
-    -- classical
-    -- ext : 2
-    -- simp only [ind₁'_obj, curriedTensor_obj_obj, Action.tensorObj_V,
-    --   ModuleCat.MonoidalCategory.tensorObj_carrier, Action.comp_hom, indToTensor_hom,
-    --   Equivalence.symm_inverse, Action.functorCategoryEquivalence_functor,
-    --   Action.FunctorCategoryEquivalence.functor_obj_obj, ModuleCat.hom_comp, ModuleCat.hom_ofHom,
-    --   curriedTensor_obj_map, Action.whiskerLeft_hom, ModuleCat.hom_whiskerLeft]
-    -- ext g x
-    -- simp only [ind₁', ModuleCat.hom_ofHom, LinearMap.coe_comp, Function.comp_apply,
-    --   Finsupp.lsingle_apply, Finsupp.mapRange.linearMap_apply, coe_hom, Finsupp.mapRange_single,
-    --   indToTensorLinear_apply, Finsupp.single_apply, map_sum, LinearMap.lTensor_tmul, hom_apply]
-    -- congr!
-    -- split_ifs <;> simp
-    sorry
+    ext : 2
+    simp only [ind₁', curriedTensor_obj_obj, tensor_V, tensor_ρ, Rep.hom_comp, hom_ofHom,
+      Representation.IntertwiningMap.comp_toLinearMap, Representation.indToTensor_toLinearMap,
+      curriedTensor_obj_map, hom_whiskerLeft, Representation.IntertwiningMap.toLinearMap_lTensor]
+    ext g x
+    classical simp [Finsupp.single]
 
 lemma indToTensorLienar_comp_inv {R G : Type*} (M : Type*) [CommRing R] [Group G] [AddCommGroup M]
     [Module R M] [Fintype G] : lift (tensorToIndLinear (R := R) (G := G) M) ∘ₗ
@@ -177,89 +148,56 @@ abbrev Rep.trivialTensorIso : 𝟭 (Rep R G) ≅ tensorLeft (Rep.trivial R G R) 
   leftUnitorNatIso _|>.symm
 
 open Rep.leftRegular ModuleCat
+
+set_option backward.isDefEq.respectTransparency false in
 abbrev tensorToDown [Fintype G] (A : Rep R G) : aug R G ⊗ A ⟶ down.obj A :=
   haveI : Mono (downSES A).f := (shortExact_downSES A).mono_f
   (shortExact_downSES A).1.lift ((ι R G ▷ A) ≫ tensorToInd A) <| by
-  -- ext1
-  -- simp only [Action.tensorObj_V, downSES_X₃, downSES_X₂, ind₁'_obj, equalizer_as_kernel, downSES_g,
-  --   Category.assoc, Action.comp_hom, Action.whiskerRight_hom, tensorToInd_hom,
-  --   Equivalence.symm_inverse, Action.functorCategoryEquivalence_functor,
-  --   Action.FunctorCategoryEquivalence.functor_obj_obj, ind₁'_π_app_hom, Action.zero_hom]
-  -- apply_fun ((((kernelIsoKer _).inv ≫ (forgetKernelIso (ε R G)).inv) ▷ A.V) ≫ ·)
-  -- · simp only [← comp_whiskerRight_assoc, Category.assoc]
-  --   rw [forgetKernelIso_inv_comp_kernel_ι, kernelIsoKer_inv_kernel_ι]
-  --   ext1
-  --   simp only [MonoidalCategory.tensorObj_carrier, ModuleCat.hom_comp, hom_ofHom, hom_whiskerRight,
-  --     comp_whiskerRight, comp_zero, hom_zero]
-  --   ext ⟨x, hx⟩ a
-  --   classical
-  --   simp only [AlgebraTensorModule.curry_apply, LinearMap.restrictScalars_self, curry_apply,
-  --     LinearMap.coe_comp, Function.comp_apply, LinearMap.rTensor_tmul, Submodule.subtype_apply,
-  --     lift.tmul, tensorToIndLinear_apply, tensorToIndAux_apply, map_smul, Finsupp.lsingle_apply,
-  --     Finsupp.smul_single, Representation.ind₁'_π_apply, LinearMap.zero_apply]
-  --   rw [Finsupp.sum_sum_index (by simp) (by simp)]
-  --   simp only [Module.End.one_apply, Finsupp.sum_single_index, map_smul, LinearMap.mem_ker] at hx ⊢
-  --   rw [ε_eq_sum'] at hx
-  --   simp [Finsupp.sum, ← Finset.sum_smul, hx]
-  -- exact fun _ _ h ↦ (cancel_epi _).mp h
-  sorry
+  dsimp
+  rw [Category.assoc, show tensorToInd A ≫ ind₁'_π.app A = ε R G ▷ A ≫ (λ_ A).hom by
+    ext1; dsimp; ext; simp [ind₁'_π], ← Category.assoc]
+  simp [← comp_whiskerRight]
 
+set_option backward.isDefEq.respectTransparency false in
 @[simps]
 def tensorToDownFunc [Fintype G] : tensorLeft (aug R G) ⟶ down where
   app := tensorToDown
   naturality {X Y} f := by
     haveI := (shortExact_downSES Y).mono_f
-    -- rw [← cancel_mono (downSES Y).f, Category.assoc, Exact.lift_f, Category.assoc, downSES_f,
-    --   down_map, kernel.lift_ι]
-    -- change _ = _ ≫ (downSES X).f ≫ _
-    -- rw [Exact.lift_f_assoc, Category.assoc, ← tensorToIndNatTrans_app X,
-    --   ← tensorToIndNatTrans.naturality]
-    -- simp [whisker_exchange_assoc]
-    sorry
+    rw [← cancel_mono (downSES Y).f, Category.assoc, Exact.lift_f, Category.assoc, downSES_f,
+      down_map, kernel.lift_ι]
+    change _ = _ ≫ (downSES X).f ≫ _
+    rw [Exact.lift_f_assoc, Category.assoc, ← tensorToIndNatTrans_app X,
+      ← tensorToIndNatTrans.naturality]
+    simp [whisker_exchange_assoc]
 
+set_option backward.isDefEq.respectTransparency false in
 abbrev downToTensor [Fintype G] (A : Rep R G) : down.obj A ⟶ aug R G ⊗ A :=
   haveI : Mono ((aug_shortExactSequence R G).map (tensorRight A)).f := (shortExact_downSES' R G A).2
   (shortExact_downSES' R G A).1.lift (down.ι A ≫ indToTensor A) <| by
-  -- ext1
-  -- simp only [down_obj, ind₁'_obj, Functor.id_obj, map_X₃, Functor.flip_obj_obj,
-  --   curriedTensor_obj_obj, Action.tensorObj_V, map_X₂, equalizer_as_kernel, map_g,
-  --   Functor.flip_obj_map, curriedTensor_map_app, Category.assoc, Action.comp_hom, indToTensor_hom,
-  --   Equivalence.symm_inverse, Action.functorCategoryEquivalence_functor,
-  --   Action.FunctorCategoryEquivalence.functor_obj_obj, Action.whiskerRight_hom, Action.zero_hom]
-  -- apply_fun (((kernelIsoKer _).inv ≫ (forgetKernelIso (ind₁'_π.app A)).inv) ≫ ·) using
-  --   fun _ _ ↦ cancel_epi _|>.1
-  -- simp only [Category.assoc, comp_zero]
-  -- rw [forgetKernelIso_inv_comp_kernel_ι_assoc, ← Category.assoc, kernelIsoKer_inv_kernel_ι]
-  -- ext1
-  -- simp only [ind₁'_obj, Functor.id_obj, ind₁'_π_app_hom, hom_ofHom,
-  --   MonoidalCategory.tensorObj_carrier, ModuleCat.hom_comp, hom_whiskerRight, hom_zero]
-  -- ext ⟨x, hx⟩
-  -- simp only [LinearMap.coe_comp, Submodule.coe_subtype, Function.comp_apply,
-  --   indToTensorLinear_apply, map_sum, LinearMap.rTensor_tmul]
-  -- conv_lhs => enter [2, g]; rw [ε_of]
-  -- rw [← tmul_sum]
-  -- simp only [LinearMap.mem_ker, Representation.ind₁'_π_apply, Finsupp.sum] at hx
-  -- rw [← finsum_eq_sum_of_support_subset (α := G) _ (by simp), finsum_eq_sum_of_fintype] at hx
-  -- erw [LinearMap.zero_apply] -- this error is weird I can't remove it by simp [tensorObj_carrier]
-  -- simp_all
-  sorry
+  dsimp
+  have : indToTensor A ≫ ε R G ▷ A = ind₁'_π.app A ≫ (λ_ A).inv := by
+    ext1; dsimp; ext
+    classical simp [ind₁'_π, Finsupp.single_apply, tmul_ite]
+  rw [Category.assoc, this, ← Category.assoc, kernel.condition, zero_comp]
 
+set_option backward.isDefEq.respectTransparency false in
 @[simps]
 def downToTensorFunc [Fintype G] : down ⟶ tensorLeft (aug R G) where
   app := downToTensor
   naturality {X Y} f := by
-    -- haveI := (shortExact_downSES' R G Y).2
-    -- rw [← cancel_mono ((aug_shortExactSequence R G).map (tensorRight Y)).f, Category.assoc,
-    --   Exact.lift_f, down_map, kernel.lift_ι_assoc]
-    -- simp only [down_obj, ind₁'_obj, Functor.id_obj, map_X₂, Functor.flip_obj_obj,
-    --   curriedTensor_obj_obj, Category.assoc, map_X₁, curriedTensor_obj_map, map_f,
-    --   equalizer_as_kernel, Functor.flip_obj_map, curriedTensor_map_app]
-    -- rw [whisker_exchange]
-    -- change _ = _ ≫ ((aug_shortExactSequence R G).map (tensorRight X)).f ≫ _
-    -- rw [Exact.lift_f_assoc, ← indToTensorNatTrans_app Y, indToTensorNatTrans.naturality]
-    -- simp
-    sorry
+    haveI := (shortExact_downSES' R G Y).2
+    rw [← cancel_mono ((aug_shortExactSequence R G).map (tensorRight Y)).f, Category.assoc,
+      Exact.lift_f, down_map, kernel.lift_ι_assoc]
+    simp only [down_obj, ind₁'_obj, Functor.id_obj, map_X₂, Functor.flip_obj_obj,
+      curriedTensor_obj_obj, Category.assoc, map_X₁, curriedTensor_obj_map, map_f,
+      equalizer_as_kernel, Functor.flip_obj_map, curriedTensor_map_app]
+    rw [whisker_exchange]
+    change _ = _ ≫ ((aug_shortExactSequence R G).map (tensorRight X)).f ≫ _
+    rw [Exact.lift_f_assoc, ← indToTensorNatTrans_app Y, indToTensorNatTrans.naturality]
+    simp
 
+set_option backward.isDefEq.respectTransparency false in
 @[simps]
 def downIso [Fintype G] (A : Rep R G) : down.obj A ≅ aug R G ⊗ A where
   hom := downToTensor A
@@ -274,14 +212,13 @@ def downIso [Fintype G] (A : Rep R G) : down.obj A ≅ aug R G ⊗ A where
     ext : 2
     simp [(indToTensorLienar_comp_inv)]
   inv_hom_id := by
-    -- haveI := (shortExact_downSES' R G A).2
-    -- rw [← cancel_mono ((aug_shortExactSequence R G).map (tensorRight A)).f]
-    -- simp only [downToTensor, Category.assoc, Exact.lift_f, tensorToDown]
-    -- change _ ≫ (downSES A).f ≫ _ = _
-    -- simp only [Exact.lift_f_assoc, Category.id_comp, Category.assoc]
-    -- ext : 2
-    -- simp [(indToTensorLinear_inv_comp)]
-    sorry
+    haveI := (shortExact_downSES' R G A).2
+    rw [← cancel_mono ((aug_shortExactSequence R G).map (tensorRight A)).f]
+    simp only [downToTensor, Category.assoc, Exact.lift_f, tensorToDown]
+    change _ ≫ (downSES A).f ≫ _ = _
+    simp only [Exact.lift_f_assoc, Category.id_comp, Category.assoc]
+    ext : 2
+    simp [indToTensorLinear_inv_comp]
 
 @[simps]
 def downNatIso [Fintype G] : down ≅ tensorLeft (aug R G) where
@@ -301,18 +238,18 @@ def downNatIso [Fintype G] : down ≅ tensorLeft (aug R G) where
 abbrev downTensorIso [Fintype G] (A B : Rep R G) : down.obj A ⊗ B ≅ down.obj (A ⊗ B) :=
   (tensorRight B).mapIso (downIso A) ≪≫ α_ _ _ _ ≪≫ (downIso (A ⊗ B)).symm
 
+set_option backward.isDefEq.respectTransparency false in
 @[simps! hom_app inv_app]
 def downTensorNatIso [Fintype G] (B : Rep R G) : down ⋙ tensorRight B ≅ tensorRight B ⋙ down :=
   NatIso.ofComponents (downTensorIso · B) <| fun {X Y} f ↦ by
-
-    -- simp only [Functor.comp_map, downTensorIso, Iso.trans_hom, Category.assoc,
-    --   Functor.mapIso_hom, Iso.symm_hom, downIso_inv, ← tensorToDownFunc_app,
-    --   ← tensorToDownFunc.naturality, curriedTensor_obj_map, Functor.flip_obj_map,
-    --   curriedTensor_map_app, ← associator_naturality_middle_assoc, downIso_hom,
-    --   ← comp_whiskerRight_assoc]
-    -- rw [← downToTensorFunc_app X, ← curriedTensor_obj_map, ← downToTensorFunc.naturality]
-    -- simp
-    sorry
+    simp only [Functor.comp_obj, down_obj, ind₁'_obj, Functor.id_obj, Functor.flip_obj_obj,
+      curriedTensor_obj_obj, tensor_V, tensor_ρ, Functor.comp_map, Functor.flip_obj_map,
+      curriedTensor_map_app, Iso.trans_hom, Functor.mapIso_hom, downIso_hom, Iso.symm_hom,
+      downIso_inv, Category.assoc]
+    rw [← tensorToDownFunc_app, ← tensorToDownFunc_app, ← tensorToDownFunc.naturality,
+      ← comp_whiskerRight_assoc, curriedTensor_obj_map, ← associator_naturality_middle_assoc,
+      ← comp_whiskerRight_assoc, ← downToTensorFunc_app, downToTensorFunc.naturality]
+    simp
 
 abbrev downTensorNatIso' [Fintype G] (A : Rep R G) : down ⋙ tensorLeft A ≅ tensorLeft A ⋙ down :=
   down.isoWhiskerLeft (BraidedCategory.tensorLeftIsoTensorRight A) ≪≫ downTensorNatIso A ≪≫
