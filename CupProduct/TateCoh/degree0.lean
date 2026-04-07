@@ -110,47 +110,46 @@ def CupProduct (A B : Rep R G) (p q r : ℤ) (h : r = p + q) :
   | _, Int.negSucc n => sorry
   termination_by p.natAbs
 
-#exit
-abbrev TateCohomology.π (A : Rep R G) (n : ℕ) :
-  (tateComplex A).cycles n ⟶ (tateCohomology n).obj A := (tateComplex A).homologyπ n
+-- abbrev TateCohomology.π (A : Rep R G) (n : ℕ) :
+--   (tateComplex A).cycles n ⟶ (tateCohomology n).obj A := (tateComplex A).homologyπ n
 
-abbrev lift_subtype (A : Rep R G) : ModuleCat.of R (A.ρ.invariants ⧸
-    (LinearMap.range A.ρ.norm).submoduleOf A.ρ.invariants) ⟶ A.V :=
-  ModuleCat.ofHom <| Submodule.liftQ _ A.ρ.invariants.subtype <| fun x hx ↦ by
-  simp only [Submodule.submoduleOf, Submodule.mem_comap, Submodule.subtype_apply,
-    LinearMap.mem_range, Submodule.ker_subtype, Submodule.mem_bot] at hx ⊢
-  obtain ⟨a, ha⟩ := hx
+-- -- abbrev lift_subtype (A : Rep R G) : ModuleCat.of R (A.ρ.invariants ⧸
+-- --     (LinearMap.range A.ρ.norm).submoduleOf A.ρ.invariants) ⟶ A.V :=
+-- --   ModuleCat.ofHom <| Submodule.liftQ _ A.ρ.invariants.subtype <| fun x hx ↦ by
+-- --   simp only [Submodule.submoduleOf, Submodule.mem_comap, Submodule.subtype_apply,
+-- --     LinearMap.mem_range, Submodule.ker_subtype, Submodule.mem_bot] at hx ⊢
+-- --   obtain ⟨a, ha⟩ := hx
 
-  sorry
+-- --   sorry
 
--- lemma map_id_comp_zeroIso_f {A B : Rep R G} (f : A ⟶ B) : (tateCohomology 0).map f ≫
---     (TateCohomology.zeroIso B).hom ≫
---     (ModuleCat.ofHom (Submodule.liftQ _ B.ρ.invariants.subtype _) : _ ⟶ B.V) = _ := by
+-- -- lemma map_id_comp_zeroIso_f {A B : Rep R G} (f : A ⟶ B) : (tateCohomology 0).map f ≫
+-- --     (TateCohomology.zeroIso B).hom ≫
+-- --     (ModuleCat.ofHom (Submodule.liftQ _ B.ρ.invariants.subtype _) : _ ⟶ B.V) = _ := by
 
+-- --   sorry
+
+-- #check map_id_comp_H0Iso_hom
+-- lemma map_id_comp_zeroIso {A B : Rep R G} (f : A ⟶ B) : (tateCohomology 0).map f ≫
+--     (TateCohomology.zeroIso B).hom = (TateCohomology.zeroIso A).hom ≫
+--     (Rep.invariantsQuotFunctor R G).map f := by
+--   ext a
 --   sorry
 
-#check map_id_comp_H0Iso_hom
-lemma map_id_comp_zeroIso {A B : Rep R G} (f : A ⟶ B) : (tateCohomology 0).map f ≫
-    (TateCohomology.zeroIso B).hom = (TateCohomology.zeroIso A).hom ≫
-    (Rep.invariantsQuotFunctor R G).map f := by
-  ext a
-  sorry
+-- open TensorProduct
 
-open TensorProduct
+-- def cup0NatTrans : .prod (tateCohomology 0) (tateCohomology 0) ⋙ tensor (ModuleCat R) ⟶
+--     tensor (Rep R G) ⋙ tateCohomology 0 where
+--   app MN := cup0' MN.1 MN.2
+--   naturality := sorry
 
-def cup0NatTrans : .prod (tateCohomology 0) (tateCohomology 0) ⋙ tensor (ModuleCat R) ⟶
-    tensor (Rep R G) ⋙ tateCohomology 0 where
-  app MN := cup0' MN.1 MN.2
-  naturality := sorry
+-- end TateCohomology
 
-end TateCohomology
-
-instance : (@tateCohomology R G _ _ _ 0).LaxBraided where
-  ε := sorry
-  μ := sorry
-  μ_natural_left := sorry
-  μ_natural_right := sorry
-  associativity := sorry
-  left_unitality := sorry
-  right_unitality := sorry
-  braided := sorry
+-- instance : (@tateCohomology R G _ _ _ 0).LaxBraided where
+--   ε := sorry
+--   μ := sorry
+--   μ_natural_left := sorry
+--   μ_natural_right := sorry
+--   associativity := sorry
+--   left_unitality := sorry
+--   right_unitality := sorry
+--   braided := sorry
