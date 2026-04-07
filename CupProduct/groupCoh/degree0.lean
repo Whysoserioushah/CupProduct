@@ -14,20 +14,15 @@ variable (R G : Type u) [CommRing R] [Group G]
 --   { preservesKernels _ _ _ := Limits.comp_preservesLimit _ _
 --     preservesCokernels _ _ _:= Limits.comp_preservesColimit _ _ }
 
-#exit
 noncomputable section
 
 open LinearMap
 
 variable {R G} (A B : Rep R G)
 
-lemma mem_tensorInvariants (a : A.ρ.invariants) (b : B.ρ.invariants) :
-  ∀ g : G, ((A ⊗ B).ρ g) (a.1 ⊗ₜ b.1) = a.1 ⊗ₜ b.1 := by
-  intro g
-  simp only [Action.tensorObj_V, Rep.tensor_ρ, Equivalence.symm_inverse,
-    Action.functorCategoryEquivalence_functor, Action.FunctorCategoryEquivalence.functor_obj_obj]
-  erw [Representation.tprod_apply, TensorProduct.map_tmul]
-  rw [a.2, b.2]
+lemma mem_tensorInvariants (a : A.ρ.invariants) (b : B.ρ.invariants) (g : G) :
+    ((A ⊗ B).ρ g) (a.1 ⊗ₜ b.1) = a.1 ⊗ₜ b.1 := by
+  simp [a.2 g, b.2 g]
 
 def cup0Aux' (a : A.ρ.invariants) : B.ρ.invariants →ₗ[R] (A ⊗ B).ρ.invariants where
   toFun b := ⟨TensorProduct.tmul R a.1 b.1, mem_tensorInvariants A B a b⟩
@@ -66,68 +61,66 @@ lemma map_id_tensor_comp_H0Iso_inv {M1 M2 N1 N2 : Rep R G} (f : M1 ⊗ N1 ⟶ M2
     (H0Iso (M1 ⊗ N1)).inv ≫ map (MonoidHom.id G) f 0 := by
   apply_fun (fun f ↦ (H0Iso _).hom ≫ f ≫ (H0Iso _).hom) using by aesop_cat
   simp only [← Category.assoc, (Iso.hom_comp_eq_id (H0Iso _)).2 rfl, Category.id_comp]
-  simp only [Action.tensorObj_V, Rep.tensor_ρ, Category.assoc, Iso.inv_comp_eq_id (H0Iso _) |>.2,
-    map_id_comp_H0Iso_hom]
-  change _ = (H0Iso (M1 ⊗ N1)).hom ≫ _
-  erw [Category.comp_id]
+  -- simp only [Action.tensorObj_V, Rep.tensor_ρ, Category.assoc, Iso.inv_comp_eq_id (H0Iso _) |>.2,
+  --   map_id_comp_H0Iso_hom]
+  -- change _ = (H0Iso (M1 ⊗ N1)).hom ≫ _
+  -- erw [Category.comp_id]
+  sorry
 
 lemma map_id_tensor_comp_H0Iso_inv_apply {M1 M2 N1 N2 : Rep R G} (f : M1 ⊗ N1 ⟶ M2 ⊗ N2)
     (x : (M1 ⊗ N1).ρ.invariants) :
     ((H0Iso (M2 ⊗ N2)).inv.hom (((Rep.invariantsFunctor R G).map f).hom x)) =
     (map (MonoidHom.id G) f 0).hom ((H0Iso (M1 ⊗ N1)).inv.hom x) := by
-  erw [← LinearMap.comp_apply, ← ModuleCat.hom_comp]
-  conv_rhs => erw [← LinearMap.comp_apply, ← ModuleCat.hom_comp]
-  rw [map_id_tensor_comp_H0Iso_inv]
-  rfl
+  -- erw [← LinearMap.comp_apply, ← ModuleCat.hom_comp]
+  -- conv_rhs => erw [← LinearMap.comp_apply, ← ModuleCat.hom_comp]
+  -- rw [map_id_tensor_comp_H0Iso_inv]
+  -- rfl
+  sorry
 
 @[reassoc]
 lemma smallcommSq1 {M N : Rep R G} (φ : M ⟶ N) : (Rep.invariantsFunctor R G).map (A ◁ φ) ≫
     (H0Iso (A ⊗ N)).inv = (H0Iso (A ⊗ M)).inv ≫
     groupCohomology.map (MonoidHom.id G) (A ◁ φ) 0 := by
-  apply_fun (fun f ↦ (H0Iso _).hom ≫ f ≫ (H0Iso _).hom) using by aesop_cat
-  simp only [← Category.assoc, (Iso.hom_comp_eq_id (H0Iso _)).2 rfl, Category.id_comp]
-  simp only [Action.tensorObj_V, Rep.tensor_ρ, Category.assoc, Iso.inv_comp_eq_id (H0Iso _) |>.2,
-    map_id_comp_H0Iso_hom, Iso.cancel_iso_hom_left]
-  rfl
+  -- apply_fun (fun f ↦ (H0Iso _).hom ≫ f ≫ (H0Iso _).hom) using by aesop_cat
+  -- simp only [← Category.assoc, (Iso.hom_comp_eq_id (H0Iso _)).2 rfl, Category.id_comp]
+  -- simp only [Action.tensorObj_V, Rep.tensor_ρ, Category.assoc, Iso.inv_comp_eq_id (H0Iso _) |>.2,
+  --   map_id_comp_H0Iso_hom, Iso.cancel_iso_hom_left]
+  -- rfl
+  sorry
 
 lemma smallcommSq1_apply {M N : Rep R G} (φ : M ⟶ N) (x : (A ⊗ M).ρ.invariants) :
     (H0Iso (A ⊗ N)).inv.hom (((Rep.invariantsFunctor R G).map (A ◁ φ)).hom x) =
     (groupCohomology.map (MonoidHom.id G) (A ◁ φ) 0).hom ((H0Iso (A ⊗ M)).inv.hom x) := by
-  rw [← LinearMap.comp_apply, ← ModuleCat.hom_comp]
-  erw [← LinearMap.comp_apply]
-  rw [← ModuleCat.hom_comp, smallcommSq1 A φ]
-  rfl
+  -- rw [← LinearMap.comp_apply, ← ModuleCat.hom_comp]
+  -- erw [← LinearMap.comp_apply]
+  -- rw [← ModuleCat.hom_comp, smallcommSq1 A φ]
+  -- rfl
+  sorry
 
 noncomputable section
 
 open TensorProduct in
+set_option backward.isDefEq.respectTransparency false in
 def cup0NatTrans' : .prod (functor R G 0) (functor R G 0) ⋙ tensor (ModuleCat R) ⟶
     tensor (Rep R G) ⋙ functor R G 0 where
   app MN := cup0' MN.1 MN.2
   naturality {MN MN'} := fun ⟨f1, f2⟩ ↦ by
     dsimp
     ext1
-    simp only [ModuleCat.hom_comp, ModuleCat.hom_tensorHom]
-    refine TensorProduct.ext' fun m n ↦ by
-      simp only [ModuleCat.MonoidalCategory.tensorObj_carrier, cup0', ModuleCat.hom_ofHom,
-        LinearMap.coe_comp, Function.comp_apply, map_tmul]
-      erw [lift.tmul, lift.tmul, cup0_apply]
-      dsimp
-      conv_rhs => erw [cup0_apply MN.1 MN.2 m n,
-        ← map_id_tensor_comp_H0Iso_inv_apply]
-      congr 1
-      ext1
-      simp only [map_id_comp_H0Iso_hom_apply, Rep.invariantsFunctor_map_hom, Action.tensorObj_V,
-        Rep.tensor_ρ, Action.tensorHom_hom, Equivalence.symm_inverse]
-      conv_rhs => erw [codRestrict_apply, LinearMap.comp_apply]
-      change (Subtype.val <| (((H0Iso MN.1).hom ≫ (Rep.invariantsFunctor R G).map f1)).hom m) ⊗ₜ
-        (Subtype.val <| ((H0Iso MN.2).hom ≫ (Rep.invariantsFunctor R G).map f2).hom n) = _
-      simp only [ModuleCat.hom_comp, Rep.invariantsFunctor_map_hom, LinearMap.coe_comp,
-        Function.comp_apply, ModuleCat.hom_tensorHom]
-      erw [codRestrict_apply, codRestrict_apply, LinearMap.comp_apply,
-        Submodule.subtype_apply, Submodule.subtype_apply]
-      rw [LinearMap.comp_apply, Submodule.subtype_apply]
-      erw [map_tmul]
+    simp only [ModuleCat.MonoidalCategory.tensorObj_carrier, ModuleCat.hom_comp,
+      ModuleCat.hom_tensorHom]
+    ext m n
+    -- refine TensorProduct.ext' fun m n ↦ by
+    simp only [cup0', ModuleCat.hom_ofHom, AlgebraTensorModule.curry_apply, restrictScalars_self,
+      curry_apply, coe_comp, Function.comp_apply, map_tmul]
+    conv_lhs => tactic => with_reducible convert lift.tmul _ _
+    conv_lhs => tactic => with_reducible convert cup0_apply _ _ _ _
+    conv_rhs => enter [2]; tactic => with_reducible convert lift.tmul _ _
+    conv_rhs => enter [2]; tactic => with_reducible convert cup0_apply _ _ _ _
+    rw [← map_id_tensor_comp_H0Iso_inv_apply (f1 ⊗ₘ f2)]
+    congr 1
+    ext1
+    simp [Rep.invariantsFunctor]
 
 variable (R G) in
 abbrev cup0NatTrans :=
@@ -135,6 +128,7 @@ abbrev cup0NatTrans :=
 
 abbrev cup0NatTransLeft := cup0NatTrans R G|>.app A
 
+set_option backward.isDefEq.respectTransparency false in
 @[simps]
 def toTensorLeftNatTrans (F : Rep R G ⥤ ModuleCat R) (a : F.obj A) :
     F ⟶ (Functor.curry.obj (F.prod F ⋙ tensor (ModuleCat R))).obj A where
@@ -158,11 +152,13 @@ lemma cup0Left_map' {X Y : Rep R G} (f : X ⟶ Y) :
      = map (.id G) (A ◁ f) 0 := by
   simp
 
+set_option backward.isDefEq.respectTransparency false in
 lemma cup0Left_naturality {B1 B2 : Rep R G} (f : B1 ⟶ B2) :
     H0 A ◁ map (MonoidHom.id G) f 0 ≫ (cup0NatTransLeft A).app B2 =
     (cup0NatTransLeft A).app B1 ≫ map (.id G) (A ◁ f) 0 := by
   rw [← cup0Left_map, cup0NatTransLeft A|>.naturality, cup0Left_map']
 
+set_option backward.isDefEq.respectTransparency false in
 @[reassoc]
 lemma groupCohomology.map_id_comp_H0Iso_inv {M N : Rep R G} (f : M ⟶ N) :
     (H0Iso M).inv ≫ map (MonoidHom.id G) f 0 = (Rep.invariantsFunctor R G).map f ≫
@@ -179,6 +175,7 @@ lemma groupCohomology.map_id_comp_H0Iso_inv_apply {M N : Rep R G} (f : M ⟶ N) 
   rw [groupCohomology.map_id_comp_H0Iso_inv]
   rfl
 
+set_option backward.isDefEq.respectTransparency false in
 open TensorProduct in
 lemma cup0Left_unitor {X : Rep R G} : (cup0NatTransLeft (𝟙_ (Rep R G))).app X ≫
     groupCohomology.map (.id G) (λ_ X).hom 0 =
@@ -186,7 +183,7 @@ lemma cup0Left_unitor {X : Rep R G} : (cup0NatTransLeft (𝟙_ (Rep R G))).app X
   ext1
   simp only [Functor.curry_obj_obj_obj, Functor.comp_obj, Functor.prod_obj, functor_obj, tensor_obj,
     ModuleCat.MonoidalCategory.tensorObj_carrier, Functor.curry_map_app_app, cup0NatTrans', cup0',
-    ModuleCat.hom_comp, ModuleCat.hom_ofHom, H0IsoOfIsTrivial_hom, Rep.of_ρ, shortComplexH0,
+    ModuleCat.hom_comp, ModuleCat.hom_ofHom, H0IsoOfIsTrivial_hom, shortComplexH0,
     comp_whiskerRight, Category.assoc, ModuleCat.hom_hom_leftUnitor, ModuleCat.hom_whiskerRight]
   ext r x
   simp only [AlgebraTensorModule.curry_apply, restrictScalars_self, curry_apply, LinearMap.coe_comp,
@@ -201,17 +198,13 @@ lemma cup0Left_unitor {X : Rep R G} : (cup0NatTransLeft (𝟙_ (Rep R G))).app X
   rw [lid_tmul, Submodule.subtype_apply]
   conv_lhs => enter [2, 2, 1, 2]; erw [Iso.inv_hom_id_apply]
   rw [map_id_comp_H0Iso_inv_apply (λ_ X).hom]
-  simp only [Rep.invariantsFunctor_map_hom, Action.tensorObj_V, Action.tensorUnit_V, Rep.tensor_ρ,
-    Action.leftUnitor_hom_hom, Equivalence.symm_inverse, Action.functorCategoryEquivalence_functor,
-    Action.FunctorCategoryEquivalence.functor_obj_obj]
-  change (H0Iso X).inv.hom ⟨_, _⟩ = _
-  simp only [LinearMap.coe_comp, Submodule.coe_subtype, Function.comp_apply,
-    ModuleCat.MonoidalCategory.leftUnitor_hom_apply]
-  conv_lhs =>
-    enter [2, 1];
-    rw [show r'.1 • ((H0Iso X).hom.hom x).1 = (r'.1 • (H0Iso X).hom.hom x).1 by rfl,
-      ← map_smul]
-  rw [Iso.hom_inv_id_apply]
+  apply_fun (fun x ↦ (H0Iso X).hom.hom x) using
+    ConcreteCategory.injective_of_mono_of_preservesPullback _
+  simp only
+  rw [← LinearMap.comp_apply, ← ModuleCat.hom_comp, Iso.inv_hom_id,
+    ModuleCat.hom_id, LinearMap.id_apply]
+  ext1
+  simp [Rep.invariantsFunctor]
 
 abbrev cup0NatTransRight :=
   ((CategoryTheory.flipFunctor _ _ _).map (cup0NatTrans R G)).app B
@@ -228,6 +221,7 @@ lemma cup0Right_map' {X Y : Rep R G} (f : X ⟶ Y) :
     map (.id G) (f ▷ B) 0 := by
   simp
 
+set_option backward.isDefEq.respectTransparency false in
 @[reassoc]
 lemma cup0Right_naturality {A1 A2 : Rep R G} (f : A1 ⟶ A2) :
     map (.id G) f 0 ▷ H0 B ≫ (cup0NatTransRight B).app A2 =
@@ -242,7 +236,7 @@ lemma braiding_cup0Left (X Y : Rep R G) : (β_ (H0 X) (H0 Y)).hom ≫ (cup0NatTr
   ext1
   simp only [ModuleCat.MonoidalCategory.tensorObj_carrier, Functor.curry_obj_obj_obj,
     Functor.comp_obj, tensor_obj, functor_obj, Functor.curry_map_app_app, cup0NatTrans', cup0',
-    ModuleCat.hom_comp, ModuleCat.hom_ofHom, flipFunctor_obj, Functor.flip_obj_obj,
+    ModuleCat.hom_comp, flipFunctor_obj, Functor.flip_obj_obj,
     Functor.prod_obj, flipFunctor_map_app_app]
   ext x y
   simp only [TensorProduct.AlgebraTensorModule.curry_apply, restrictScalars_self,
@@ -252,6 +246,7 @@ lemma braiding_cup0Left (X Y : Rep R G) : (β_ (H0 X) (H0 Y)).hom ≫ (cup0NatTr
   rw [cup0_apply, map_id_comp_H0Iso_inv_apply]
   congr 1
 
+set_option backward.isDefEq.respectTransparency false in
 lemma cup0Right_unitor {X : Rep R G} : H0 X ◁ (H0IsoOfIsTrivial (Rep.trivial R G R)).hom ≫
     (ρ_ (H0 X)).hom = (cup0NatTransRight (𝟙_ (Rep R G))).app X ≫
     groupCohomology.map (.id G) (ρ_ X).hom 0 := by
@@ -277,31 +272,31 @@ theorem cup0_assoc (X Y Z : Rep R G) :
   ext1
   simp only [Functor.curry_obj_obj_obj, Functor.comp_obj, Functor.prod_obj, functor_obj, tensor_obj,
     ModuleCat.MonoidalCategory.tensorObj_carrier, Functor.curry_map_app_app, cup0NatTrans', cup0',
-    functor_map, ModuleCat.hom_comp, ModuleCat.hom_ofHom, ModuleCat.hom_whiskerRight,
-    ModuleCat.hom_whiskerLeft, ModuleCat.hom_hom_associator]
+    functor_map, ModuleCat.hom_comp, ModuleCat.hom_whiskerRight, ModuleCat.hom_whiskerLeft,
+    ModuleCat.hom_hom_associator]
   conv_rhs =>
     erw [TensorProduct.lift_comp_map, LinearMap.comp_id]
   conv_lhs =>
     rw [LinearMap.comp_assoc]
     erw [TensorProduct.lift_comp_map, LinearMap.compl₂_id]
   refine TensorProduct.ext_threefold fun x y z ↦ ?_
-  simp only [LinearMap.coe_comp, Function.comp_apply, lift.tmul, cup0_apply, Action.tensorObj_V,
-    ModuleCat.MonoidalCategory.tensorObj_carrier, Rep.tensor_ρ, Equivalence.symm_inverse,
-    Action.functorCategoryEquivalence_functor, Action.FunctorCategoryEquivalence.functor_obj_obj,
-    LinearEquiv.coe_coe, assoc_tmul, compl₂_apply]
+  simp only [ModuleCat.MonoidalCategory.tensorObj_carrier, coe_comp, Function.comp_apply, lift.tmul,
+    cup0_apply, Rep.tensor_V, Rep.tensor_ρ, LinearEquiv.coe_coe, assoc_tmul, compl₂_apply]
   erw [lift.tmul, lift.tmul]
   apply_fun (H0Iso (X ⊗ Y ⊗ Z)).hom.hom using (H0Iso (X ⊗ Y ⊗ Z)).toLinearEquiv.injective
   conv_rhs => erw [Iso.inv_hom_id_apply]
-  simp only [Action.tensorObj_V, Rep.tensor_ρ, Subtype.ext_iff]
+  simp only [Rep.tensor_V, Rep.tensor_ρ, Subtype.ext_iff]
   erw [groupCohomology.map_id_comp_H0Iso_hom_apply]
   change (_ ∘ₗ _) (((H0Iso ((X ⊗ Y) ⊗ Z)).inv ≫ (H0Iso ((X ⊗ Y) ⊗ Z)).hom).hom _) = _
   rw [Iso.inv_hom_id, ModuleCat.hom_id, LinearMap.id_apply, LinearMap.comp_apply,
     Submodule.subtype_apply]
-  simp only [Action.tensorObj_V, Action.associator_hom_hom, ModuleCat.hom_hom_associator]
+  simp only [Rep.tensor_V, Rep.tensor_ρ, Rep.hom_hom_associator,
+    Representation.TensorProduct.toLinearMap_assoc, LinearEquiv.coe_coe]
   erw [H0Iso_hom_cup0_coe, assoc_tmul]
   congr 1
   exact H0Iso_hom_cup0_coe _ _ _ _ |>.symm
 
+set_option backward.isDefEq.respectTransparency false in
 instance : Functor.LaxBraided (functor R G 0) where
   ε := H0IsoOfIsTrivial (Rep.trivial R G R) |>.inv
   μ A B := cup0NatTrans R G|>.app A|>.app B
