@@ -70,7 +70,7 @@ abbrev cup0Aux (A B : Rep R G) : A.ρ.invariants ⧸
       TensorProduct.sum_tmul, LinearMap.coe_mk, AddHom.coe_mk]
     exact Finset.sum_congr rfl fun g _ ↦ by rw [b.2 g]
 
-def cup0 (A B : Rep R G) : (tateCohomology 0).obj A →ₗ[R] (tateCohomology 0).obj B →ₗ[R]
+def cup0 (A B : Rep.{u} R G) : (tateCohomology 0).obj A →ₗ[R] (tateCohomology 0).obj B →ₗ[R]
     (tateCohomology 0).obj (A ⊗ B) where
   toFun a := (TateCohomology.zeroIso (A ⊗ B)).inv.hom ∘ₗ
     cup0Aux A B (TateCohomology.zeroIso A|>.hom.hom a) ∘ₗ (TateCohomology.zeroIso B).hom.hom
@@ -93,23 +93,106 @@ def Rep.invariantsQuotFunctor : Rep.{u} R G ⥤ ModuleCat R where
     use f.hom a
     simp [Rep.invariantsFunctor, Rep.norm_comm_apply, ha]
 
--- what is this error about termination??
-def CupProduct (A B : Rep R G) (p q r : ℤ) (h : r = p + q) :
+abbrev case0 (A B : Rep.{u} R G) (r : ℤ) (h : r = 0 + 0) :
+  (tateCohomology 0).obj A ⊗ (tateCohomology 0).obj B ⟶ (tateCohomology r).obj (A ⊗ B) :=
+  cup0' A B ≫ eqToHom (by rw [h, zero_add])
+
+abbrev case1 (A B : Rep.{u} R G) (n : ℕ) (q r : ℤ) (h : r = n.succ + q)
+    (CupProduct : (tateCohomology ↑n).obj (up.{u}.obj A) ⊗
+      (tateCohomology q).obj B ⟶ (tateCohomology (↑n + q)).obj (up.obj A ⊗ B)) :
+  (tateCohomology n.succ).obj A ⊗ (tateCohomology q).obj B ⟶ (tateCohomology r).obj (A ⊗ B) :=
+  ((δUpIsoTate A n).inv ▷ (tateCohomology q).obj B) ≫ CupProduct ≫
+      (tateCohomology (n + q)).map (upTensor A B).hom ≫ (δUpIsoTate (A ⊗ B) (n + q)).hom ≫
+      eqToHom.{u} (by rw [h, add_assoc, add_comm q 1, ← add_assoc, Nat.cast_succ])
+
+abbrev case2 (A B : Rep.{u} R G) (p : ℤ) (n : ℕ) (r : ℤ) (h : r = p + n.succ)
+    (CupProduct : (tateCohomology p).obj A ⊗
+      (tateCohomology ↑n).obj (up.{u}.obj B) ⟶ (tateCohomology (p + ↑n)).obj (A ⊗ up.obj B)) :
+  (tateCohomology p).obj A ⊗ (tateCohomology n.succ).obj B ⟶ (tateCohomology r).obj (A ⊗ B) :=
+  (_ ◁ (δUpIsoTate B n).inv) ≫ CupProduct ≫
+      ((-1) ^ p.natAbs • (tateCohomology (p + n)).map (upTensor' A B).hom) ≫
+      (δUpIsoTate (A ⊗ B) (p + n)).hom ≫ eqToHom.{u} (by rw [h, Nat.cast_succ, add_assoc])
+
+abbrev case3 (A B : Rep R G) (n : ℕ) (q r : ℤ) (h : r = Int.negSucc n + q)
+    (CupProduct : (tateCohomology (Int.negSucc n + 1)).obj (down.{u}.obj A) ⊗
+      (tateCohomology q).obj B ⟶ (tateCohomology (-n + q)).obj (down.obj A ⊗ B)) :
+    (tateCohomology (Int.negSucc n)).obj A ⊗ (tateCohomology q).obj B ⟶
+      (tateCohomology r).obj (A ⊗ B) :=
+  (δDownIsoTate A (Int.negSucc n)).hom ▷ _ ≫ CupProduct ≫ (tateCohomology (-n + q)).map
+      (downTensorIso A B).hom ≫ eqToHom (by rw [sub_add, sub_self, sub_zero]) ≫
+      (δDownIsoTate (A ⊗ B) (-n + q - 1)).inv ≫ eqToHom.{u} (by
+      rw [h, Int.negSucc_eq, neg_add, add_assoc, add_comm (-1), ← add_assoc, ← sub_eq_add_neg])
+
+#check δDownIsoTate
+set_option backward.isDefEq.respectTransparency false in
+abbrev case4 (A B : Rep R G) (p : ℤ) (n : ℕ) (r : ℤ) (h : r = p + Int.negSucc n)
+    (CupProduct : (tateCohomology p).obj A ⊗
+      (tateCohomology (Int.negSucc n + 1)).obj (down.{u}.obj B) ⟶
+      (tateCohomology (p - n)).obj (A ⊗ down.obj B)) :
+    (tateCohomology p).obj A ⊗ (tateCohomology (Int.negSucc n)).obj B ⟶
+      (tateCohomology r).obj (A ⊗ B) :=
+  _ ◁ (δDownIsoTate B (Int.negSucc n)).hom ≫ CupProduct ≫
+      ((-1) ^ p.natAbs • ((tateCohomology (p - n)).map (downTensorIso' A B).hom)) ≫
+      eqToHom (by rw [Int.sub_add_cancel]) ≫ (δDownIsoTate (A ⊗ B) (p - n - 1)).inv ≫
+      eqToHom.{u} (by rw [h, Int.negSucc_eq, sub_sub, ← sub_eq_add_neg])
+
+-- why is this so slow even after I split off the cases?
+def CupProduct (A B : Rep.{u} R G) (p q r : ℤ) (h : r = p + q) :
     (tateCohomology p).obj A ⊗ (tateCohomology q).obj B ⟶ (tateCohomology r).obj (A ⊗ B) :=
   match p, q with
-  | 0, 0 => cup0' A B ≫ eqToHom (by rw [h, zero_add])
-  | Nat.succ n, q => (δUpIsoTate A n).inv ▷ _ ≫ CupProduct (up.obj A) B n q (n + q) rfl ≫
-      (tateCohomology (n + q)).map (upTensor A B).hom ≫ (δUpIsoTate (A ⊗ B) (n + q)).hom ≫
-      eqToHom (by rw [h, add_assoc, add_comm q 1, ← add_assoc, Nat.cast_succ])
-  | p, Nat.succ n => sorry
-  | Int.negSucc n, q => (δDownIsoTate A (Int.negSucc n)).hom ▷ _ ≫ CupProduct (down.obj A) B
-      (Int.negSucc n + 1) q (-n + q) (by omega) ≫ (tateCohomology (-n + q)).map
-      (downTensorIso A B).hom ≫ eqToHom (by rw [sub_add, sub_self, sub_zero]) ≫
-      (δDownIsoTate (A ⊗ B) (-n + q - 1)).inv ≫ eqToHom (by
-      rw [h, Int.negSucc_eq, neg_add, add_assoc, add_comm (-1), ← add_assoc, ← sub_eq_add_neg])
-  | _, Int.negSucc n => sorry
-  termination_by p.natAbs
+  | 0, 0 => case0 A B r h
+  | Nat.succ n, q => case1 A B n q r h (CupProduct (up.{u}.obj A) B n q (n + q) rfl)
+  | p, Nat.succ n => case2 A B p n r h (CupProduct A (up.{u}.obj B) p n (p + n) rfl)
+  | Int.negSucc n, q =>
+    case3 A B n q r h (CupProduct (down.{u}.obj A) B (Int.negSucc n + 1) q (-n + q) (by omega))
+  | p, Int.negSucc n =>
+    case4 A B p n r h (CupProduct A (down.{u}.obj B) p (Int.negSucc n + 1) (p - n) (by omega))
+  termination_by (p.natAbs, q.natAbs)
 
+structure IsCupProduct (map : (A B : Rep R G) → (p q r : ℤ) → (h : r = p + q) →
+    (tateCohomology p).obj A ⊗ (tateCohomology q).obj B ⟶
+    (tateCohomology r).obj (A ⊗ B)) : Prop where
+  zero : map A B 0 0 0 rfl = cup0' A B
+  commSq1 (p q : ℤ) (S1 : ShortComplex (Rep R G)) (h1 : S1.ShortExact)
+    (h2 : (S1.map (tensorRight B)).ShortExact) :
+    map S1.X₃ B p q (p + q) rfl  ≫ TateCohomology.δ h2 (p + q) =
+    (TateCohomology.δ h1 p ⊗ₘ 𝟙 _) ≫ map S1.X₁ B (p + 1) q (p + q + 1) (by omega)
+  commSq2 (p q : ℤ) (S2 : ShortComplex (Rep R G)) (h1 : S2.ShortExact)
+    (h2 : (S2.map (tensorLeft A)).ShortExact) :
+    map A S2.X₃ p q (p + q) rfl ≫ TateCohomology.δ h2 (p + q) =
+    ((-1) ^ p.natAbs • (_ ◁ TateCohomology.δ h1 q)) ≫
+    map A S2.X₁ p (q + 1) (p + q + 1) (by omega)
+
+-- TODO : change `TateCohomology.map` to use `(i j : ℤ) (h : i + 1 = j)` instead of `i` and `i + 1`
+open groupCohomology.TateCohomology in
+lemma δ_naturality {X1 X2 : ShortComplex (Rep.{u, u, u} R G)}
+    (hX1 : X1.ShortExact) (hX2 : X2.ShortExact) (F : X1 ⟶ X2) (i : ℤ) :
+    TateCohomology.δ hX1 i ≫ (tateCohomology (i + 1)).map F.τ₁ =
+    (tateCohomology i).map F.τ₃ ≫ TateCohomology.δ hX2 i :=
+  HomologicalComplex.HomologySequence.δ_naturality
+    (tateComplexFunctor.mapShortComplex.map F)
+    (map_tateComplexFunctor_shortExact hX1) (map_tateComplexFunctor_shortExact hX2) i (i + 1) rfl
+
+theorem IsCup_CupProduct :
+    IsCupProduct (R := R) (G := G) CupProduct := by
+  constructor
+  · intro A B; simp [CupProduct]
+  · intro B p q S hS1 hS2
+    match p, q with
+    | 0, 0 => 
+      unfold CupProduct
+      simp [case1]
+      sorry
+    | Nat.succ n, q => 
+      sorry
+    | p, Nat.succ n => sorry
+    | .ofNat _, .negSucc _ => sorry
+    | .negSucc _, .ofNat _ => sorry
+    | .negSucc _, .negSucc _ => sorry
+  · sorry
+
+#check groupCohomology.δ_naturality
+#check TateCohomology.δ
 -- abbrev TateCohomology.π (A : Rep R G) (n : ℕ) :
 --   (tateComplex A).cycles n ⟶ (tateCohomology n).obj A := (tateComplex A).homologyπ n
 
@@ -153,3 +236,4 @@ def CupProduct (A B : Rep R G) (p q r : ℤ) (h : r = p + q) :
 --   left_unitality := sorry
 --   right_unitality := sorry
 --   braided := sorry
+end TateCohomology

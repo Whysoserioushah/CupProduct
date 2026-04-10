@@ -254,3 +254,6 @@ def downTensorNatIso [Fintype G] (B : Rep R G) : down ⋙ tensorRight B ≅ tens
 abbrev downTensorNatIso' [Fintype G] (A : Rep R G) : down ⋙ tensorLeft A ≅ tensorLeft A ⋙ down :=
   down.isoWhiskerLeft (BraidedCategory.tensorLeftIsoTensorRight A) ≪≫ downTensorNatIso A ≪≫
     Functor.isoWhiskerRight (BraidedCategory.tensorLeftIsoTensorRight A).symm _
+
+abbrev downTensorIso' [Fintype G] (A B : Rep R G) : A ⊗ down.obj B ≅ down.obj (A ⊗ B) :=
+  downTensorNatIso' A|>.app B
