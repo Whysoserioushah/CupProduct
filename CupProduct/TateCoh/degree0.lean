@@ -56,12 +56,12 @@ abbrev cup0Aux (A B : Rep R G) : A.ρ.invariants ⧸
     (A ⊗ B).ρ.invariants ⧸ (LinearMap.range (A ⊗ B).ρ.norm).submoduleOf (A ⊗ B).ρ.invariants :=
   Submodule.liftQ _ (cup0AuxAux A B) <| fun a ha ↦ by
     simp only [Submodule.submoduleOf, Submodule.mem_comap, Submodule.subtype_apply,
-      LinearMap.mem_range, Rep.tensor_V, Rep.tensor_ρ, cup0AuxAux, cup0Aux',
-      LinearMap.mem_ker] at ha ⊢
+      LinearMap.mem_range, Rep.tensor_V, Rep.tensor_ρ, cup0AuxAux, cup0Aux', LinearMap.mem_ker,
+      LinearMap.coe_mk, AddHom.coe_mk] at ha ⊢
     ext b
-    simp only [Rep.tensor_V, Rep.tensor_ρ, LinearMap.coe_mk, AddHom.coe_mk, LinearMap.coe_comp,
-      Function.comp_apply, Submodule.mkQ_apply, Submodule.mapQ_apply, LinearMap.zero_comp,
-      LinearMap.zero_apply, Submodule.Quotient.mk_eq_zero, Submodule.mem_comap,
+    simp only [Rep.tensor_V, LinearMap.coe_comp, Function.comp_apply, Submodule.mkQ_apply,
+      Submodule.mapQ_apply, LinearMap.zero_comp, LinearMap.zero_apply,
+      Submodule.Quotient.mk_eq_zero, Submodule.mem_comap,
       Submodule.subtype_apply, LinearMap.mem_range]
     obtain ⟨a', ha'⟩ := ha
     use a' ⊗ₜ b.1
@@ -123,7 +123,6 @@ abbrev case3 (A B : Rep R G) (n : ℕ) (q r : ℤ) (h : r = Int.negSucc n + q)
       (δDownIsoTate (A ⊗ B) (-n + q - 1)).inv ≫ eqToHom.{u} (by
       rw [h, Int.negSucc_eq, neg_add, add_assoc, add_comm (-1), ← add_assoc, ← sub_eq_add_neg])
 
-#check δDownIsoTate
 set_option backward.isDefEq.respectTransparency false in
 abbrev case4 (A B : Rep R G) (p : ℤ) (n : ℕ) (r : ℤ) (h : r = p + Int.negSucc n)
     (CupProduct : (tateCohomology p).obj A ⊗
@@ -163,6 +162,9 @@ structure IsCupProduct (map : (A B : Rep R G) → (p q r : ℤ) → (h : r = p +
     ((-1) ^ p.natAbs • (_ ◁ TateCohomology.δ h1 q)) ≫
     map A S2.X₁ p (q + 1) (p + q + 1) (by omega)
 
+-- TODO: use `upSES` and `downSES` as the first SES to prove if two maps
+-- are `IsCupProduct`, then they are equal.
+
 -- TODO : change `TateCohomology.map` to use `(i j : ℤ) (h : i + 1 = j)` instead of `i` and `i + 1`
 open groupCohomology.TateCohomology in
 lemma δ_naturality {X1 X2 : ShortComplex (Rep.{u, u, u} R G)}
@@ -173,26 +175,41 @@ lemma δ_naturality {X1 X2 : ShortComplex (Rep.{u, u, u} R G)}
     (tateComplexFunctor.mapShortComplex.map F)
     (map_tateComplexFunctor_shortExact hX1) (map_tateComplexFunctor_shortExact hX2) i (i + 1) rfl
 
+lemma case00 {B : Rep R G} {S : ShortComplex (Rep R G)} (hS1 : S.ShortExact)
+    (hS2 : (S.map (tensorRight B)).ShortExact) :
+    CupProduct S.X₃ B 0 0 0 rfl ≫ TateCohomology.δ hS2 0 =
+    (TateCohomology.δ hS1 0 ⊗ₘ 𝟙 ((tateCohomology 0).obj B)) ≫
+    CupProduct S.X₁ B 1 0 1 rfl := by
+
+  sorry
+
+#check Module.Flat
 theorem IsCup_CupProduct :
     IsCupProduct (R := R) (G := G) CupProduct := by
   constructor
   · intro A B; simp [CupProduct]
   · intro B p q S hS1 hS2
-    match p, q with
-    | 0, 0 => 
-      unfold CupProduct
-      simp [case1]
-      sorry
-    | Nat.succ n, q => 
-      sorry
-    | p, Nat.succ n => sorry
-    | .ofNat _, .negSucc _ => sorry
-    | .negSucc _, .ofNat _ => sorry
-    | .negSucc _, .negSucc _ => sorry
+    induction p with
+    | zero =>
+      induction q with
+      | zero => exact case00 hS1 hS2
+      | succ i hi => sorry
+      | pred i hi => sorry
+    | succ i _ => sorry
+    | pred i _ => sorry
+    -- match p, q with
+    -- | 0, 0 =>
+    --   unfold CupProduct
+    --   simp [case1]
+    --   sorry
+    -- | Nat.succ n, q =>
+    --   sorry
+    -- | p, Nat.succ n => sorry
+    -- | .ofNat _, .negSucc _ => sorry
+    -- | .negSucc _, .ofNat _ => sorry
+    -- | .negSucc _, .negSucc _ => sorry
   · sorry
 
-#check groupCohomology.δ_naturality
-#check TateCohomology.δ
 -- abbrev TateCohomology.π (A : Rep R G) (n : ℕ) :
 --   (tateComplex A).cycles n ⟶ (tateCohomology n).obj A := (tateComplex A).homologyπ n
 
