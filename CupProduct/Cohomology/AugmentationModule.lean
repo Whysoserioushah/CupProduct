@@ -356,6 +356,32 @@ lemma ModuleCat.ofHom_zero {R : Type u} {M N : Type v} [Ring R] [AddCommGroup M]
     [AddCommGroup N] [Module R N] :
   ModuleCat.ofHom (0 : M →ₗ[R] N) = 0 := rfl
 
+/-- The forgetful functor from `Rep R G` to `ModuleCat R` preserves cokernels,
+giving an isomorphism between the underlying module of the cokernel and
+the cokernel of the underlying module map. -/
+noncomputable def _root_.Rep.forgetCokernelIso {R G : Type u} [CommRing R] [Group G] {A B : Rep.{u} R G}
+    (f : A ⟶ B) : ModuleCat.of R (Limits.cokernel f).V ≅ Limits.cokernel f.toModuleCatHom :=
+  (preservesColimitIso (forget₂ (Rep R G) (ModuleCat R)) (Limits.parallelPair f 0)).trans
+    (Limits.HasColimit.isoOfNatIso (Limits.parallelPair.ext (Iso.refl _) (Iso.refl _)
+      (by simp) (by simp)))
+
+lemma range_μ : (μ R G).hom.range.1 = Submodule.span R {∑ g, .single g 1} := by
+  ext x
+  simp +contextual only [Representation.IntertwiningMap.range_toSubmodule, LinearMap.mem_range,
+    Representation.IntertwiningMap.coe_toLinearMap, Submodule.mem_span_singleton]
+  constructor
+  all_goals exact fun ⟨y, hy⟩ ↦ ⟨y, by rwa [μ_apply] at *⟩
+
+instance : Module.Free R (coaug R G) := .of_basis (ι := Set.diff (⊤ : Set G) {1}) {
+  repr := (Rep.forgetCokernelIso (μ R G) ≪≫ ModuleCat.cokernelIsoRangeQuotient
+    (μ R G).toModuleCatHom).toLinearEquiv ≪≫ₗ Submodule.quotEquivOfEq _ _ (range_μ R G) ≪≫ₗ
+    -- LinearMap.quotKerEquivOfSurjective _ _ ≪≫ₗ _
+    sorry
+}
+
+
+
+
 -- for any Cat that has a forgetful functor to ModuleCat R, there is an iso
 -- between (forget₂ _ _).obj (Limits.kernel f) and Limits.kernel ((forget₂ _ _).map f)
 noncomputable def _root_.Rep.forgetKernelIso {R G : Type u} [CommRing R] [Group G] {A B : Rep R G}
@@ -376,28 +402,11 @@ lemma forgetKernelIso_inv_comp_kernel_ι {R G : Type u} [CommRing R] [Group G] {
       Limits.kernel.ι f.toModuleCatHom := by
   rw [← kernel_ι_comp_forgetKernelIso, Iso.inv_hom_id_assoc]
 
-/-- The forgetful functor from `Rep R G` to `ModuleCat R` preserves cokernels,
-giving an isomorphism between the underlying module of the cokernel and
-the cokernel of the underlying module map. -/
-noncomputable def _root_.Rep.forgetCokernelIso {R G : Type u} [CommRing R] [Group G] {A B : Rep R G}
-    (f : A ⟶ B) : ModuleCat.of R (Limits.cokernel f).V ≅ Limits.cokernel f.toModuleCatHom :=
-  (preservesColimitIso (forget₂ (Rep R G) (ModuleCat R)) (Limits.parallelPair f 0)).trans
-    (Limits.HasColimit.isoOfNatIso (Limits.parallelPair.ext (Iso.refl _) (Iso.refl _)
-      (by simp) (by simp)))
-
 noncomputable instance (ι R : Type*) [Ring R] [Fintype ι] : Ring (ι →₀ R) where
   __ := Finsupp.instNonUnitalRing
   one := Finsupp.equivFunOnFinite.symm 1
   one_mul f := show Finsupp.equivFunOnFinite.symm 1 * f = f by ext; simp
   mul_one f := show f * Finsupp.equivFunOnFinite.symm 1 = f by ext; simp
-
-lemma range_μ : (μ R G).hom.range.1 = Submodule.span R {∑ g, .single g 1} := by
-  ext x
-  simp +contextual only [Representation.IntertwiningMap.range_toSubmodule, LinearMap.mem_range,
-    Representation.IntertwiningMap.coe_toLinearMap, Submodule.mem_span_singleton]
-  constructor
-  all_goals exact fun ⟨y, hy⟩ ↦ ⟨y, by rwa [μ_apply] at *⟩
-
 -- lemma le_comap (g : G) : R ∙ ∑ g, of g ≤ Submodule.comap ((leftRegular R G).ρ g)
 --     (R ∙ ∑ g, of g) := by
 --   simp only [Submodule.span_singleton_le_iff_mem, Submodule.mem_comap, map_sum]

@@ -80,7 +80,7 @@ def mapToTensorLinear {R G M : Type*} [CommRing R] [Group G] [Fintype G] [AddCom
 --   simp [mapToTensorLinear, Representation.coind₁']
 
 set_option backward.isDefEq.respectTransparency false in
-lemma π_comp_forgetCokernelIso {A B : Rep R G} (f : A ⟶ B) :
+lemma π_comp_forgetCokernelIso {A B : Rep.{u} R G} (f : A ⟶ B) :
     cokernel.π f.toModuleCatHom ≫ (forgetCokernelIso f).inv = (cokernel.π f).toModuleCatHom := by
   simp [forgetCokernelIso]
 
@@ -318,25 +318,21 @@ lemma upTensor_coind_comm' [Fintype G] (A B : Rep R G) :
   simp
 
 -- TODO : make a shortcomplex iso between upSES (functor version) and (upSES₀ functor)
-#check upSES
 
 lemma exp {R : Type*} [CommSemiring R] {M N P Q : Type*} [AddCommMonoid M] [AddCommMonoid N]
     [AddCommMonoid P] [AddCommMonoid Q] [Module R M] [Module R N] [Module R P] [Module R Q]
     (ρ : Representation R G M) (σ : Representation R G N) (τ : Representation R G P)
     (υ : Representation R G Q) (f : ρ.IntertwiningMap τ) (g : σ.IntertwiningMap υ) :
     (f.rTensor υ).comp (g.lTensor ρ) = f.tensor g := by
-  ext1
-  simp
+  ext1; simp
 
+-- this is now in mathlib and should be bumped away
 lemma exp' {R : Type*} [CommSemiring R] {M N P Q : Type*} [AddCommMonoid M] [AddCommMonoid N]
     [AddCommMonoid P] [AddCommMonoid Q] [Module R M] [Module R N] [Module R P] [Module R Q]
     (ρ : Representation R G M) (σ : Representation R G N) (τ : Representation R G P)
     (υ : Representation R G Q) (f : ρ.IntertwiningMap τ) (g : σ.IntertwiningMap υ) :
     (g.lTensor τ).comp (f.rTensor σ) = f.tensor g := by
-  ext1
-  simp
-
-#check LinearMap.lTensor_comp
+  ext1; simp
 
 -- TODO : write `lTensor_comp` for `IntertwiningMap`
 set_option backward.isDefEq.respectTransparency false in
