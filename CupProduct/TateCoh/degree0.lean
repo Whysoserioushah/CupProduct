@@ -162,8 +162,36 @@ structure IsCupProduct (map : (A B : Rep R G) → (p q r : ℤ) → (h : r = p +
     ((-1) ^ p.natAbs • (_ ◁ TateCohomology.δ h1 q)) ≫
     map A S2.X₁ p (q + 1) (p + q + 1) (by omega)
 
+#check CategoryTheory.MonoidalCategory.whiskerLeftIso_hom
 -- TODO: use `upSES` and `downSES` as the first SES to prove if two maps
 -- are `IsCupProduct`, then they are equal.
+lemma IsCupProduct.unique (map1 map2 : (A B : Rep R G) → (p q r : ℤ) → (h : r = p + q) →
+    (tateCohomology p).obj A ⊗ (tateCohomology q).obj B ⟶
+    (tateCohomology r).obj (A ⊗ B)) (h1 : IsCupProduct map1) (h2 : IsCupProduct map2) :
+    map1 = map2 := by
+  funext A B p
+  induction p with
+  | zero =>
+    funext q r h
+    induction q generalizing A B r with
+    | zero => subst h; simp [h1.zero, h2.zero]
+    | succ m hm =>
+      have h1' := h1.commSq2 0 m (A := A) (upSES B) (shortExact_upSES B)
+        (shortExact_upSESTensorLeft _ _)
+      have h2' := h2.commSq2 0 m (A := A) (upSES B) (shortExact_upSES B)
+        (shortExact_upSESTensorLeft _ _)
+      dsimp [-up_obj, zero_add, one_smul] at h1' h2'
+      rw [one_smul] at h1' h2'
+      change _ = (((tateCohomology 0).obj A ◁ᵢ δUpIsoTate B m).hom) ≫ _ at h1' h2'
+      rw [← Iso.inv_comp_eq] at h1' h2'
+      rw [← add_assoc] at h
+      subst h
+      rw [← h1', ← h2', hm]
+    | pred i _ => sorry
+  | succ i _ => sorry
+  | pred i _ => sorry
+
+
 
 -- TODO : change `TateCohomology.map` to use `(i j : ℤ) (h : i + 1 = j)` instead of `i` and `i + 1`
 open groupCohomology.TateCohomology in
@@ -183,7 +211,6 @@ lemma case00 {B : Rep R G} {S : ShortComplex (Rep R G)} (hS1 : S.ShortExact)
 
   sorry
 
-#check Module.Flat
 theorem IsCup_CupProduct :
     IsCupProduct (R := R) (G := G) CupProduct := by
   constructor
