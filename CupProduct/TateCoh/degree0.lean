@@ -162,7 +162,6 @@ structure IsCupProduct (map : (A B : Rep R G) → (p q r : ℤ) → (h : r = p +
     ((-1) ^ p.natAbs • (_ ◁ TateCohomology.δ h1 q)) ≫
     map A S2.X₁ p (q + 1) (p + q + 1) (by omega)
 
-#check CategoryTheory.MonoidalCategory.whiskerLeftIso_hom
 -- TODO: use `upSES` and `downSES` as the first SES to prove if two maps
 -- are `IsCupProduct`, then they are equal.
 lemma IsCupProduct.unique (map1 map2 : (A B : Rep R G) → (p q r : ℤ) → (h : r = p + q) →
