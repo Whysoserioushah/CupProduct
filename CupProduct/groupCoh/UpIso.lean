@@ -335,7 +335,6 @@ lemma exp' {R : Type*} [CommSemiring R] {M N P Q : Type*} [AddCommMonoid M] [Add
   ext1; simp
 
 -- TODO : write `lTensor_comp` for `IntertwiningMap`
-set_option backward.isDefEq.respectTransparency false in
 @[simps]
 def upSES₀ShortComplex [Fintype G] : Rep R G ⥤ ShortComplex (Rep R G) where
   obj A := (upSES₀ R G).map (tensorRight A)

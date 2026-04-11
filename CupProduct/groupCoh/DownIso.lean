@@ -257,3 +257,53 @@ abbrev downTensorNatIso' [Fintype G] (A : Rep R G) : down ⋙ tensorLeft A ≅ t
 
 abbrev downTensorIso' [Fintype G] (A B : Rep R G) : A ⊗ down.obj B ≅ down.obj (A ⊗ B) :=
   downTensorNatIso' A|>.app B
+
+@[simps]
+def downSES₀ShortComplex : Rep R G ⥤ ShortComplex (Rep R G) where
+  obj A := (aug_shortExactSequence R G).map (tensorRight A)
+  map {A B} f := {
+    τ₁ := _ ◁ f
+    τ₂ := _ ◁ f
+    τ₃ := _ ◁ f}
+  map_id A := by ext <;> simp
+  map_comp f g := by ext1 <;> simp
+
+@[simps! hom_τ₁ hom_τ₂ hom_τ₃]
+def downSESIsodownSES₀ (A) [Fintype G] : downSES A ≅
+    (aug_shortExactSequence R G).map (tensorRight A) :=
+  ShortComplex.isoMk (downNatIso.app A) (indIsoTensor.app A) ((ρ_ A).symm ≪≫ β_ _ _)
+    (by
+      dsimp [-down_map, -down_obj, -ind₁'_obj, downToTensor, -ShortComplex.map_f]
+      have := (shortExact_downSES' R G A).2
+      exact Exact.lift_f _ _ _) <| by
+    ext : 2
+    simp only [downSES_X₂, ind₁'_obj, map_X₃, Functor.flip_obj_obj, curriedTensor_obj_obj, tensor_V,
+      tensor_ρ, map_X₂, Iso.app_hom, indIsoTensor_hom, indToTensorNatTrans_app, map_g,
+      Functor.flip_obj_map, curriedTensor_map_app, Rep.hom_comp, Rep.hom_whiskerRight,
+      Rep.hom_ofHom, Representation.isTrivial_def, LinearMap.id_coe, id_eq,
+      Representation.IntertwiningMap.comp_toLinearMap,
+      Representation.IntertwiningMap.toLinearMap_rTensor, Representation.indToTensor_toLinearMap,
+      downSES_X₃, downSES_g, ind₁'_π, Iso.trans_hom, Iso.symm_hom, braiding_tensorUnit_right,
+      Iso.inv_hom_id_assoc, Rep.hom_inv_leftUnitor]
+    ext g a
+    simp [Finset.sum_eq_single_of_mem (f := fun x ↦ (1 : R) ⊗ₜ (Finsupp.single g a x)) g
+      (Finset.mem_univ g) (by simp +contextual)]
+
+def downSESIsodownSES₀Functor [Fintype G] :
+    downShortComplex (G := G) ≅ downSES₀ShortComplex (R := R) :=
+  NatIso.ofComponents (fun A ↦ downSESIsodownSES₀ A) fun {X Y} f ↦ by
+    ext1
+    · exact downToTensorFunc.naturality f
+    · exact indToTensorNatTrans.naturality f
+    · ext : 2;
+      exact LinearMap.ext_iff.mpr (congrFun rfl)
+
+set_option linter.unusedFintypeInType false in
+lemma shortExact_downSESTensorLeft [Fintype G] (A B : Rep R G) :
+    ((downSES A).map (tensorLeft B)).ShortExact := by
+  have e := ((tensorLeft B).mapShortComplex.mapIso <|
+    downSESIsodownSES₀ A ≪≫ ((aug_shortExactSequence R G).mapNatIso
+    (BraidedCategory.tensorLeftIsoTensorRight A).symm)) ≪≫
+    (aug_shortExactSequence R G).mapNatIso ((tensorLeftTensor B A).symm ≪≫
+    (BraidedCategory.tensorLeftIsoTensorRight _))
+  exact ShortComplex.shortExact_iff_of_iso e|>.2 <| shortExact_downSES' R G (A := B ⊗ A)

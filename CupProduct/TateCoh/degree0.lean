@@ -186,7 +186,9 @@ lemma IsCupProduct.unique (map1 map2 : (A B : Rep R G) → (p q r : ℤ) → (h 
       rw [← add_assoc] at h
       subst h
       rw [← h1', ← h2', hm]
-    | pred i _ => sorry
+    | pred m hm =>
+      have h1' := h1.commSq2 0 (-m) (A := A) (downSES B)
+      sorry
   | succ i _ => sorry
   | pred i _ => sorry
 
