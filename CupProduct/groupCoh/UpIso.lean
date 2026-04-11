@@ -376,3 +376,13 @@ def upSESIsoupSES₀Functor [Fintype G] :
     · ext; simp
     · exact mapToTensor_naturality f
     · exact upToTensor_naturality f
+
+lemma shortExact_upSESTensorLeft [Fintype G] (A B : Rep R G) :
+    ((upSES B).map (tensorLeft A)).ShortExact := by
+  have e := (tensorLeft A).mapShortComplex.mapIso <|
+    upSESIsoupSES₀ B ≪≫ (upSES₀ R G).mapNatIso
+    (BraidedCategory.tensorLeftIsoTensorRight B).symm
+  dsimp [← ShortComplex.map_comp] at e
+  have := e ≪≫ (upSES₀ R G).mapNatIso ((tensorLeftTensor A B).symm ≪≫
+    (BraidedCategory.tensorLeftIsoTensorRight _))
+  exact ShortComplex.shortExact_iff_of_iso this|>.2 <| shortExact_upSES' R G (A := A ⊗ B)
