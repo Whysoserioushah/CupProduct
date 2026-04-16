@@ -35,14 +35,9 @@ def upSES₀_retract [Fintype G] : (G →₀ R) →ₗ[R] R where
 set_option backward.isDefEq.respectTransparency false in
 def split_upSES₀_forget [Fintype G] : ((upSES₀ R G).map (forget₂ (Rep R G)
     (ModuleCat R))).Splitting :=
-  let hepi : Epi (((upSES₀ R G).map (forget₂ (Rep R G) (ModuleCat R))).g) := by
-    rw [ModuleCat.epi_iff_surjective]
-    have h : Epi (upSES₀ R G).g := (shortExact_upSES₀ R G).3
-    have h' : Function.Surjective ((upSES₀ R G).g.hom) := by
-      exact (Rep.epi_iff_surjective (f := (upSES₀ R G).g)).mp h
-    exact h'
   .ofExactOfRetraction _ (.map (shortExact_upSES₀ R G).1 _)
-    (ModuleCat.ofHom <| upSES₀_retract R G) (by ext; simp [upSES₀, μ]) hepi
+    (ModuleCat.ofHom <| upSES₀_retract R G) (by ext; simp [upSES₀, μ]) <|
+    Functor.PreservesEpimorphisms.preserves (F := forget₂ _ _) (upSES₀ R G).g
 
 open ShortComplex
 
@@ -53,11 +48,8 @@ def split_upSES' [Fintype G] : (((upSES₀ R G).map (tensorRight A)).map (forget
     (tensorRight (ModuleCat.of R A.V)) by rfl]
   exact .map (split_upSES₀_forget R G) _
 
-lemma exact_upSES' [Fintype G] : ((upSES₀ R G).map (tensorRight A)).Exact :=
-  (exact_map_iff_of_faithful _ _).1 (split_upSES' R G (A := A)).exact
-
 lemma shortExact_upSES' [Fintype G] : ((upSES₀ R G).map (tensorRight A)).ShortExact where
-  exact := exact_upSES' R G
+  exact := (exact_map_iff_of_faithful _ _).1 (split_upSES' R G (A := A)).exact
   mono_f := Functor.ReflectsMonomorphisms.reflects (F := (forget₂ (Rep R G) (ModuleCat R))) _
     (split_upSES' R G (A := A)).shortExact.mono_f
   epi_g := Functor.ReflectsEpimorphisms.reflects (F := (forget₂ (Rep.{u} R G) (ModuleCat R))) _
@@ -77,7 +69,7 @@ def mapToTensorLinear {R G M : Type*} [CommRing R] [Group G] [Fintype G] [AddCom
 -- lemma mapToTensorLinear_coind [Fintype G] (A : Rep R G) (f : G → A.V) (g : G) :
 --     mapToTensorLinear A (A.ρ.coind₁' g f) = ∑ x, Submodule.Quotient.mk
 --       (leftRegular.of x) ⊗ₜ[R] (A.ρ g) (f (x * g)) := by
---   simp [mapToTensorLinear, Representation.coind₁']
+--   simp [mapToTensorinear, Representation.coind₁']
 
 set_option backward.isDefEq.respectTransparency false in
 lemma π_comp_forgetCokernelIso {A B : Rep.{u} R G} (f : A ⟶ B) :
@@ -97,19 +89,21 @@ abbrev mapToTensor [Fintype G] (A : Rep R G) : coind₁'.obj A ⟶ Rep.leftRegul
 def upToTensor [Fintype G] (A : Rep R G) : up.obj A ⟶ coaug R G ⊗ A :=
   haveI : Epi (upSES A).g := coequalizer.π_epi
   (shortExact_upSES A).1.desc (mapToTensor A ≫ (cokernel.π _ ▷ A)) <| by
-  ext m
-  simp only [tensor_V, upSES_X₁, tensor_ρ, upSES_X₂, coind₁'_obj, upSES_f, coind₁'_ι_app,
-    Rep.hom_comp, hom_whiskerRight, hom_ofHom, Representation.IntertwiningMap.comp_toLinearMap,
-    Representation.IntertwiningMap.toLinearMap_rTensor, Representation.mapToTensor_toLinearMap,
-    LinearMap.coe_comp, Function.comp_apply, mapToTensorLinear_apply,
-    Representation.coind₁'_ι_apply, Function.const_apply, ← sum_tmul, LinearMap.rTensor_tmul,
-    Representation.IntertwiningMap.coe_toLinearMap, zero_hom,
-    Representation.IntertwiningMap.zero_toLinearMap, LinearMap.zero_apply]
-  rw [← one_smul R (∑ a, Finsupp.single a⁻¹ (1 : R))]
-  rw [← Finset.sum_equiv (Equiv.inv G) (f := fun i ↦ Finsupp.single i 1)
-    (g := fun i ↦ Finsupp.single i⁻¹ 1) (s := Finset.univ) (t := Finset.univ) (by simp) (by simp),
-    ← μ_apply, cokernel.condition_apply]
-  simp
+  rw [← Category.assoc]
+  have : (upSES A).f ≫ mapToTensor A = (λ_ _).inv ≫ μ R G ▷ A := by
+    ext : 2
+    simp only [upSES_X₁, tensor_V, tensor_ρ, upSES_X₂, coind₁'_obj, upSES_f, coind₁'_ι_app,
+      Rep.hom_comp, hom_ofHom, Representation.IntertwiningMap.comp_toLinearMap,
+      Representation.mapToTensor_toLinearMap, tensorUnit_V, tensorUnit_ρ, hom_whiskerRight,
+      hom_inv_leftUnitor, Representation.TensorProduct.lid, Representation.Equiv.mk_symm,
+      Representation.IntertwiningMap.toLinearMap_rTensor, Representation.Equiv.toLinearMap_mk']
+    ext a
+    simp
+    simp [μ_apply _, sum_tmul, Finset.sum_equiv (Equiv.inv G)
+      (f := fun i ↦ .single i⁻¹ (1 : R) ⊗ₜ a) (g := fun i ↦ (Finsupp.single i (1 : R) ⊗ₜ a))
+      (s := Finset.univ) (t := Finset.univ) (by simp) (by simp)]
+  rw [this, Category.assoc, ← comp_whiskerRight, cokernel.condition,
+    MonoidalPreadditive.zero_whiskerRight, comp_zero]
 
 @[simps]
 def tensorToFun'' {R G : Type*} (M : Type*) [CommRing R] [Group G] [AddCommGroup M] [Module R M]
@@ -146,7 +140,7 @@ abbrev tensorToFun (A : Rep R G) : leftRegular R G ⊗ A ⟶ coind₁'.obj A :=
 set_option backward.isDefEq.respectTransparency false in
 def coaugTensorToUp [Fintype G] (A : Rep R G) : coaug R G ⊗ A ⟶ up.obj A :=
   haveI : Epi ((upSES₀ R G).map (tensorRight A)).g := (shortExact_upSES' R G).3
-  (exact_upSES' R G).desc (tensorToFun A ≫ cokernel.π _) <| by
+  (shortExact_upSES' R G).1.desc (tensorToFun A ≫ cokernel.π _) <| by
   rw [← Category.assoc]
   have : ((upSES₀ R G).map (tensorRight A)).f ≫ tensorToFun A =
     (ofHom <| (Representation.TensorProduct.lid _ A.ρ).toIntertwiningMap) ≫ coind₁'_ι.app A := by
@@ -157,7 +151,8 @@ def coaugTensorToUp [Fintype G] (A : Rep R G) : coaug R G ⊗ A ⟶ up.obj A :=
       Representation.tensorToFun_toLinearMap, Representation.IntertwiningMap.toLinearMap_rTensor,
       of_tensor, of_ρ', coind₁'_ι_app, Representation.TensorProduct.toLinearMap_lid]
     ext a g
-    classical simp [μ_apply _, Finsupp.single_apply]
+    classical simp [μ_one _, Finsupp.single_apply]
+      -- this is a counterexample where `(μ_one)` wouldn't work but `μ_one _` works
   rw [this, Category.assoc, cokernel.condition, comp_zero]
 
 lemma tensorToFun'_mapToTensorLinear {R G : Type*} (M : Type*) [CommRing R] [Group G]
@@ -174,7 +169,7 @@ lemma upToTensor_comp_inv [Fintype G] (A : Rep R G) : upToTensor A ≫ coaugTens
   have _ : Epi (upSES A).g := coequalizer.π_epi
   have _ : Epi ((upSES₀ R G).map (tensorRight A)).g := (shortExact_upSES' R G).3
   rw [← cancel_epi (upSES A).g, ← Category.assoc]
-  change (_ ≫ Exact.desc _ _ _) ≫ (exact_upSES' R G).desc _ _ = _
+  change (_ ≫ Exact.desc _ _ _) ≫ (shortExact_upSES' R G).1.desc _ _ = _
   rw [Exact.g_desc, show cokernel.π (μ R G) ▷ A = ((upSES₀ R G).map (tensorRight A)).g by rfl,
     Category.assoc, Exact.g_desc, ← Category.assoc]
   simp [tensorToFun_mapToTensor]
