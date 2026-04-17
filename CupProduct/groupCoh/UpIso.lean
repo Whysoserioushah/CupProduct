@@ -91,14 +91,7 @@ def upToTensor [Fintype G] (A : Rep R G) : up.obj A ⟶ coaug R G ⊗ A :=
   (shortExact_upSES A).1.desc (mapToTensor A ≫ (cokernel.π _ ▷ A)) <| by
   rw [← Category.assoc]
   have : (upSES A).f ≫ mapToTensor A = (λ_ _).inv ≫ μ R G ▷ A := by
-    ext : 2
-    simp only [upSES_X₁, tensor_V, tensor_ρ, upSES_X₂, coind₁'_obj, upSES_f, coind₁'_ι_app,
-      Rep.hom_comp, hom_ofHom, Representation.IntertwiningMap.comp_toLinearMap,
-      Representation.mapToTensor_toLinearMap, tensorUnit_V, tensorUnit_ρ, hom_whiskerRight,
-      hom_inv_leftUnitor, Representation.TensorProduct.lid, Representation.Equiv.mk_symm,
-      Representation.IntertwiningMap.toLinearMap_rTensor, Representation.Equiv.toLinearMap_mk']
     ext a
-    simp
     simp [μ_apply _, sum_tmul, Finset.sum_equiv (Equiv.inv G)
       (f := fun i ↦ .single i⁻¹ (1 : R) ⊗ₜ a) (g := fun i ↦ (Finsupp.single i (1 : R) ⊗ₜ a))
       (s := Finset.univ) (t := Finset.univ) (by simp) (by simp)]
@@ -128,14 +121,6 @@ def Representation.tensorToFun {R G M : Type*} [CommRing R] [Group G] [AddCommGr
 
 abbrev tensorToFun (A : Rep R G) : leftRegular R G ⊗ A ⟶ coind₁'.obj A :=
   Rep.ofHom A.ρ.tensorToFun
-
--- instance [Fintype G] (C : Rep R G) : Epi ((upSES₀ R G).map (tensorRight C)).g := by
---   simp only [upSES₀, map_X₂, Functor.flip_obj_obj, curriedTensor_obj_obj, map_X₃, map_g,
---     Functor.flip_obj_map, curriedTensor_map_app, Rep.epi_iff_surjective, Action.tensorObj_V,
---     Action.whiskerRight_hom]
---   change Function.Surjective (ModuleCat.Hom.hom _)
---   rw [ModuleCat.hom_whiskerRight]
---   exact LinearMap.rTensor_surjective _ (Rep.epi_iff_surjective _|>.1 coequalizer.π_epi)
 
 set_option backward.isDefEq.respectTransparency false in
 def coaugTensorToUp [Fintype G] (A : Rep R G) : coaug R G ⊗ A ⟶ up.obj A :=
