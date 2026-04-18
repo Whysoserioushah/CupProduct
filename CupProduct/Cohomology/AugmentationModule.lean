@@ -359,8 +359,9 @@ lemma ModuleCat.ofHom_zero {R : Type u} {M N : Type v} [Ring R] [AddCommGroup M]
 /-- The forgetful functor from `Rep R G` to `ModuleCat R` preserves cokernels,
 giving an isomorphism between the underlying module of the cokernel and
 the cokernel of the underlying module map. -/
-noncomputable def _root_.Rep.forgetCokernelIso {R G : Type u} [CommRing R] [Group G] {A B : Rep.{u} R G}
-    (f : A ⟶ B) : ModuleCat.of R (Limits.cokernel f).V ≅ Limits.cokernel f.toModuleCatHom :=
+noncomputable def _root_.Rep.forgetCokernelIso {R G : Type u} [CommRing R] [Group G]
+    {A B : Rep.{u} R G} (f : A ⟶ B) :
+    ModuleCat.of R (Limits.cokernel f).V ≅ Limits.cokernel f.toModuleCatHom :=
   (preservesColimitIso (forget₂ (Rep R G) (ModuleCat R)) (Limits.parallelPair f 0)).trans
     (Limits.HasColimit.isoOfNatIso (Limits.parallelPair.ext (Iso.refl _) (Iso.refl _)
       (by simp) (by simp)))
@@ -372,15 +373,42 @@ lemma range_μ : (μ R G).hom.range.1 = Submodule.span R {∑ g, .single g 1} :=
   constructor
   all_goals exact fun ⟨y, hy⟩ ↦ ⟨y, by rwa [μ_apply] at *⟩
 
-instance : Module.Free R (coaug R G) := .of_basis (ι := Set.diff (⊤ : Set G) {1}) {
-  repr := (Rep.forgetCokernelIso (μ R G) ≪≫ ModuleCat.cokernelIsoRangeQuotient
-    (μ R G).toModuleCatHom).toLinearEquiv ≪≫ₗ Submodule.quotEquivOfEq _ _ (range_μ R G) ≪≫ₗ
-    -- LinearMap.quotKerEquivOfSurjective _ _ ≪≫ₗ _
-    sorry
-}
+private abbrev foo1 [Finite G] : (G →₀ R) →ₗ[R] (Set.univ.diff {(1 : G)}) →₀ R :=
+    haveI : DecidablePred fun x ↦ x ∈ Set.univ.diff {(1 : G)} := Classical.decPred _
+    -- (Finsupp.supportedEquivFinsupp _).toLinearMap ∘ₗ
+    -- Finsupp.restrictDom R R (Set.univ.diff {(1 : G)})
+    (Finsupp.linearEquivFunOnFinite R R (Set.univ.diff {(1 : G)})).symm.toLinearMap
+    ∘ₗ {
+      toFun f x := f x.1 - f 1
+      map_add' f1 f2 := by ext; simp; abel
+      map_smul' f r := by ext; simp [mul_sub]
+    } ∘ₗ (Finsupp.linearEquivFunOnFinite R R G).toLinearMap
 
+private def foo : @HasQuotient.Quotient (G →₀ R) (Submodule R (G →₀ R)) Submodule.hasQuotient
+    (R ∙ ∑ g, Finsupp.single g 1) ≃ₗ[R] (Set.univ.diff {(1 : G)}) →₀ R :=
+  Submodule.quotEquivOfEq _ _ (by
+    simp only [LinearEquiv.ker_comp, SetLike.ext_iff, Submodule.mem_span_singleton,
+      LinearMap.mem_ker, LinearMap.coe_comp, LinearMap.coe_mk, AddHom.coe_mk, LinearEquiv.coe_coe,
+      Function.comp_apply, Finsupp.linearEquivFunOnFinite_apply]
+    refine fun x ↦ ⟨fun ⟨r, hr⟩ ↦ by simp [← hr, Pi.zero_def], fun h ↦ ⟨x 1, ?_⟩⟩
+    ext g
+    simp only [Finsupp.coe_smul, Finsupp.coe_finset_sum, Pi.smul_apply, Finset.sum_apply,
+      Finsupp.univ_sum_single_apply', smul_eq_mul, mul_one, eq_comm]
+    if hg : g = 1 then simp [hg] else
+    replace h := funext_iff.1 h ⟨g, by simp [Set.diff, hg]⟩
+    simpa [sub_eq_zero] using h) ≪≫ₗ LinearMap.quotKerEquivOfSurjective (foo1 R G) (by
+    simp only [LinearMap.coe_comp, LinearEquiv.coe_coe, LinearMap.coe_mk, AddHom.coe_mk,
+      EquivLike.comp_surjective, EquivLike.surjective_comp]
+    intro f
+    classical
+    use (fun g ↦ if hg : g = 1 then 0 else f ⟨g, Set.mem_diff_singleton.2 ⟨⟨⟩, hg⟩⟩)
+    ext ⟨g, hg⟩
+    simp [Set.mem_diff_singleton.1 hg])
 
-
+instance : Module.Free R (coaug R G) := .of_basis (ι := Set.diff (⊤ : Set G) {1})
+  { repr := (Rep.forgetCokernelIso (μ R G) ≪≫ ModuleCat.cokernelIsoRangeQuotient
+      (μ R G).toModuleCatHom).toLinearEquiv ≪≫ₗ Submodule.quotEquivOfEq _ _ (range_μ R G) ≪≫ₗ
+    foo R G}
 
 -- for any Cat that has a forgetful functor to ModuleCat R, there is an iso
 -- between (forget₂ _ _).obj (Limits.kernel f) and Limits.kernel ((forget₂ _ _).map f)

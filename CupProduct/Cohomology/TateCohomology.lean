@@ -126,12 +126,20 @@ def tateComplex.map {X Y : Rep R G} (φ : X ⟶ Y) : tateComplex X ⟶ tateCompl
 @[simp]
 lemma tateComplex.map_zero {X Y : Rep R G} : tateComplex.map (X := X) (Y := Y) 0 = 0 := by aesop_cat
 
-set_option backward.isDefEq.respectTransparency false in
+-- set_option backward.isDefEq.respectTransparency false in
 /-- The functor taking a representation of `G` to its Tate complex. -/
 @[simps]
 def tateComplexFunctor : Rep R G ⥤ CochainComplex (ModuleCat R) ℤ where
   obj M := tateComplex M
   map := tateComplex.map
+  map_comp f g := by
+    unfold tateComplex.map
+    simp only [cochainsFunctor_map]
+    conv_rhs => tactic =>
+      convert (CochainComplex.ConnectData.map_comp_map ..)
+    congr 1
+    rw [← chainsMap_comp]
+    congr 1
 
 /-- The functor taking a representation of `G` to its `n`-th Tate cohomology group. -/
 def tateCohomology (n : ℤ) : Rep R G ⥤ ModuleCat R :=

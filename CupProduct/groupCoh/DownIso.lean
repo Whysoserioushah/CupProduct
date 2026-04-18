@@ -299,11 +299,15 @@ def downSESIsodownSES₀Functor [Fintype G] :
       exact LinearMap.ext_iff.mpr (congrFun rfl)
 
 set_option linter.unusedFintypeInType false in
+lemma shortExact_downSESTensorRight [Fintype G] (A B : Rep R G) :
+    ((downSES A).map (tensorRight B)).ShortExact :=
+  have e := (tensorRight B).mapShortComplex.mapIso
+    (downSESIsodownSES₀ A) ≪≫ (aug_shortExactSequence R G).mapNatIso (tensorRightTensor A B).symm
+  ShortComplex.shortExact_iff_of_iso e|>.2 <| shortExact_downSES' R G (A := A ⊗ B)
+
+set_option linter.unusedFintypeInType false in
 lemma shortExact_downSESTensorLeft [Fintype G] (A B : Rep R G) :
-    ((downSES A).map (tensorLeft B)).ShortExact := by
-  have e := ((tensorLeft B).mapShortComplex.mapIso <|
-    downSESIsodownSES₀ A ≪≫ ((aug_shortExactSequence R G).mapNatIso
-    (BraidedCategory.tensorLeftIsoTensorRight A).symm)) ≪≫
-    (aug_shortExactSequence R G).mapNatIso ((tensorLeftTensor B A).symm ≪≫
-    (BraidedCategory.tensorLeftIsoTensorRight _))
-  exact ShortComplex.shortExact_iff_of_iso e|>.2 <| shortExact_downSES' R G (A := B ⊗ A)
+    ((downSES A).map (tensorLeft B)).ShortExact :=
+  ShortComplex.shortExact_iff_of_iso ((downSES A).mapNatIso
+    (BraidedCategory.tensorLeftIsoTensorRight B))|>.2 <|
+    shortExact_downSESTensorRight A B
