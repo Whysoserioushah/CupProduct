@@ -1,11 +1,11 @@
 import CupProduct.Cohomology.AugmentationModule
 import CupProduct.Cohomology.Functors.UpDown
-import Mathlib.LinearAlgebra.TensorProduct.RightExactness
+import Mathlib
 import CupProduct.Mathlib.Algebra.Homology.ShortComplex.Rep
 
 open CategoryTheory Rep.leftRegular MonoidalCategory
 
-universe u
+universe w u
 
 variable (R G : Type u) [CommRing R] [Group G]
 
@@ -367,3 +367,63 @@ lemma shortExact_upSESTensorLeft [Fintype G] (A B : Rep R G) :
   ShortComplex.shortExact_iff_of_iso ((upSES B).mapNatIso
     (BraidedCategory.tensorLeftIsoTensorRight _))|>.2 <|
     shortExact_upSESTensorRight A B
+
+instance up_preservesEpi : (up (R := R) (G := G)).PreservesEpimorphisms where
+  preserves f hf :=
+    haveI : Epi (coind₁'.map f) := Rep.epi_iff_surjective _|>.2 fun y ↦
+      ⟨(Function.surjInv (Rep.epi_iff_surjective _|>.1 hf)) ∘ y, by
+        funext g
+        change (_ ∘ _) g = _
+        simp [Function.surjInv_eq]⟩
+    cokernel.desc_epi _ _ _
+
+instance up_preservesMono [Fintype G] :
+    Functor.PreservesMonomorphisms (up.{u, u} (R := R) (G := G)) :=
+  haveI : (tensorLeft (coaug R G)).PreservesMonomorphisms := ⟨fun f hf ↦
+    Rep.mono_iff_injective _ |>.2 <| Module.Flat.lTensor_preserves_injective_linearMap
+      f.hom.toLinearMap (Rep.mono_iff_injective _|>.1 hf)⟩
+  CategoryTheory.Functor.preservesMonomorphisms.of_iso
+    (upIsoCoaugTensorFunctor (R := R) (G := G)).symm
+
+instance : coind₁' (R := R) (G := G).PreservesZeroMorphisms := ⟨fun _ ↦ congrFun rfl⟩
+
+instance : (up (R := R) (G := G)).PreservesZeroMorphisms := ⟨fun X Y ↦ by
+  simp only [up_obj, Functor.id_obj, coind₁'_obj, coind₁'_ι_app, up_map, Functor.map_zero]
+  convert cokernel.desc_zero (coind₁'_ι.app X)
+  · exact zero_comp
+  · exact comp_zero⟩
+
+instance up_preservesHomology [Fintype G] : (up.{u, u} (R := R) (G := G)).PreservesHomology :=
+    up.preservesHomology_of_map_exact fun S hS ↦ by
+  have := S.mapNatIso upIsoCoaugTensorFunctor
+  refine ShortComplex.exact_of_iso (S.mapNatIso upIsoCoaugTensorFunctor).symm ?_
+  refine ((S.map (tensorLeft _)).exact_map_iff_of_faithful
+    (F := forget₂ (Rep R G) (ModuleCat R))).1 ?_
+  change ((S.map (forget₂ (Rep R G) _)).map (tensorLeft (ModuleCat.of R (coaug R G).V))).Exact
+  exact Module.Flat.lTensor_shortComplex_exact (ModuleCat.of R (coaug R G).V) _
+      (hS.map_of_preservesLeftHomologyOf _)
+
+set_option backward.isDefEq.respectTransparency false in
+instance : coind₁' (R := R) (G := G).Additive where
+  map_add {_ _ _ _} := by
+    ext : 2
+    simp [coind₁', Rep.add_hom]
+    -- TODO : add lemma to `LinearMap.compLeft`
+    rfl
+
+instance : up (R := R) (G := G).Additive where
+  map_add {X Y f g} := by
+    rw [← cancel_epi (cokernel.π (coind₁'_ι.app X)), up_map, cokernel.π_desc,
+      up_map, up_map, comp_add, cokernel.π_desc, cokernel.π_desc, coind₁'.map_add, add_comp]
+
+lemma map_up_shortExact [Fintype G] (S : ShortComplex (Rep R G)) (hS : S.ShortExact) :
+    (S.map up.{u, u}).ShortExact where
+  exact := by
+    have := ((up (R := R) (G := G)).exact_tfae.out 1 2|>.2 up_preservesHomology)
+    exact this _ hS.1
+  mono_f :=
+    have := hS.2
+    up_preservesMono.preserves S.f
+  epi_g :=
+    have := hS.3
+    up_preservesEpi.preserves _

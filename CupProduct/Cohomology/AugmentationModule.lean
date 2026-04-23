@@ -412,7 +412,8 @@ instance : Module.Free R (coaug R G) := .of_basis (ι := Set.diff (⊤ : Set G) 
 
 -- for any Cat that has a forgetful functor to ModuleCat R, there is an iso
 -- between (forget₂ _ _).obj (Limits.kernel f) and Limits.kernel ((forget₂ _ _).map f)
-noncomputable def _root_.Rep.forgetKernelIso {R G : Type u} [CommRing R] [Group G] {A B : Rep R G}
+noncomputable def _root_.Rep.forgetKernelIso {R G : Type u} [CommRing R] [Group G]
+    {A B : Rep.{u} R G}
     (f : A ⟶ B) : ModuleCat.of R (Limits.kernel f).V ≅ Limits.kernel f.toModuleCatHom :=
   (preservesLimitIso (forget₂ (Rep R G) (ModuleCat R)) (Limits.parallelPair f 0)).trans
     (Limits.HasLimit.isoOfNatIso (Limits.parallelPair.ext (Iso.refl _) (Iso.refl _)
@@ -435,42 +436,78 @@ noncomputable instance (ι R : Type*) [Ring R] [Fintype ι] : Ring (ι →₀ R)
   one := Finsupp.equivFunOnFinite.symm 1
   one_mul f := show Finsupp.equivFunOnFinite.symm 1 * f = f by ext; simp
   mul_one f := show f * Finsupp.equivFunOnFinite.symm 1 = f by ext; simp
--- lemma le_comap (g : G) : R ∙ ∑ g, of g ≤ Submodule.comap ((leftRegular R G).ρ g)
---     (R ∙ ∑ g, of g) := by
---   simp only [Submodule.span_singleton_le_iff_mem, Submodule.mem_comap, map_sum]
---   conv => enter [2, 2, x]; rw [ρ_apply_of]
---   nth_rw 2 [Finset.sum_equiv (t := Finset.univ) (g := fun i ↦ of i)
---     (Equiv.mulLeft g) (by simp) (by simp)]
---   exact Submodule.mem_span_singleton_self _
 
--- is this correct?
--- def coaugIsoQuot : coaug R G ≅ Rep.quotient (Rep.leftRegular R G)
---     (Submodule.span R {∑ g, Rep.leftRegular.of g}) (le_comap R G) where
---   hom := {
---     hom := ((Rep.forgetCokernelIso (μ R G)) ≪≫ ModuleCat.cokernelIsoRangeQuotient (μ R G).hom ≪≫
---       (Submodule.quotEquivOfEq _ _ (range_μ R G)).toModuleIso).hom
---     comm g := by
---       ext1
---       simp only [Iso.trans_hom, LinearEquiv.toModuleIso_hom, ModuleCat.hom_comp,
---         ModuleCat.hom_ofHom, ρ_hom, RingHom.toMonoidHom_eq_coe, RingEquiv.toRingHom_eq_coe, of_ρ,
---         MonoidHom.coe_comp, MonoidHom.coe_coe, RingHom.coe_coe, Function.comp_apply,
---         Representation.quotient_apply, Category.assoc]
---       ext x
---       simp only [LinearMap.coe_comp, LinearEquiv.coe_coe, Function.comp_apply,
---         ModuleCat.endRingEquiv, RingEquiv.symm_mk, RingEquiv.coe_mk, Equiv.coe_fn_mk,
---         ModuleCat.hom_ofHom]
---       -- have := (coaug R G).hom_comm_apply _ _ x
---       -- rw [show (R ∙ ∑ g, of g).mapQ (R ∙ ∑ g, of g) ((Representation.ofMulAction R G G) g)
---       --   (le_comap R G g) = LinearMap.id by
---       --   ext g' : 3
---       --   simp
---       --   sorry]
---       -- simp
---       sorry
---   }
---   inv := sorry
---   hom_inv_id := sorry
---   inv_hom_id := sorry
+omit [Fintype G] in
+variable {G} in
+lemma singleBasis_mem_ker (g : G) : Finsupp.single g (1 : R) - Finsupp.single (1 : G) (1 : R) ∈
+      (ε R G).hom.toLinearMap.ker := by
+  rw [LinearMap.mem_ker, (ε R G).hom.toLinearMap_apply, map_sub, ε_of, ε_of, sub_self]
+
+omit [Fintype G] in
+abbrev kerε.v : (Set.univ.diff {(1 : G)}) → (ε R G).hom.toLinearMap.ker := fun g ↦
+    ⟨Finsupp.single g.1 1 - Finsupp.single 1 1, singleBasis_mem_ker R g.1⟩
+
+omit [Fintype G] in
+variable {R G} in
+lemma linearIndep_kerε_basis : LinearIndependent R (kerε.v R G) := fun _ _ h ↦ by
+  rw [Finsupp.linearCombination_apply, Finsupp.linearCombination_apply, Subtype.ext_iff,
+    Finsupp.sum, Submodule.coe_sum, Finsupp.sum, Submodule.coe_sum] at h
+  simp_rw [Submodule.coe_smul, smul_sub, Finset.sum_sub_distrib] at h
+  classical simp only [Finsupp.smul_single, smul_eq_mul, mul_one, Finsupp.ext_iff,
+    Finsupp.coe_sub, Finsupp.coe_finset_sum, Pi.sub_apply, Finset.sum_apply,
+    Finsupp.single_apply, Finset.sum_ite_irrel, Finset.sum_const_zero] at h
+  if hG : Subsingleton G then
+  ext x
+  simp only [Set.diff, Subsingleton.elim _ (1 : G), Set.mem_univ, Set.mem_singleton_iff,
+    not_true_eq_false, and_false, Set.setOf_false] at x
+  exact False.elim (Set.mem_empty_iff_false x.1|>.1 x.2)
+  else
+  ext ⟨g, hg⟩
+  have hg' := by simpa [Set.diff] using hg
+  specialize h g
+  simp only [eq_comm (a := (1 : G)), hg', ↓reduceIte, sub_zero] at h
+  rw [Finset.sum_eq_single ⟨g, hg⟩ (by simp +contextual) (by simp),
+    Finset.sum_eq_single ⟨g, hg⟩ (by simp +contextual) (by simp)] at h
+  simpa using h
+
+omit [Fintype G] in
+variable {R G} in
+lemma kerε_basis_span : ⊤ ≤ Submodule.span R (Set.range <| kerε.v R G) := fun ⟨x, hx⟩ _ ↦ by
+  have hGG := Classical.decEq G
+  have hxx : x = ∑ i ∈ x.support, x i • Finsupp.single i 1 := by
+      conv_lhs => rw [← x.sum_single, Finsupp.sum]
+      simp
+  have hx' : ∑ x_1 ∈ x.support, x x_1 = 0 := by
+    rw [LinearMap.mem_ker, hxx, (ε R G).hom.toLinearMap_apply, map_sum] at hx
+    simp_rw [map_smul, ε_of _, smul_eq_mul, mul_one] at hx
+    exact hx
+  have hx'' : x = ∑ i ∈ x.support, x i • (Finsupp.single i 1 - Finsupp.single 1 1) := by
+    nth_rw 1 [← sub_zero x, ← zero_smul R (Finsupp.single 1 1), ← hx', hxx,
+      Finset.sum_smul, ← Finset.sum_sub_distrib]
+    simp [smul_sub]
+  have hx''' : (⟨x, hx⟩ : (ε R G).hom.toLinearMap.ker) =
+      ∑ i ∈ x.support, (x i) • ⟨Finsupp.single i 1 - Finsupp.single 1 1,
+      singleBasis_mem_ker R i⟩ := by
+    ext1
+    simp_rw [Submodule.coe_sum, Submodule.coe_smul]
+    exact hx''
+  rw [hx''']
+  refine Submodule.sum_mem _ (fun i _ ↦ if hi : i = 1 then ?_ else
+    Submodule.smul_mem _ _ <| Submodule.mem_span_of_mem ?_)
+  · refine Submodule.smul_mem _ _ ?_
+    simp_rw [hi, sub_self]
+    rw [show ⟨(0 : G →₀ R), _⟩ = (0 : (ε R G).hom.toLinearMap.ker) by rfl]
+    exact zero_mem _
+  · exact Set.mem_range.2 ⟨⟨i, by simp [Set.diff, hi]⟩, by simp [kerε.v]⟩
+
+instance freekerV : Module.Free R (ε R G).hom.toLinearMap.ker :=
+  .of_basis <| Module.Basis.mk (v := kerε.v R G) linearIndep_kerε_basis <|
+     kerε_basis_span
+
+instance [Finite G] : Module.Free R (aug R G).V :=
+  @Module.Free.of_equiv _ _ _ _ _ _ _ _ _ _ _ _ _ _
+    ((Rep.forgetKernelIso (ε R G) ≪≫ (ModuleCat.kernelIsoKer _)).toLinearEquiv :
+    _ ≃ₗ[R] (ε R G).hom.toLinearMap.ker).symm (freekerV R G)
 
 end Rep.leftRegular
 

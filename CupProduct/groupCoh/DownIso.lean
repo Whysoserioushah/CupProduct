@@ -311,3 +311,53 @@ lemma shortExact_downSESTensorLeft [Fintype G] (A B : Rep R G) :
   ShortComplex.shortExact_iff_of_iso ((downSES A).mapNatIso
     (BraidedCategory.tensorLeftIsoTensorRight B))|>.2 <|
     shortExact_downSESTensorRight A B
+
+instance down_preservesMono : (down (R := R) (G := G)).PreservesMonomorphisms where
+  preserves {X Y} f hf :=
+    have : Mono (ind₁'.map f) := Rep.mono_iff_injective _|>.2 fun x y h ↦ by
+      dsimp at x y
+      simp_rw [← (ind₁'.map f).hom.toLinearMap_apply, ind₁', Rep.hom_ofHom] at h
+      exact Finsupp.mapRange_injective f.hom (map_zero _) (Rep.mono_iff_injective _|>.1 hf) h
+    kernel.lift_mono _ _ _
+
+set_option linter.unusedFintypeInType false
+instance down_preservesEpi [Fintype G] : (down.{u, u} (R := R) (G := G)).PreservesEpimorphisms :=
+  have := (tensorLeft (aug R G)).preservesEpimorphisms_of_isLeftAdjoint
+  Functor.preservesEpimorphisms.of_iso (downNatIso (R := R) (G := G)).symm
+
+instance : (ind₁' (R := R) (G := G)).PreservesZeroMorphisms := ⟨fun _ _ ↦ by
+  ext : 2
+  change Representation.ind₁'_map 0 = 0
+  ext; simp⟩
+
+instance : (down (R := R) (G := G)).PreservesZeroMorphisms where
+  map_zero X Y := by simpa using kernel.lift_zero _
+
+set_option backward.isDefEq.respectTransparency false in
+instance : (ind₁' (R := R) (G := G)).Additive := ⟨fun {_ _ _ _} ↦ by
+  ext : 2
+  simp only [ind₁', add_hom, Representation.IntertwiningMap.add_toLinearMap, Rep.hom_ofHom]
+  ext; simp⟩
+
+instance : (down (R := R) (G := G)).Additive where
+  map_add {X Y f g} := by
+    rw [← cancel_mono (kernel.ι (ind₁'_π.app Y)), down_map, kernel.lift_ι, ind₁'.map_add,
+      comp_add, down_map, down_map, add_comp, kernel.lift_ι, kernel.lift_ι]
+
+instance down_preservesHomology [Fintype G] : (down.{u, u} (R := R) (G := G)).PreservesHomology :=
+  down.preservesHomology_of_map_exact fun S hS ↦ by
+  have := S.mapNatIso downNatIso
+  refine ShortComplex.exact_of_iso (S.mapNatIso downNatIso).symm ?_
+  refine ((S.map (tensorLeft _)).exact_map_iff_of_faithful
+    (F := forget₂ (Rep R G) (ModuleCat R))).1 ?_
+  change ((S.map (forget₂ (Rep R G) _)).map (tensorLeft (ModuleCat.of R (aug R G).V))).Exact
+  exact Module.Flat.lTensor_shortComplex_exact (ModuleCat.of R (aug R G).V) _
+    (hS.map_of_preservesLeftHomologyOf _)
+
+lemma map_down_shortExact [Fintype G] {S : ShortComplex (Rep R G)} (hS : S.ShortExact) :
+    (S.map down.{u, u}).ShortExact where
+  exact := by
+    have := (down (R := R) (G := G)).exact_tfae.out 1 2|>.2 down_preservesHomology
+    exact this _ hS.1
+  mono_f := have := hS.2; down_preservesMono.preserves _
+  epi_g := have := hS.3; down_preservesEpi.preserves _
