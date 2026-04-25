@@ -136,16 +136,19 @@ abbrev case4 (A B : Rep R G) (p : ℤ) (n : ℕ) (r : ℤ) (h : r = p + Int.negS
       eqToHom.{u} (by rw [h, Int.negSucc_eq, sub_sub, ← sub_eq_add_neg])
 
 -- why is this so slow even after I split off the cases?
+
+-- 117847570
+-- 12946876
 def CupProduct (A B : Rep.{u} R G) (p q r : ℤ) (h : r = p + q) :
     (tateCohomology p).obj A ⊗ (tateCohomology q).obj B ⟶ (tateCohomology r).obj (A ⊗ B) :=
   match p, q with
   | 0, 0 => case0 A B r h
-  | Nat.succ n, q => case1 A B n q r h (CupProduct (up.{u}.obj A) B n q (n + q) rfl)
-  | p, Nat.succ n => case2 A B p n r h (CupProduct A (up.{u}.obj B) p n (p + n) rfl)
+  | Nat.succ n, q => case1 A B n q r h (CupProduct (up.{u, u}.obj A) B n q (n + q) rfl)
+  | p, Nat.succ n => case2 A B p n r h (CupProduct A (up.{u, u}.obj B) p n (p + n) rfl)
   | Int.negSucc n, q =>
-    case3 A B n q r h (CupProduct (down.{u}.obj A) B (Int.negSucc n + 1) q (-n + q) (by omega))
+    case3 A B n q r h (CupProduct (down.{u, u}.obj A) B (Int.negSucc n + 1) q (-n + q) (by omega))
   | p, Int.negSucc n =>
-    case4 A B p n r h (CupProduct A (down.{u}.obj B) p (Int.negSucc n + 1) (p - n) (by omega))
+    case4 A B p n r h (CupProduct A (down.{u, u}.obj B) p (Int.negSucc n + 1) (p - n) (by omega))
   termination_by (p.natAbs, q.natAbs)
 
 structure IsCupProduct (map : (A B : Rep R G) → (p q r : ℤ) → (h : r = p + q) →
@@ -162,6 +165,7 @@ structure IsCupProduct (map : (A B : Rep R G) → (p q r : ℤ) → (h : r = p +
     ((-1) ^ p.natAbs • (_ ◁ TateCohomology.δ h1 q)) ≫
     map A S2.X₁ p (q + 1) (p + q + 1) (by omega)
 
+#check Int.negInduction
 -- TODO: use `upSES` and `downSES` as the first SES to prove if two maps
 -- are `IsCupProduct`, then they are equal.
 lemma IsCupProduct.unique (map1 map2 : (A B : Rep R G) → (p q r : ℤ) → (h : r = p + q) →
@@ -187,13 +191,26 @@ lemma IsCupProduct.unique (map1 map2 : (A B : Rep R G) → (p q r : ℤ) → (h 
       subst h
       rw [← h1', ← h2', hm]
     | pred m hm =>
-      have h1' := h1.commSq2 0 (-m) (A := A) (downSES B)
+      have h1' := h1.commSq2 0 (-m-1) (A := A) (downSES B) (shortExact_downSES B)
+        (shortExact_downSESTensorLeft _ _)
+      have h2' := h2.commSq2 0 (-m-1) (A := A) (downSES B) (shortExact_downSES B)
+        (shortExact_downSESTensorLeft _ _)
+      dsimp [-down_obj] at h1' h2'
+      rw [one_smul] at h1' h2'
+      subst h
+
+      -- change _ = (((tateCohomology 0).obj A ◁ᵢ δDownIsoTate B (-m)).hom) ≫ _ at h1' h2'
+
+
 
       sorry
-  | succ i _ => sorry
+  | succ i _ =>
+    funext q r h
+    induction q generalizing A B r with
+    | zero => sorry
+    | succ i _ => sorry
+    | pred i _ => sorry
   | pred i _ => sorry
-
-
 
 -- TODO : change `TateCohomology.map` to use `(i j : ℤ) (h : i + 1 = j)` instead of `i` and `i + 1`
 open groupCohomology.TateCohomology in

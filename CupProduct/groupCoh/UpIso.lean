@@ -368,6 +368,21 @@ lemma shortExact_upSESTensorLeft [Fintype G] (A B : Rep R G) :
     (BraidedCategory.tensorLeftIsoTensorRight _))|>.2 <|
     shortExact_upSESTensorRight A B
 
+instance [Fintype G] (A B : Rep R G) : TrivialTateCohomology ((upSES B).map (tensorRight A)).X₂ :=
+  TrivialTateCohomology.of_iso (coindTensor B A : _ ≅ coind₁'.obj (B ⊗ A))
+
+instance [Fintype G] (A B : Rep R G) {n : ℤ} : IsIso (groupCohomology.TateCohomology.δ
+    (shortExact_upSESTensorRight A B) n) :=
+  ShortComplex.ShortExact.isIso_δ _ _ _ _
+    isZero_of_trivialTateCohomology isZero_of_trivialTateCohomology
+
+@[simps! hom]
+def δUpIsoTateTensorRight [Fintype G] (A B : Rep R G) {n : ℤ} :
+    (groupCohomology.tateCohomology n).obj ((up.{u, u}.obj B) ⊗ A) ≅
+    (groupCohomology.tateCohomology (n + 1)).obj (B ⊗ A) :=
+  @asIso _ _ _ _ (groupCohomology.TateCohomology.δ
+    (shortExact_upSESTensorRight A B) n) <| instIsIsoModuleCatδ A B (n := n)
+
 instance up_preservesEpi : (up (R := R) (G := G)).PreservesEpimorphisms where
   preserves f hf :=
     haveI : Epi (coind₁'.map f) := Rep.epi_iff_surjective _|>.2 fun y ↦
