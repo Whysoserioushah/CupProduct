@@ -1,8 +1,6 @@
-import Mathlib
-import CupProduct.groupCoh.Rep
-import CupProduct.Cohomology.Functors.UpDown
 import CupProduct.Cohomology.AugmentationModule
-import CupProduct.Mathlib.Algebra.Homology.ShortComplex.Rep
+import CupProduct.Cohomology.Functors.UpDown
+import Mathlib.RingTheory.Flat.CategoryTheory
 
 universe u
 
@@ -235,6 +233,13 @@ def downNatIso [Fintype G] : down ≅ tensorLeft (aug R G) where
       tensorToDownFunc_app, NatTrans.id_app]
     rw [← downIso_hom, ← downIso_inv, Iso.inv_hom_id]
 
+abbrev indTensorIso [Fintype G] (A B : Rep R G) : ind₁'.obj A ⊗ B ≅ ind₁'.obj (A ⊗ B) :=
+  (tensorRight B).mapIso (indIsoTensor.app A) ≪≫ α_ _ _ _ ≪≫ (indIsoTensor.app (A ⊗ B)).symm
+
+abbrev indTensorIso' [Fintype G] (A B : Rep R G) : A ⊗ ind₁'.{u, u}.obj B ≅ ind₁'.obj (A ⊗ B) :=
+  A ◁ᵢ (indIsoTensor.app B) ≪≫ (α_ _ _ _).symm ≪≫ (β_ _ _) ▷ᵢ B ≪≫
+    α_ _ _ _ ≪≫ (indIsoTensor.app (A ⊗ B)).symm
+
 abbrev downTensorIso [Fintype G] (A B : Rep R G) : down.obj A ⊗ B ≅ down.obj (A ⊗ B) :=
   (tensorRight B).mapIso (downIso A) ≪≫ α_ _ _ _ ≪≫ (downIso (A ⊗ B)).symm
 
@@ -305,12 +310,42 @@ lemma shortExact_downSESTensorRight [Fintype G] (A B : Rep R G) :
     (downSESIsodownSES₀ A) ≪≫ (aug_shortExactSequence R G).mapNatIso (tensorRightTensor A B).symm
   ShortComplex.shortExact_iff_of_iso e|>.2 <| shortExact_downSES' R G (A := A ⊗ B)
 
-set_option linter.unusedFintypeInType false in
+set_option linter.unusedFintypeInType false
 lemma shortExact_downSESTensorLeft [Fintype G] (A B : Rep R G) :
     ((downSES A).map (tensorLeft B)).ShortExact :=
   ShortComplex.shortExact_iff_of_iso ((downSES A).mapNatIso
     (BraidedCategory.tensorLeftIsoTensorRight B))|>.2 <|
     shortExact_downSESTensorRight A B
+
+instance [Fintype G] (A B : Rep R G) : TrivialTateCohomology ((downSES A).map (tensorRight B)).X₂ :=
+  TrivialTateCohomology.of_iso (indTensorIso A B : _ ≅ ind₁'.obj (A ⊗ B))
+
+instance [Fintype G] (A B : Rep R G) : TrivialTateCohomology ((downSES A).map (tensorLeft B)).X₂ :=
+  TrivialTateCohomology.of_iso (indTensorIso' B A : _ ≅ ind₁'.obj (B ⊗ A))
+
+instance isIso_δ_downTensorRight [Fintype G] (A B : Rep R G) {n : ℤ} : IsIso (groupCohomology.TateCohomology.δ
+    (shortExact_downSESTensorRight A B) n) :=
+  ShortComplex.ShortExact.isIso_δ _ _ _ _
+    isZero_of_trivialTateCohomology isZero_of_trivialTateCohomology
+
+instance isIso_δ_downTensorLeft [Fintype G] (A B : Rep R G) {n : ℤ} : IsIso (groupCohomology.TateCohomology.δ
+    (shortExact_downSESTensorLeft A B) n) :=
+  ShortComplex.ShortExact.isIso_δ _ _ _ _
+    isZero_of_trivialTateCohomology isZero_of_trivialTateCohomology
+
+@[simps! hom]
+def δDownIsoTateTensorRight [Fintype G] (A B : Rep R G) {n : ℤ} :
+    (tateCohomology n).obj (A ⊗ B) ≅
+    (tateCohomology (n + 1)).obj (down.obj A ⊗ B) :=
+  @asIso _ _ _ _ (groupCohomology.TateCohomology.δ
+    (shortExact_downSESTensorRight A B) n) <| isIso_δ_downTensorRight A B
+
+@[simps! hom]
+def δDownIsoTateTensorLeft [Fintype G] (A B : Rep R G) {n : ℤ} :
+    (tateCohomology n).obj (B ⊗ A) ≅
+    (tateCohomology (n + 1)).obj (B ⊗ down.obj A) :=
+  @asIso _ _ _ _ (groupCohomology.TateCohomology.δ
+    (shortExact_downSESTensorLeft A B) n) <| isIso_δ_downTensorLeft A B
 
 instance down_preservesMono : (down (R := R) (G := G)).PreservesMonomorphisms where
   preserves {X Y} f hf :=

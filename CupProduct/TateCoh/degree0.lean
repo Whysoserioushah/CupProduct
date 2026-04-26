@@ -136,16 +136,19 @@ abbrev case4 (A B : Rep R G) (p : ℤ) (n : ℕ) (r : ℤ) (h : r = p + Int.negS
       eqToHom.{u} (by rw [h, Int.negSucc_eq, sub_sub, ← sub_eq_add_neg])
 
 -- why is this so slow even after I split off the cases?
+
+-- 117847570
+-- 12946876
 def CupProduct (A B : Rep.{u} R G) (p q r : ℤ) (h : r = p + q) :
     (tateCohomology p).obj A ⊗ (tateCohomology q).obj B ⟶ (tateCohomology r).obj (A ⊗ B) :=
   match p, q with
   | 0, 0 => case0 A B r h
-  | Nat.succ n, q => case1 A B n q r h (CupProduct (up.{u}.obj A) B n q (n + q) rfl)
-  | p, Nat.succ n => case2 A B p n r h (CupProduct A (up.{u}.obj B) p n (p + n) rfl)
+  | Nat.succ n, q => case1 A B n q r h (CupProduct (up.{u, u}.obj A) B n q (n + q) rfl)
+  | p, Nat.succ n => case2 A B p n r h (CupProduct A (up.{u, u}.obj B) p n (p + n) rfl)
   | Int.negSucc n, q =>
-    case3 A B n q r h (CupProduct (down.{u}.obj A) B (Int.negSucc n + 1) q (-n + q) (by omega))
+    case3 A B n q r h (CupProduct (down.{u, u}.obj A) B (Int.negSucc n + 1) q (-n + q) (by omega))
   | p, Int.negSucc n =>
-    case4 A B p n r h (CupProduct A (down.{u}.obj B) p (Int.negSucc n + 1) (p - n) (by omega))
+    case4 A B p n r h (CupProduct A (down.{u, u}.obj B) p (Int.negSucc n + 1) (p - n) (by omega))
   termination_by (p.natAbs, q.natAbs)
 
 structure IsCupProduct (map : (A B : Rep R G) → (p q r : ℤ) → (h : r = p + q) →
@@ -169,7 +172,7 @@ lemma IsCupProduct.unique (map1 map2 : (A B : Rep R G) → (p q r : ℤ) → (h 
     (tateCohomology r).obj (A ⊗ B)) (h1 : IsCupProduct map1) (h2 : IsCupProduct map2) :
     map1 = map2 := by
   funext A B p
-  induction p with
+  induction p generalizing A B with
   | zero =>
     funext q r h
     induction q generalizing A B r with
@@ -187,13 +190,105 @@ lemma IsCupProduct.unique (map1 map2 : (A B : Rep R G) → (p q r : ℤ) → (h 
       subst h
       rw [← h1', ← h2', hm]
     | pred m hm =>
-      have h1' := h1.commSq2 0 (-m) (A := A) (downSES B)
-
-      sorry
-  | succ i _ => sorry
-  | pred i _ => sorry
-
-
+      have h1' := h1.commSq2 0 (-m-1) (A := A) (downSES B) (shortExact_downSES B)
+        (shortExact_downSESTensorLeft _ _)
+      have h2' := h2.commSq2 0 (-m-1) (A := A) (downSES B) (shortExact_downSES B)
+        (shortExact_downSESTensorLeft _ _)
+      dsimp [-down_obj] at h1' h2'
+      rw [one_smul] at h1' h2'
+      subst h
+      rw [← δDownIsoTateTensorLeft_hom, eq_comm, ← Iso.comp_inv_eq] at h1' h2'
+      rw [← h1', ← h2']
+      congr
+      specialize hm A (down.obj B) (0 + ((-m) - 1) + 1) (by omega)
+      convert hm using 2
+      · congr
+        omega
+      · omega
+      · omega
+  | succ i hi =>
+    funext q r h
+    induction q generalizing A B r with
+    | zero =>
+    have h1' := h1.commSq1 i 0 (upSES A) (shortExact_upSES A)
+      (shortExact_upSESTensorRight B _)
+    have h2' := h2.commSq1 i 0 (upSES A) (shortExact_upSES A)
+      (shortExact_upSESTensorRight B _)
+    dsimp [-up_obj, add_zero, one_smul] at h1' h2'
+    change _ = (δUpIsoTate A i ▷ᵢ _).hom ≫ _ at h1' h2'
+    rw [← Iso.inv_comp_eq] at h1' h2'
+    rw [add_assoc, add_comm 1 0, ← add_assoc] at h
+    subst h
+    rw [← h1', ← h2', hi]
+    | succ j hj =>
+    have h1' := h1.commSq1 i (j + 1) (upSES A) (shortExact_upSES A)
+      (shortExact_upSESTensorRight B _)
+    have h2' := h2.commSq1 i (j + 1) (upSES A) (shortExact_upSES A)
+      (shortExact_upSESTensorRight B _)
+    dsimp [-up_obj, add_zero, one_smul] at h1' h2'
+    change _ = (δUpIsoTate A i ▷ᵢ _).hom ≫ _ at h1' h2'
+    rw [← Iso.inv_comp_eq] at h1' h2'
+    rw [add_assoc, add_comm 1, ← add_assoc] at h
+    subst h
+    rw [← h1', ← h2', hi]
+    | pred j hj =>
+    have h1' := h1.commSq2 (i + 1) (-j-1) (downSES B) (shortExact_downSES B)
+      (shortExact_downSESTensorLeft B A)
+    have h2' := h2.commSq2 (i + 1) (-j-1) (downSES B) (shortExact_downSES B)
+      (shortExact_downSESTensorLeft B A)
+    dsimp [-down_obj, add_zero, one_smul] at h1' h2'
+    rw [← δDownIsoTateTensorLeft_hom, eq_comm, ← Iso.comp_inv_eq] at h1' h2'
+    subst h
+    rw [← h1', ← h2']
+    congr
+    convert hj A (down.obj B) (↑i + 1 + (-↑j - 1) + 1) (by omega) using 2
+    · congr
+      omega
+    · omega
+    · omega
+  | pred i hi =>
+    funext q r h
+    induction q generalizing A B r with
+    | zero =>
+    have h1' := h1.commSq1 (-i-1) 0 (downSES A) (shortExact_downSES A)
+      (shortExact_downSESTensorRight A B)
+    have h2' := h2.commSq1 (-i-1) 0 (downSES A) (shortExact_downSES A)
+      (shortExact_downSESTensorRight A B)
+    dsimp [-down_obj, add_zero, one_smul] at h1' h2'
+    rw [← δDownIsoTateTensorRight_hom, eq_comm, ← Iso.comp_inv_eq] at h1' h2'
+    subst h
+    rw [← h1', ← h2']
+    congr
+    convert congr($(hi (down.obj A) B) 0 (-↑i - 1 + 0 + 1) _) using 2
+    · congr; omega
+    all_goals omega
+    | succ j hj =>
+    have h1' := h1.commSq2 (-i-1) j (upSES B) (shortExact_upSES B)
+      (shortExact_upSESTensorLeft A _)
+    have h2' := h2.commSq2 (-i-1) j (upSES B) (shortExact_upSES B)
+      (shortExact_upSESTensorLeft A _)
+    dsimp [-up_obj, add_zero, one_smul] at h1' h2'
+    apply_fun (((-1) ^ (- i - 1 : ℤ).natAbs) • ·) at h1' h2'
+    rw [Linear.smul_comp, smul_smul, ← pow_add, ← two_nsmul, smul_eq_mul, pow_mul,
+      neg_one_pow_two, one_pow, one_smul, ← δUpIsoTate_hom] at h1' h2'
+    change _ = ((tateCohomology (-↑i - 1)).obj A ◁ᵢ δUpIsoTate B j).hom ≫ _ at h1' h2'
+    rw [← Iso.inv_comp_eq] at h1' h2'
+    rw [← add_assoc] at h
+    subst h
+    rw [← h1', ← h2', hj]
+    | pred j hj =>
+    have h1' := h1.commSq2 (-i-1) (-j-1) (downSES B) (shortExact_downSES B)
+      (shortExact_downSESTensorLeft B A)
+    have h2' := h2.commSq2 (-i-1) (-j-1) (downSES B) (shortExact_downSES B)
+      (shortExact_downSESTensorLeft B A)
+    dsimp [-down_obj, add_zero, one_smul] at h1' h2'
+    rw [← δDownIsoTateTensorLeft_hom, eq_comm, ← Iso.comp_inv_eq] at h1' h2'
+    subst h
+    rw [← h1', ← h2']
+    congr
+    convert hj A (down.obj B) (-↑i - 1 + (-↑j - 1) + 1) (by omega) using 2
+    · congr; omega
+    all_goals omega
 
 -- TODO : change `TateCohomology.map` to use `(i j : ℤ) (h : i + 1 = j)` instead of `i` and `i + 1`
 open groupCohomology.TateCohomology in
