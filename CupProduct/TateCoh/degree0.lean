@@ -165,7 +165,6 @@ structure IsCupProduct (map : (A B : Rep R G) → (p q r : ℤ) → (h : r = p +
     ((-1) ^ p.natAbs • (_ ◁ TateCohomology.δ h1 q)) ≫
     map A S2.X₁ p (q + 1) (p + q + 1) (by omega)
 
-#check Int.negInduction
 -- TODO: use `upSES` and `downSES` as the first SES to prove if two maps
 -- are `IsCupProduct`, then they are equal.
 lemma IsCupProduct.unique (map1 map2 : (A B : Rep R G) → (p q r : ℤ) → (h : r = p + q) →
@@ -173,7 +172,7 @@ lemma IsCupProduct.unique (map1 map2 : (A B : Rep R G) → (p q r : ℤ) → (h 
     (tateCohomology r).obj (A ⊗ B)) (h1 : IsCupProduct map1) (h2 : IsCupProduct map2) :
     map1 = map2 := by
   funext A B p
-  induction p with
+  induction p generalizing A B with
   | zero =>
     funext q r h
     induction q generalizing A B r with
@@ -198,19 +197,98 @@ lemma IsCupProduct.unique (map1 map2 : (A B : Rep R G) → (p q r : ℤ) → (h 
       dsimp [-down_obj] at h1' h2'
       rw [one_smul] at h1' h2'
       subst h
-
-      -- change _ = (((tateCohomology 0).obj A ◁ᵢ δDownIsoTate B (-m)).hom) ≫ _ at h1' h2'
-
-
-
-      sorry
-  | succ i _ =>
+      rw [← δDownIsoTateTensorLeft_hom, eq_comm, ← Iso.comp_inv_eq] at h1' h2'
+      rw [← h1', ← h2']
+      congr
+      specialize hm A (down.obj B) (0 + ((-m) - 1) + 1) (by omega)
+      convert hm using 2
+      · congr
+        omega
+      · omega
+      · omega
+  | succ i hi =>
     funext q r h
     induction q generalizing A B r with
-    | zero => sorry
-    | succ i _ => sorry
-    | pred i _ => sorry
-  | pred i _ => sorry
+    | zero =>
+    have h1' := h1.commSq1 i 0 (upSES A) (shortExact_upSES A)
+      (shortExact_upSESTensorRight B _)
+    have h2' := h2.commSq1 i 0 (upSES A) (shortExact_upSES A)
+      (shortExact_upSESTensorRight B _)
+    dsimp [-up_obj, add_zero, one_smul] at h1' h2'
+    change _ = (δUpIsoTate A i ▷ᵢ _).hom ≫ _ at h1' h2'
+    rw [← Iso.inv_comp_eq] at h1' h2'
+    rw [add_assoc, add_comm 1 0, ← add_assoc] at h
+    subst h
+    rw [← h1', ← h2', hi]
+    | succ j hj =>
+    have h1' := h1.commSq1 i (j + 1) (upSES A) (shortExact_upSES A)
+      (shortExact_upSESTensorRight B _)
+    have h2' := h2.commSq1 i (j + 1) (upSES A) (shortExact_upSES A)
+      (shortExact_upSESTensorRight B _)
+    dsimp [-up_obj, add_zero, one_smul] at h1' h2'
+    change _ = (δUpIsoTate A i ▷ᵢ _).hom ≫ _ at h1' h2'
+    rw [← Iso.inv_comp_eq] at h1' h2'
+    rw [add_assoc, add_comm 1, ← add_assoc] at h
+    subst h
+    rw [← h1', ← h2', hi]
+    | pred j hj =>
+    have h1' := h1.commSq2 (i + 1) (-j-1) (downSES B) (shortExact_downSES B)
+      (shortExact_downSESTensorLeft B A)
+    have h2' := h2.commSq2 (i + 1) (-j-1) (downSES B) (shortExact_downSES B)
+      (shortExact_downSESTensorLeft B A)
+    dsimp [-down_obj, add_zero, one_smul] at h1' h2'
+    rw [← δDownIsoTateTensorLeft_hom, eq_comm, ← Iso.comp_inv_eq] at h1' h2'
+    subst h
+    rw [← h1', ← h2']
+    congr
+    convert hj A (down.obj B) (↑i + 1 + (-↑j - 1) + 1) (by omega) using 2
+    · congr
+      omega
+    · omega
+    · omega
+  | pred i hi =>
+    funext q r h
+    induction q generalizing A B r with
+    | zero =>
+    have h1' := h1.commSq1 (-i-1) 0 (downSES A) (shortExact_downSES A)
+      (shortExact_downSESTensorRight A B)
+    have h2' := h2.commSq1 (-i-1) 0 (downSES A) (shortExact_downSES A)
+      (shortExact_downSESTensorRight A B)
+    dsimp [-down_obj, add_zero, one_smul] at h1' h2'
+    rw [← δDownIsoTateTensorRight_hom, eq_comm, ← Iso.comp_inv_eq] at h1' h2'
+    subst h
+    rw [← h1', ← h2']
+    congr
+    convert congr($(hi (down.obj A) B) 0 (-↑i - 1 + 0 + 1) _) using 2
+    · congr; omega
+    all_goals omega
+    | succ j hj =>
+    have h1' := h1.commSq2 (-i-1) j (upSES B) (shortExact_upSES B)
+      (shortExact_upSESTensorLeft A _)
+    have h2' := h2.commSq2 (-i-1) j (upSES B) (shortExact_upSES B)
+      (shortExact_upSESTensorLeft A _)
+    dsimp [-up_obj, add_zero, one_smul] at h1' h2'
+    apply_fun (((-1) ^ (- i - 1 : ℤ).natAbs) • ·) at h1' h2'
+    rw [Linear.smul_comp, smul_smul, ← pow_add, ← two_nsmul, smul_eq_mul, pow_mul,
+      neg_one_pow_two, one_pow, one_smul, ← δUpIsoTate_hom] at h1' h2'
+    change _ = ((tateCohomology (-↑i - 1)).obj A ◁ᵢ δUpIsoTate B j).hom ≫ _ at h1' h2'
+    rw [← Iso.inv_comp_eq] at h1' h2'
+    rw [← add_assoc] at h
+    subst h
+    rw [← h1', ← h2', hj]
+    | pred j hj =>
+    have h1' := h1.commSq2 (-i-1) (-j-1) (downSES B) (shortExact_downSES B)
+      (shortExact_downSESTensorLeft B A)
+    have h2' := h2.commSq2 (-i-1) (-j-1) (downSES B) (shortExact_downSES B)
+      (shortExact_downSESTensorLeft B A)
+    dsimp [-down_obj, add_zero, one_smul] at h1' h2'
+    rw [← δDownIsoTateTensorLeft_hom, eq_comm, ← Iso.comp_inv_eq] at h1' h2'
+    subst h
+    rw [← h1', ← h2']
+    congr
+    convert hj A (down.obj B) (-↑i - 1 + (-↑j - 1) + 1) (by omega) using 2
+    · congr; omega
+    all_goals omega
 
 -- TODO : change `TateCohomology.map` to use `(i j : ℤ) (h : i + 1 = j)` instead of `i` and `i + 1`
 open groupCohomology.TateCohomology in

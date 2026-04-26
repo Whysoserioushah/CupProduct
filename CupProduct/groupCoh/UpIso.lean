@@ -1,7 +1,6 @@
 import CupProduct.Cohomology.AugmentationModule
 import CupProduct.Cohomology.Functors.UpDown
-import Mathlib
-import CupProduct.Mathlib.Algebra.Homology.ShortComplex.Rep
+import Mathlib.RingTheory.Flat.CategoryTheory
 
 open CategoryTheory Rep.leftRegular MonoidalCategory
 
@@ -371,8 +370,16 @@ lemma shortExact_upSESTensorLeft [Fintype G] (A B : Rep R G) :
 instance [Fintype G] (A B : Rep R G) : TrivialTateCohomology ((upSES B).map (tensorRight A)).X₂ :=
   TrivialTateCohomology.of_iso (coindTensor B A : _ ≅ coind₁'.obj (B ⊗ A))
 
-instance [Fintype G] (A B : Rep R G) {n : ℤ} : IsIso (groupCohomology.TateCohomology.δ
+instance [Fintype G] (A B : Rep R G) : TrivialTateCohomology ((upSES B).map (tensorLeft A)).X₂ :=
+  TrivialTateCohomology.of_iso (coindTensor' A B : _ ≅ coind₁'.obj (A ⊗ B))
+
+instance isIso_δ_upTensorRight [Fintype G] (A B : Rep R G) {n : ℤ} : IsIso (groupCohomology.TateCohomology.δ
     (shortExact_upSESTensorRight A B) n) :=
+  ShortComplex.ShortExact.isIso_δ _ _ _ _
+    isZero_of_trivialTateCohomology isZero_of_trivialTateCohomology
+
+instance isIso_δ_upTensorLeft [Fintype G] (A B : Rep R G) {n : ℤ} : IsIso (groupCohomology.TateCohomology.δ
+    (shortExact_upSESTensorLeft A B) n) :=
   ShortComplex.ShortExact.isIso_δ _ _ _ _
     isZero_of_trivialTateCohomology isZero_of_trivialTateCohomology
 
@@ -381,7 +388,14 @@ def δUpIsoTateTensorRight [Fintype G] (A B : Rep R G) {n : ℤ} :
     (groupCohomology.tateCohomology n).obj ((up.{u, u}.obj B) ⊗ A) ≅
     (groupCohomology.tateCohomology (n + 1)).obj (B ⊗ A) :=
   @asIso _ _ _ _ (groupCohomology.TateCohomology.δ
-    (shortExact_upSESTensorRight A B) n) <| instIsIsoModuleCatδ A B (n := n)
+    (shortExact_upSESTensorRight A B) n) <| isIso_δ_upTensorRight A B
+
+@[simps! hom]
+def δUpIsoTateTensorLeft [Fintype G] (A B : Rep R G) {n : ℤ} :
+    (groupCohomology.tateCohomology n).obj (A ⊗ (up.{u, u}.obj B)) ≅
+    (groupCohomology.tateCohomology (n + 1)).obj (A ⊗ B) :=
+  @asIso _ _ _ _ (groupCohomology.TateCohomology.δ
+    (shortExact_upSESTensorLeft A B) n) <| isIso_δ_upTensorLeft A B
 
 instance up_preservesEpi : (up (R := R) (G := G)).PreservesEpimorphisms where
   preserves f hf :=
