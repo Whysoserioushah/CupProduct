@@ -56,17 +56,23 @@ private abbrev blah :
   left_inv _ := rfl
   right_inv _ := rfl
 
-abbrev deg0Iso : (HomologicalComplex.sc (groupCohomology.tateComplex A) 0).X₃ ≅
+abbrev deg0IsoX₂ : (HomologicalComplex.sc (groupCohomology.tateComplex A) 0).X₂ ≅
+    (HomologicalComplex.sc (groupCohomology.inhomogeneousCochains A) 0).X₂ :=
+  ShortComplex.π₂.mapIso ((groupCohomology.tateComplex A).isoSc' (-1) 0 1 (by simp) (by simp)) ≪≫
+  ShortComplex.π₂.mapIso
+    ((groupCohomology.inhomogeneousCochains A).isoSc' 0 0 1 (by simp) (by simp)).symm
+
+abbrev deg0IsoX₃ : (HomologicalComplex.sc (groupCohomology.tateComplex A) 0).X₃ ≅
     (HomologicalComplex.sc (groupCohomology.inhomogeneousCochains A) 0).X₃ :=
   ShortComplex.π₃.mapIso
-    ((groupCohomology.tateComplex A).isoSc'  (-1) 0 1 (by simp) (by simp)) ≪≫
+    ((groupCohomology.tateComplex A).isoSc' (-1) 0 1 (by simp) (by simp)) ≪≫
   ShortComplex.π₃.mapIso
     ((groupCohomology.inhomogeneousCochains A).isoSc' 0 0 1 (by simp) (by simp)).symm
 
 abbrev cocyclesIso₀ : cocycles A 0 ≅ ModuleCat.of R A.ρ.invariants :=
   ((groupCohomology.tateComplex A).sc 0).moduleCatCyclesIso ≪≫
   -- (blah A).toModuleIso
-  (ModuleCat.kernelIsoKer _).symm ≪≫ Limits.kernel.mapIso _ _ (Iso.refl _) (deg0Iso A)
+  (ModuleCat.kernelIsoKer _).symm ≪≫ Limits.kernel.mapIso _ _ (deg0IsoX₂ A) (deg0IsoX₃ A)
     (by sorry) ≪≫ ModuleCat.kernelIsoKer _
   ≪≫ ((groupCohomology.inhomogeneousCochains A).sc 0).moduleCatCyclesIso.symm
   ≪≫ groupCohomology.cocyclesIso₀ A
