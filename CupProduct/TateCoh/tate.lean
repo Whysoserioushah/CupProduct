@@ -57,13 +57,11 @@ private abbrev blah :
   right_inv _ := rfl
 
 abbrev deg0Iso : (HomologicalComplex.sc (groupCohomology.tateComplex A) 0).X₃ ≅
-    (HomologicalComplex.sc (groupCohomology.inhomogeneousCochains A) 0).X₃ := by
-  dsimp
-  simp only [CochainComplex.next, zero_add]
-  rw [← Nat.cast_one, CochainComplex.ConnectData.X_ofNat]
-  rw [ComplexShape.next_eq' (ComplexShape.up ℕ) (rfl : 0 + 1 = 1)]
-  simp only [CochainComplex.of_x, Nat.reduceAdd]
-  exact Iso.refl _
+    (HomologicalComplex.sc (groupCohomology.inhomogeneousCochains A) 0).X₃ :=
+  ShortComplex.π₃.mapIso
+    ((groupCohomology.tateComplex A).isoSc'  (-1) 0 1 (by simp) (by simp)) ≪≫
+  ShortComplex.π₃.mapIso
+    ((groupCohomology.inhomogeneousCochains A).isoSc' 0 0 1 (by simp) (by simp)).symm
 
 abbrev cocyclesIso₀ : cocycles A 0 ≅ ModuleCat.of R A.ρ.invariants :=
   ((groupCohomology.tateComplex A).sc 0).moduleCatCyclesIso ≪≫
