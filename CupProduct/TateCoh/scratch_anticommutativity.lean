@@ -372,7 +372,7 @@ lemma anticommutativity (S : ShortComplex <| ShortComplex (Rep R G)) (hS : S.Sho
       exact hFrow_τ₁
     comm₂₃ := by
       show S.X₂.g ≫ S.g.τ₃ = φ ≫ 𝟙 _
-      rw [Category.comp_id]; rfl
+      rw [Category.comp_id]
   }
   -- G_col1 : SA' ⟶ S.X₁  (first column of S).
   -- τ₁ = 𝟙, τ₂ = coprod.desc 𝟙 0, τ₃ = Frow_τ₁.
@@ -391,29 +391,27 @@ lemma anticommutativity (S : ShortComplex <| ShortComplex (Rep R G)) (hS : S.Sho
       apply (cancel_mono S.f.τ₃).1
       rw [Category.assoc, Category.assoc, hFrow_τ₁]
       apply coprod.hom_ext
-      · -- coprod.inl side: lhs = S.X₁.g ≫ S.f.τ₃; rhs = S.f.τ₂ ≫ S.X₂.g = S.X₁.g ≫ S.f.τ₃
-        rw [← Category.assoc (coprod.inl) _ S.f.τ₃,
-          ← Category.assoc (coprod.inl) _ S.X₂.g]
-        rw [← Category.assoc (coprod.inl) _ S.X₂.g]
-        show ((coprod.inl ≫ coprod.desc (𝟙 _) 0) ≫ S.X₁.g) ≫ S.f.τ₃ =
-          ((coprod.inl ≫ j) ≫ kernel.ι φ) ≫ S.X₂.g
-        rw [coprod.inl_desc, Category.id_comp]
-        rw [show ((coprod.inl ≫ j) ≫ kernel.ι φ) ≫ S.X₂.g =
-          (coprod.inl ≫ j ≫ kernel.ι φ) ≫ S.X₂.g by rw [Category.assoc]]
-        rw [hj₁]
+      · -- coprod.inl side
+        have e1 : coprod.inl ≫ coprod.desc (𝟙 _) 0 ≫ S.X₁.g ≫ S.f.τ₃
+            = S.X₁.g ≫ S.f.τ₃ := by
+          rw [← Category.assoc, coprod.inl_desc, Category.id_comp]
+        have e2 : coprod.inl ≫ j ≫ kernel.ι φ ≫ S.X₂.g
+            = S.f.τ₂ ≫ S.X₂.g := by
+          rw [show coprod.inl ≫ j ≫ kernel.ι φ ≫ S.X₂.g =
+            (coprod.inl ≫ j ≫ kernel.ι φ) ≫ S.X₂.g from by simp [Category.assoc]]
+          rw [hj₁]
+        rw [e1, e2]
         exact S.f.comm₂₃
-      · -- coprod.inr side: lhs = 0; rhs = -S.X₂.f ≫ S.X₂.g = 0
-        rw [← Category.assoc (coprod.inr) _ S.f.τ₃,
-          ← Category.assoc (coprod.inr) _ S.X₂.g]
-        rw [← Category.assoc (coprod.inr) _ S.X₂.g]
-        show ((coprod.inr ≫ coprod.desc (𝟙 _) 0) ≫ S.X₁.g) ≫ S.f.τ₃ =
-          ((coprod.inr ≫ j) ≫ kernel.ι φ) ≫ S.X₂.g
-        rw [coprod.inr_desc, Limits.zero_comp, Limits.zero_comp]
-        rw [show ((coprod.inr ≫ j) ≫ kernel.ι φ) ≫ S.X₂.g =
-          (coprod.inr ≫ j ≫ kernel.ι φ) ≫ S.X₂.g by rw [Category.assoc]]
-        rw [hj₂, Preadditive.neg_comp]
-        have hX₂zero : S.X₂.f ≫ S.X₂.g = 0 := S.X₂.zero
-        rw [hX₂zero, neg_zero]
+      · -- coprod.inr side
+        have e1 : coprod.inr ≫ coprod.desc (𝟙 _) 0 ≫ S.X₁.g ≫ S.f.τ₃ = 0 := by
+          rw [← Category.assoc, coprod.inr_desc, Limits.zero_comp]
+        have e2 : coprod.inr ≫ j ≫ kernel.ι φ ≫ S.X₂.g = 0 := by
+          rw [show coprod.inr ≫ j ≫ kernel.ι φ ≫ S.X₂.g =
+            (coprod.inr ≫ j ≫ kernel.ι φ) ≫ S.X₂.g from by simp [Category.assoc]]
+          rw [hj₂, Preadditive.neg_comp]
+          have hX₂zero : S.X₂.f ≫ S.X₂.g = 0 := S.X₂.zero
+          rw [hX₂zero, neg_zero]
+        rw [e1, e2]
   }
   -- G_row1 : SA' ⟶ S.transpose.X₁  (first row of S).
   -- τ₁ = 𝟙, τ₂ = coprod.desc 0 𝟙, τ₃ = -Fcol_τ₁  (sign from -S.X₂.f in j).
