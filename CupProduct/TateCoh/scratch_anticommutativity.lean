@@ -432,31 +432,38 @@ lemma anticommutativity (S : ShortComplex <| ShortComplex (Rep R G)) (hS : S.Sho
       · -- coprod.inl side: LHS = 0, want to show RHS = 0 (via mono S.X₃.f).
         have hfg : S.f.τ₂ ≫ S.g.τ₂ = 0 :=
           show (S.f ≫ S.g).τ₂ = 0 by rw [S.zero]; rfl
+        have hjFcol_inl : (coprod.inl ≫ j ≫ (-Fcol_τ₁)) ≫ S.X₃.f = 0 := by
+          have step1 : (coprod.inl ≫ j ≫ (-Fcol_τ₁)) ≫ S.X₃.f
+              = -((coprod.inl ≫ j ≫ kernel.ι φ) ≫ S.g.τ₂) := by
+            have h_neg : (-Fcol_τ₁) ≫ S.X₃.f = -(kernel.ι φ ≫ S.g.τ₂) := by
+              rw [Preadditive.neg_comp, hFcol_τ₁]
+            calc (coprod.inl ≫ j ≫ (-Fcol_τ₁)) ≫ S.X₃.f
+                = coprod.inl ≫ j ≫ ((-Fcol_τ₁) ≫ S.X₃.f) := by simp [Category.assoc]
+              _ = coprod.inl ≫ j ≫ (-(kernel.ι φ ≫ S.g.τ₂)) := by rw [h_neg]
+              _ = -((coprod.inl ≫ j ≫ kernel.ι φ) ≫ S.g.τ₂) := by
+                  simp [Preadditive.comp_neg, Category.assoc]
+          rw [step1, hj₁, hfg, neg_zero]
         have key : coprod.inl ≫ j ≫ (-Fcol_τ₁) = 0 := by
           apply (cancel_mono S.X₃.f).1
-          rw [Limits.zero_comp]
-          calc (coprod.inl ≫ j ≫ (-Fcol_τ₁)) ≫ S.X₃.f
-              = coprod.inl ≫ j ≫ ((-Fcol_τ₁) ≫ S.X₃.f) := by simp [Category.assoc]
-            _ = coprod.inl ≫ j ≫ -(Fcol_τ₁ ≫ S.X₃.f) := by rw [Preadditive.neg_comp]
-            _ = coprod.inl ≫ j ≫ -(kernel.ι φ ≫ S.g.τ₂) := by rw [hFcol_τ₁]
-            _ = -((coprod.inl ≫ j ≫ kernel.ι φ) ≫ S.g.τ₂) := by
-                simp [Preadditive.comp_neg, Category.assoc]
-            _ = -(S.f.τ₂ ≫ S.g.τ₂) := by rw [hj₁]
-            _ = 0 := by rw [hfg, neg_zero]
+          rw [Limits.zero_comp]; exact hjFcol_inl
         rw [← Category.assoc, coprod.inl_desc, Limits.zero_comp, key]
       · -- coprod.inr side: LHS = S.g.τ₁; want this = -(coprod.inr ≫ j ≫ Fcol_τ₁) via mono.
         rw [← Category.assoc, coprod.inr_desc, Category.id_comp]
+        have hjFcol_inr : (coprod.inr ≫ j ≫ (-Fcol_τ₁)) ≫ S.X₃.f = S.g.τ₁ ≫ S.X₃.f := by
+          have step1 : (coprod.inr ≫ j ≫ (-Fcol_τ₁)) ≫ S.X₃.f
+              = -((coprod.inr ≫ j ≫ kernel.ι φ) ≫ S.g.τ₂) := by
+            have h_neg : (-Fcol_τ₁) ≫ S.X₃.f = -(kernel.ι φ ≫ S.g.τ₂) := by
+              rw [Preadditive.neg_comp, hFcol_τ₁]
+            calc (coprod.inr ≫ j ≫ (-Fcol_τ₁)) ≫ S.X₃.f
+                = coprod.inr ≫ j ≫ ((-Fcol_τ₁) ≫ S.X₃.f) := by simp [Category.assoc]
+              _ = coprod.inr ≫ j ≫ (-(kernel.ι φ ≫ S.g.τ₂)) := by rw [h_neg]
+              _ = -((coprod.inr ≫ j ≫ kernel.ι φ) ≫ S.g.τ₂) := by
+                  simp [Preadditive.comp_neg, Category.assoc]
+          rw [step1, hj₂, Preadditive.neg_comp, neg_neg]
+          exact S.g.comm₁₂.symm
         have key : coprod.inr ≫ j ≫ (-Fcol_τ₁) = S.g.τ₁ := by
           apply (cancel_mono S.X₃.f).1
-          calc (coprod.inr ≫ j ≫ (-Fcol_τ₁)) ≫ S.X₃.f
-              = coprod.inr ≫ j ≫ ((-Fcol_τ₁) ≫ S.X₃.f) := by simp [Category.assoc]
-            _ = coprod.inr ≫ j ≫ -(Fcol_τ₁ ≫ S.X₃.f) := by rw [Preadditive.neg_comp]
-            _ = coprod.inr ≫ j ≫ -(kernel.ι φ ≫ S.g.τ₂) := by rw [hFcol_τ₁]
-            _ = -((coprod.inr ≫ j ≫ kernel.ι φ) ≫ S.g.τ₂) := by
-                simp [Preadditive.comp_neg, Category.assoc]
-            _ = -((-S.X₂.f) ≫ S.g.τ₂) := by rw [hj₂]
-            _ = S.X₂.f ≫ S.g.τ₂ := by rw [Preadditive.neg_comp, neg_neg]
-            _ = S.g.τ₁ ≫ S.X₃.f := S.g.comm₁₂.symm
+          exact hjFcol_inr
         exact key.symm
   }
   -- Step 8: assemble via δ_naturality.
