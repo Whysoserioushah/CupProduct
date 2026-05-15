@@ -197,33 +197,29 @@ lemma anticommutativity (S : ShortComplex <| ShortComplex (Rep R G)) (hS : S.Sho
     obtain ⟨A₃, π₃, hπ₃, b'', hb''⟩ :=
       exact_col2.exact_up_to_refinements (π₂ ≫ π₁ ≫ b - a ≫ S.f.τ₂) hb'_g
     -- hb'' : π₃ ≫ (π₂ ≫ π₁ ≫ b - a ≫ S.f.τ₂) = b'' ≫ S.X₂.f
-    -- Step 6: the preimage. We use j of (a, -b'') ∈ S.X₁.X₂ ⨿ S.X₂.X₁.
+    -- Step 6: the preimage. We use j of (π₃ ≫ a, -b'') ∈ S.X₁.X₂ ⨿ S.X₂.X₁.
     refine ⟨A₃, π₃ ≫ π₂ ≫ π₁, epi_comp _ _,
-        a ≫ (coprod.inl : S.X₁.X₂ ⟶ S.X₁.X₂ ⨿ S.X₂.X₁) -
+        (π₃ ≫ a) ≫ (coprod.inl : S.X₁.X₂ ⟶ S.X₁.X₂ ⨿ S.X₂.X₁) -
           b'' ≫ (coprod.inr : S.X₂.X₁ ⟶ S.X₁.X₂ ⨿ S.X₂.X₁), ?_⟩
-    -- Need: (π₃ ≫ π₂ ≫ π₁) ≫ d = (...) ≫ j  in the morphism category to D.
     apply (cancel_mono (kernel.ι φ)).1
-    -- Compute RHS via hj₁, hj₂:
     have rhs_eq :
-        (a ≫ (coprod.inl : S.X₁.X₂ ⟶ S.X₁.X₂ ⨿ S.X₂.X₁) -
+        ((π₃ ≫ a) ≫ (coprod.inl : S.X₁.X₂ ⟶ S.X₁.X₂ ⨿ S.X₂.X₁) -
           b'' ≫ (coprod.inr : S.X₂.X₁ ⟶ S.X₁.X₂ ⨿ S.X₂.X₁)) ≫ j ≫ kernel.ι φ
-          = a ≫ S.f.τ₂ + b'' ≫ S.X₂.f := by
+          = (π₃ ≫ a) ≫ S.f.τ₂ + b'' ≫ S.X₂.f := by
       rw [Preadditive.sub_comp, Category.assoc, Category.assoc, hj₁, hj₂]
       rw [Preadditive.comp_neg, sub_neg_eq_add]
-    -- Compute LHS:
     have lhs_eq : (π₃ ≫ π₂ ≫ π₁) ≫ d ≫ kernel.ι φ
         = π₃ ≫ π₂ ≫ π₁ ≫ b := by
       simp [b, Category.assoc]
-    -- From hb'': π₃ ≫ (π₂ ≫ π₁ ≫ b - a ≫ S.f.τ₂) = b'' ≫ S.X₂.f.
-    -- That is: π₃ ≫ π₂ ≫ π₁ ≫ b - π₃ ≫ a ≫ S.f.τ₂ = b'' ≫ S.X₂.f.
-    -- So π₃ ≫ π₂ ≫ π₁ ≫ b = b'' ≫ S.X₂.f + π₃ ≫ a ≫ S.f.τ₂.
-    have hb''_eq : π₃ ≫ π₂ ≫ π₁ ≫ b = π₃ ≫ a ≫ S.f.τ₂ + b'' ≫ S.X₂.f := by
+    -- hb'': π₃ ≫ (π₂ ≫ π₁ ≫ b - a ≫ S.f.τ₂) = b'' ≫ S.X₂.f
+    -- ⟹ π₃ ≫ π₂ ≫ π₁ ≫ b = π₃ ≫ a ≫ S.f.τ₂ + b'' ≫ S.X₂.f
+    have hb''_eq : π₃ ≫ π₂ ≫ π₁ ≫ b = (π₃ ≫ a) ≫ S.f.τ₂ + b'' ≫ S.X₂.f := by
       have h1 : π₃ ≫ (π₂ ≫ π₁ ≫ b - a ≫ S.f.τ₂) = b'' ≫ S.X₂.f := hb''
       rw [Preadditive.comp_sub] at h1
-      have : π₃ ≫ π₂ ≫ π₁ ≫ b = b'' ≫ S.X₂.f + π₃ ≫ a ≫ S.f.τ₂ := by
+      have h2 : π₃ ≫ π₂ ≫ π₁ ≫ b = b'' ≫ S.X₂.f + π₃ ≫ a ≫ S.f.τ₂ := by
         rw [← h1]; abel
-      rw [this, add_comm]
-    rw [lhs_eq, rhs_eq, hb''_eq, Category.assoc]
+      rw [h2, add_comm, Category.assoc]
+    rw [lhs_eq, rhs_eq, hb''_eq]
   -- (1b) SA'.Exact: exactness at the middle term.
   have exact_SA' : SA'.Exact := by sorry
   -- (1c) Assemble the short exact sequence.
