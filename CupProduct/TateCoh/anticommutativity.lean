@@ -6,6 +6,7 @@ variable {R : Type u} [CommRing R] {G : Type u} [Group G] [Fintype G]
 variable {C : Type*} [Category* C] [HasZeroMorphisms C] [HasFiniteLimits C] [HasFiniteColimits C]
   [HasImages C] [HasKernels C]
 
+/-- Transpose a short complex of short complexes by swapping rows and columns. -/
 abbrev CategoryTheory.ShortComplex.transpose (S : ShortComplex <| ShortComplex C) :
     ShortComplex (ShortComplex C) where
       X₁ := {
@@ -81,6 +82,7 @@ lemma ttses {S : ShortComplex (ShortComplex C)} (hS : S.ShortExact) :
     S.transpose.transpose.ShortExact := by
   simpa
 
+/-- The two composite connecting homomorphisms through the bicomplex differ by a sign. -/
 lemma anticommutativity (S : ShortComplex <| ShortComplex (Rep R G)) (hS : S.ShortExact)
     (hS' : S.transpose.ShortExact) (n : ℤ) :
     δ (ses₃ hS') n ≫ δ (ses₁ (ttses hS)) (n + 1) = - δ (ses₃ (ttses hS)) n ≫ δ (ses₁ hS') (n + 1)
@@ -501,11 +503,11 @@ lemma anticommutativity (S : ShortComplex <| ShortComplex (Rep R G)) (hS : S.Sho
   -- Wait, Grow goes to row1 with row1.X₃ = S.X₃.X₁, and Fcol goes to col3 with col3.X₁ = S.X₃.X₁.
   -- So Grow.τ₃ : D → S.X₃.X₁ and Fcol.τ₁ : D → S.X₃.X₁, types match.
   have inst_add : (tateCohomology (R := R) (G := G) (n + 1)).Additive := by
-    show (tateComplexFunctor ⋙ HomologicalComplex.homologyFunctor _ _ (n + 1)).Additive
+    change (tateComplexFunctor ⋙ HomologicalComplex.homologyFunctor _ _ (n + 1)).Additive
     infer_instance
   have hGrow_τ₃_eq : (tateCohomology (n + 1)).map Grow.τ₃
       = -(tateCohomology (n + 1)).map Fcol.τ₁ := by
-    show (tateCohomology (n + 1)).map (-Fcol_τ₁) = -(tateCohomology (n + 1)).map Fcol_τ₁
+    change (tateCohomology (n + 1)).map (-Fcol_τ₁) = -(tateCohomology (n + 1)).map Fcol_τ₁
     exact Functor.map_neg _
   -- Plug hGcol_τ₁_id into hδGcol.
   have hδGcol' : δ hSA' (n + 1)
