@@ -493,10 +493,13 @@ lemma anticommutativity (S : ShortComplex <| ShortComplex (Rep R G)) (hS : S.Sho
   -- Grow.τ₃ = -Fcol_τ₁ = -Frow_τ₁? No, Grow.τ₃ = -Fcol_τ₁ (different from Frow_τ₁).
   -- Wait, Grow goes to row1 with row1.X₃ = S.X₃.X₁, and Fcol goes to col3 with col3.X₁ = S.X₃.X₁.
   -- So Grow.τ₃ : D → S.X₃.X₁ and Fcol.τ₁ : D → S.X₃.X₁, types match.
+  have inst_add : (tateCohomology (n + 1)).Additive := by
+    unfold tateCohomology
+    infer_instance
   have hGrow_τ₃_eq : (tateCohomology (n + 1)).map Grow.τ₃
       = -(tateCohomology (n + 1)).map Fcol.τ₁ := by
     show (tateCohomology (n + 1)).map (-Fcol_τ₁) = -(tateCohomology (n + 1)).map Fcol_τ₁
-    exact Functor.map_neg _
+    exact Functor.map_neg _ _
   -- Plug hGcol_τ₁_id into hδGcol.
   have hδGcol' : δ hSA' (n + 1)
       = (tateCohomology (n + 1)).map Gcol.τ₃ ≫ δ (ses₁ hS') (n + 1) := by
@@ -538,4 +541,4 @@ lemma anticommutativity (S : ShortComplex <| ShortComplex (Rep R G)) (hS : S.Sho
     -δ hSA' (n + 1) by rw [hδGrow'']; rw [neg_neg]]
   rw [show (tateCohomology (n + 1)).map Frow.τ₁ ≫ δ (ses₁ hS') (n + 1) =
     δ hSA' (n + 1) from hδGcol''.symm]
-  rw [Preadditive.comp_neg, Preadditive.neg_comp]
+  rw [Preadditive.comp_neg]
