@@ -176,7 +176,8 @@ lemma anticommutativity (S : ShortComplex <| ShortComplex (Rep R G)) (hS : S.Sho
     -- Step 1: b := d ≫ kernel.ι φ : A ⟶ S.X₂.X₂.
     -- We don't materialize b; instead carry d through.
     have hd_gτ₃ : (d ≫ kernel.ι φ) ≫ S.X₂.g ≫ S.g.τ₃ = 0 := by
-      rw [show S.X₂.g ≫ S.g.τ₃ = φ from rfl, ← Category.assoc, kernel.condition]
+      rw [show S.X₂.g ≫ S.g.τ₃ = φ from rfl, ← Category.assoc, ← Category.assoc,
+        kernel.condition, Limits.zero_comp]
     have hd_gτ₃' : (d ≫ kernel.ι φ ≫ S.X₂.g) ≫ S.g.τ₃ = 0 := by
       simpa [Category.assoc] using hd_gτ₃
     -- Step 2: b ≫ S.X₂.g goes through ker S.g.τ₃ = im S.f.τ₃.
@@ -235,7 +236,7 @@ lemma anticommutativity (S : ShortComplex <| ShortComplex (Rep R G)) (hS : S.Sho
       rw [h2, Category.assoc]
     have lhs_eq : ((π₃ ≫ π₂ ≫ π₁) ≫ d) ≫ kernel.ι φ
         = π₃ ≫ π₂ ≫ π₁ ≫ d ≫ kernel.ι φ := by simp [Category.assoc]
-    rw [lhs_eq, hb''_eq, rhs_eq]
+    rw [lhs_eq, hb''_eq, ← rhs_eq, Category.assoc]
   -- (1b) SA'.Exact: exactness at the middle term.
   have exact_SA' : SA'.Exact := by sorry
   -- (1c) Assemble the short exact sequence.
