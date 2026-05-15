@@ -250,17 +250,20 @@ lemma anticommutativity (S : ShortComplex <| ShortComplex (Rep R G)) (hS : S.Sho
     -- Decomposition: any morphism into a coproduct (= biproduct in additive)
     -- decomposes via projections.
     have hx_decomp : x = a ≫ coprod.inl + b' ≫ coprod.inr := by
-      have hr : a ≫ coprod.inl + b' ≫ coprod.inr =
-          x ≫ (coprod.desc (𝟙 _) 0 ≫ coprod.inl + coprod.desc 0 (𝟙 _) ≫ coprod.inr) := by
-        rw [Preadditive.comp_add]
-        simp [a, b', Category.assoc]
-      have : coprod.desc (𝟙 _) 0 ≫ (coprod.inl : S.X₁.X₂ ⟶ S.X₁.X₂ ⨿ S.X₂.X₁) +
-             coprod.desc 0 (𝟙 _) ≫ (coprod.inr : S.X₂.X₁ ⟶ S.X₁.X₂ ⨿ S.X₂.X₁)
-             = 𝟙 (S.X₁.X₂ ⨿ S.X₂.X₁) := by
+      have hid :
+          coprod.desc (𝟙 _) 0 ≫ (coprod.inl : S.X₁.X₂ ⟶ S.X₁.X₂ ⨿ S.X₂.X₁) +
+          coprod.desc 0 (𝟙 _) ≫ (coprod.inr : S.X₂.X₁ ⟶ S.X₁.X₂ ⨿ S.X₂.X₁)
+            = 𝟙 (S.X₁.X₂ ⨿ S.X₂.X₁) := by
         apply coprod.hom_ext
-        · simp [Preadditive.comp_add]
-        · simp [Preadditive.comp_add]
-      rw [hr, this, Category.comp_id]
+        · rw [Preadditive.comp_add, Category.comp_id]
+          rw [← Category.assoc, coprod.inl_desc, ← Category.assoc, coprod.inl_desc]
+          rw [Category.id_comp, Limits.zero_comp, add_zero]
+        · rw [Preadditive.comp_add, Category.comp_id]
+          rw [← Category.assoc, coprod.inr_desc, ← Category.assoc, coprod.inr_desc]
+          rw [Limits.zero_comp, Category.id_comp, zero_add]
+      have hxid : x = x ≫ 𝟙 _ := by rw [Category.comp_id]
+      rw [hxid, ← hid, Preadditive.comp_add]
+      simp [a, b', Category.assoc]
     -- From hx : x ≫ j = 0, computing x ≫ j ≫ kernel.ι φ via hj₁/hj₂:
     have hjx : a ≫ S.f.τ₂ - b' ≫ S.X₂.f = 0 := by
       have : x ≫ j ≫ kernel.ι φ = 0 := by rw [← Category.assoc, hx, Limits.zero_comp]
@@ -272,8 +275,9 @@ lemma anticommutativity (S : ShortComplex <| ShortComplex (Rep R G)) (hS : S.Sho
     have ha_g_τ₃ : (a ≫ S.X₁.g) ≫ S.f.τ₃ = 0 := by
       have e1 : a ≫ S.X₁.g ≫ S.f.τ₃ = a ≫ S.f.τ₂ ≫ S.X₂.g := by
         rw [← S.f.comm₂₃]
+      have hX₂zero : S.X₂.f ≫ S.X₂.g = 0 := S.X₂.zero
       have e2 : b' ≫ S.X₂.f ≫ S.X₂.g = 0 := by
-        rw [← Category.assoc, S.X₂.zero, Limits.zero_comp]
+        rw [hX₂zero, Limits.comp_zero]
       have h1 : a ≫ S.f.τ₂ = b' ≫ S.X₂.f := by linear_combination (norm := abel) hjx
       rw [Category.assoc, e1, ← Category.assoc, h1, Category.assoc, e2]
     have ha_g : a ≫ S.X₁.g = 0 := by
