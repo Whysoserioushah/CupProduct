@@ -342,7 +342,7 @@ lemma anticommutativity (S : ShortComplex <| ShortComplex (Rep R G)) (hS : S.Sho
   have hFcol_lift_zero : (kernel.ι φ ≫ S.g.τ₂) ≫ S.X₃.g = 0 := by
     have hcom : S.g.τ₂ ≫ S.X₃.g = S.X₂.g ≫ S.g.τ₃ := S.g.comm₂₃
     rw [Category.assoc, hcom]
-    show kernel.ι φ ≫ φ = 0
+    change kernel.ι φ ≫ φ = 0
     exact kernel.condition φ
   let Fcol_τ₁ : D ⟶ S.X₃.X₁ := exact_S_X₃.lift (kernel.ι φ ≫ S.g.τ₂) hFcol_lift_zero
   have hFcol_τ₁ : Fcol_τ₁ ≫ S.X₃.f = kernel.ι φ ≫ S.g.τ₂ := exact_S_X₃.lift_f _ _
@@ -351,10 +351,10 @@ lemma anticommutativity (S : ShortComplex <| ShortComplex (Rep R G)) (hS : S.Sho
     τ₂ := S.g.τ₂
     τ₃ := 𝟙 _
     comm₁₂ := by
-      show Fcol_τ₁ ≫ S.X₃.f = kernel.ι φ ≫ S.g.τ₂
+      change Fcol_τ₁ ≫ S.X₃.f = kernel.ι φ ≫ S.g.τ₂
       exact hFcol_τ₁
     comm₂₃ := by
-      show S.g.τ₂ ≫ S.X₃.g = φ ≫ 𝟙 _
+      change S.g.τ₂ ≫ S.X₃.g = φ ≫ 𝟙 _
       rw [Category.comp_id]
       exact S.g.comm₂₃
   }
@@ -364,7 +364,7 @@ lemma anticommutativity (S : ShortComplex <| ShortComplex (Rep R G)) (hS : S.Sho
   have mono_S_t_X₃f : Mono S.transpose.X₃.f := (ses₃ (ttses hS)).mono_f
   have hFrow_lift_zero : (kernel.ι φ ≫ S.X₂.g) ≫ S.g.τ₃ = 0 := by
     rw [Category.assoc]
-    show kernel.ι φ ≫ φ = 0
+    change kernel.ι φ ≫ φ = 0
     exact kernel.condition φ
   let Frow_τ₁ : D ⟶ S.X₁.X₃ :=
     exact_S_t_X₃.lift (kernel.ι φ ≫ S.X₂.g) hFrow_lift_zero
@@ -375,10 +375,10 @@ lemma anticommutativity (S : ShortComplex <| ShortComplex (Rep R G)) (hS : S.Sho
     τ₂ := S.X₂.g
     τ₃ := 𝟙 _
     comm₁₂ := by
-      show Frow_τ₁ ≫ S.f.τ₃ = kernel.ι φ ≫ S.X₂.g
+      change Frow_τ₁ ≫ S.f.τ₃ = kernel.ι φ ≫ S.X₂.g
       exact hFrow_τ₁
     comm₂₃ := by
-      show S.X₂.g ≫ S.g.τ₃ = φ ≫ 𝟙 _
+      change S.X₂.g ≫ S.g.τ₃ = φ ≫ 𝟙 _
       rw [Category.comp_id]
   }
   -- G_col1 : SA' ⟶ S.X₁  (first column of S).
@@ -388,13 +388,13 @@ lemma anticommutativity (S : ShortComplex <| ShortComplex (Rep R G)) (hS : S.Sho
     τ₂ := coprod.desc (𝟙 _) 0
     τ₃ := Frow_τ₁
     comm₁₂ := by
-      show 𝟙 _ ≫ S.X₁.f = i ≫ coprod.desc (𝟙 _) 0
+      change 𝟙 _ ≫ S.X₁.f = i ≫ coprod.desc (𝟙 _) 0
       rw [Category.id_comp]
-      show S.X₁.f = (S.X₁.f ≫ coprod.inl + S.f.τ₁ ≫ coprod.inr) ≫ coprod.desc (𝟙 _) 0
+      change S.X₁.f = (S.X₁.f ≫ coprod.inl + S.f.τ₁ ≫ coprod.inr) ≫ coprod.desc (𝟙 _) 0
       rw [Preadditive.add_comp, Category.assoc, Category.assoc, coprod.inl_desc,
         coprod.inr_desc, Category.comp_id, Limits.comp_zero, add_zero]
     comm₂₃ := by
-      show coprod.desc (𝟙 _) (0 : S.X₂.X₁ ⟶ S.X₁.X₂) ≫ S.X₁.g = j ≫ Frow_τ₁
+      change coprod.desc (𝟙 _) (0 : S.X₂.X₁ ⟶ S.X₁.X₂) ≫ S.X₁.g = j ≫ Frow_τ₁
       apply (cancel_mono S.f.τ₃).1
       rw [Category.assoc, Category.assoc, hFrow_τ₁]
       apply coprod.hom_ext
@@ -428,13 +428,13 @@ lemma anticommutativity (S : ShortComplex <| ShortComplex (Rep R G)) (hS : S.Sho
     τ₂ := coprod.desc 0 (𝟙 _)
     τ₃ := -Fcol_τ₁
     comm₁₂ := by
-      show (𝟙 _ : S.X₁.X₁ ⟶ _) ≫ S.f.τ₁ = i ≫ coprod.desc 0 (𝟙 _)
+      change (𝟙 _ : S.X₁.X₁ ⟶ _) ≫ S.f.τ₁ = i ≫ coprod.desc 0 (𝟙 _)
       rw [Category.id_comp]
-      show S.f.τ₁ = (S.X₁.f ≫ coprod.inl + S.f.τ₁ ≫ coprod.inr) ≫ coprod.desc 0 (𝟙 _)
+      change S.f.τ₁ = (S.X₁.f ≫ coprod.inl + S.f.τ₁ ≫ coprod.inr) ≫ coprod.desc 0 (𝟙 _)
       rw [Preadditive.add_comp, Category.assoc, Category.assoc, coprod.inl_desc,
         coprod.inr_desc, Category.comp_id, Limits.comp_zero, zero_add]
     comm₂₃ := by
-      show coprod.desc (0 : S.X₁.X₂ ⟶ S.X₂.X₁) (𝟙 _) ≫ S.g.τ₁ = j ≫ (-Fcol_τ₁)
+      change coprod.desc (0 : S.X₁.X₂ ⟶ S.X₂.X₁) (𝟙 _) ≫ S.g.τ₁ = j ≫ (-Fcol_τ₁)
       apply coprod.hom_ext
       · -- coprod.inl side: LHS = 0, want to show RHS = 0 (via mono S.X₃.f).
         have hfg : S.f.τ₂ ≫ S.g.τ₂ = 0 :=
