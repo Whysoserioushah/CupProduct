@@ -125,7 +125,7 @@ lemma anticommutativity (S : ShortComplex <| ShortComplex (Rep R G)) (hS : S.Sho
     apply (cancel_mono (kernel.ι φ)).1
     rw [Preadditive.comp_sub] at hb''
     simp only [Preadditive.sub_comp, Category.assoc, hj₁, hj₂, Preadditive.comp_neg, sub_neg_eq_add]
-    linear_combination (norm := (simp [Category.assoc]; abel)) hb''
+    linear_combination (norm := (simp; abel)) hb''
   -- (1b) SA'.Exact: exactness at the middle term.
   have exact_SA' : SA'.Exact := by
     rw [ShortComplex.exact_iff_exact_up_to_refinements]
