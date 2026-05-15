@@ -433,17 +433,18 @@ lemma anticommutativity (S : ShortComplex <| ShortComplex (Rep R G)) (hS : S.Sho
         have key : coprod.inl ≫ j ≫ (-Fcol_τ₁) = 0 := by
           apply (cancel_mono S.X₃.f).1
           rw [Limits.zero_comp]
-          -- (coprod.inl ≫ j ≫ -Fcol_τ₁) ≫ S.X₃.f
-          -- = coprod.inl ≫ j ≫ -Fcol_τ₁ ≫ S.X₃.f
-          -- = coprod.inl ≫ j ≫ -(Fcol_τ₁ ≫ S.X₃.f)
-          -- = coprod.inl ≫ j ≫ -(kernel.ι φ ≫ S.g.τ₂)
-          -- = -(coprod.inl ≫ j ≫ kernel.ι φ ≫ S.g.τ₂)
-          -- = -(S.f.τ₂ ≫ S.g.τ₂) = 0
           have h1 : (coprod.inl ≫ j ≫ (-Fcol_τ₁)) ≫ S.X₃.f
               = -((coprod.inl ≫ j ≫ kernel.ι φ) ≫ S.g.τ₂) := by
-            rw [Category.assoc, Category.assoc, Preadditive.neg_comp, ← Category.assoc Fcol_τ₁,
-              hFcol_τ₁, Preadditive.comp_neg, Preadditive.comp_neg, ← Category.assoc,
-              ← Category.assoc]
+            have eq1 : (coprod.inl ≫ j ≫ (-Fcol_τ₁)) ≫ S.X₃.f
+                = coprod.inl ≫ j ≫ ((-Fcol_τ₁) ≫ S.X₃.f) := by simp [Category.assoc]
+            have eq2 : (-Fcol_τ₁) ≫ S.X₃.f = -(Fcol_τ₁ ≫ S.X₃.f) := Preadditive.neg_comp _ _
+            have eq3 : Fcol_τ₁ ≫ S.X₃.f = kernel.ι φ ≫ S.g.τ₂ := hFcol_τ₁
+            rw [eq1, eq2, eq3]
+            rw [show coprod.inl ≫ j ≫ -(kernel.ι φ ≫ S.g.τ₂) =
+                  -(coprod.inl ≫ j ≫ kernel.ι φ ≫ S.g.τ₂) by
+              simp [Preadditive.comp_neg]]
+            congr 1
+            simp [Category.assoc]
           have hfg : S.f.τ₂ ≫ S.g.τ₂ = 0 :=
             show (S.f ≫ S.g).τ₂ = 0 by rw [S.zero]; rfl
           rw [h1, hj₁, hfg, neg_zero]
@@ -454,9 +455,16 @@ lemma anticommutativity (S : ShortComplex <| ShortComplex (Rep R G)) (hS : S.Sho
           apply (cancel_mono S.X₃.f).1
           have h1 : (coprod.inr ≫ j ≫ (-Fcol_τ₁)) ≫ S.X₃.f
               = -((coprod.inr ≫ j ≫ kernel.ι φ) ≫ S.g.τ₂) := by
-            rw [Category.assoc, Category.assoc, Preadditive.neg_comp, ← Category.assoc Fcol_τ₁,
-              hFcol_τ₁, Preadditive.comp_neg, Preadditive.comp_neg, ← Category.assoc,
-              ← Category.assoc]
+            have eq1 : (coprod.inr ≫ j ≫ (-Fcol_τ₁)) ≫ S.X₃.f
+                = coprod.inr ≫ j ≫ ((-Fcol_τ₁) ≫ S.X₃.f) := by simp [Category.assoc]
+            have eq2 : (-Fcol_τ₁) ≫ S.X₃.f = -(Fcol_τ₁ ≫ S.X₃.f) := Preadditive.neg_comp _ _
+            have eq3 : Fcol_τ₁ ≫ S.X₃.f = kernel.ι φ ≫ S.g.τ₂ := hFcol_τ₁
+            rw [eq1, eq2, eq3]
+            rw [show coprod.inr ≫ j ≫ -(kernel.ι φ ≫ S.g.τ₂) =
+                  -(coprod.inr ≫ j ≫ kernel.ι φ ≫ S.g.τ₂) by
+              simp [Preadditive.comp_neg]]
+            congr 1
+            simp [Category.assoc]
           rw [h1, hj₂, Preadditive.neg_comp, neg_neg]
           exact S.g.comm₁₂.symm
         exact key.symm
