@@ -130,13 +130,10 @@ lemma anticommutativity (S : ShortComplex <| ShortComplex (Rep R G)) (hS : S.Sho
       rw [Preadditive.add_comp, Category.assoc, Category.assoc, coprod.inl_desc,
         coprod.inr_desc, Category.comp_id, Limits.comp_zero, add_zero]
     exact mono_of_mono_fac hfac
-  have epi_j : Epi j := by
-    sorry
-  have exact_SA' : SA'.Exact := by
-    sorry
-  have hSA' : SA'.ShortExact := {
-    exact := exact_SA'
-    mono_f := mono_i
-    epi_g := epi_j
-  }
+  -- The remaining substance of the proof:
+  --   * `Epi j`        -- standard 3x3 lemma diagram chase using rows and columns exact
+  --   * `SA'.Exact`    -- standard 3x3 lemma diagram chase, identifying kernel(j) with image(i)
+  --   * The main anticommutativity: build two morphisms of short exact sequences
+  --     `SA' ⟶ S.X₃` (third row) and `SA' ⟶ S.X₁` (first row, with sign on the
+  --     τ₁ component), then apply naturality of δ twice and combine.
   sorry
