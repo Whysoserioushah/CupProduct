@@ -206,7 +206,7 @@ lemma anticommutativity (S : ShortComplex <| ShortComplex (Rep R G)) (hS : S.Sho
         · have hassoc : coprod.inr ≫ j ≫ kernel.ι φ ≫ S.X₂.g =
               (coprod.inr ≫ j ≫ kernel.ι φ) ≫ S.X₂.g := by simp [Category.assoc]
           rw [← Category.assoc, ← Category.assoc, coprod.inr_desc, Limits.zero_comp,
-            hassoc, hj₂, Preadditive.neg_comp, S.X₂.zero, neg_zero] }
+            Limits.zero_comp, hassoc, hj₂, Preadditive.neg_comp, S.X₂.zero, neg_zero] }
   let Grow : SA' ⟶ S.transpose.X₁ :=
     { τ₁ := 𝟙 _, τ₂ := coprod.desc 0 (𝟙 _), τ₃ := -Fcol_τ₁
       comm₁₂ := by
@@ -215,7 +215,7 @@ lemma anticommutativity (S : ShortComplex <| ShortComplex (Rep R G)) (hS : S.Sho
         rw [Category.id_comp, Preadditive.add_comp, Category.assoc, Category.assoc,
           coprod.inl_desc, coprod.inr_desc, Category.comp_id, Limits.comp_zero, zero_add]
       comm₂₃ := by
-        change coprod.desc (0 : S.X₁.X₂ ⟶ S.X₂.X₁) (𝟙 _) ≫ S.g.τ₁ = j ≫ -Fcol_τ₁
+        change coprod.desc (0 : S.X₁.X₂ ⟶ S.X₂.X₁) (𝟙 _) ≫ S.g.τ₁ = j ≫ (-Fcol_τ₁)
         apply coprod.hom_ext
         · apply (cancel_mono S.X₃.f).1
           have hassoc : coprod.inl ≫ j ≫ -(kernel.ι φ ≫ S.g.τ₂) =
