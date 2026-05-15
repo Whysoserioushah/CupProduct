@@ -313,10 +313,12 @@ lemma anticommutativity (S : ShortComplex <| ShortComplex (Rep R G)) (hS : S.Sho
     congr 1
     · rw [show a' ≫ S.X₁.f ≫ coprod.inl = (a' ≫ S.X₁.f) ≫ coprod.inl by
             rw [Category.assoc]]
-      rw [← ha', Category.assoc]
+      rw [← ha']
+      simp [Category.assoc]
     · rw [show a' ≫ S.f.τ₁ ≫ coprod.inr = (a' ≫ S.f.τ₁) ≫ coprod.inr by
             rw [Category.assoc]]
-      rw [ha'_f_τ₁, Category.assoc]
+      rw [ha'_f_τ₁]
+      simp [Category.assoc]
   -- (1c) Assemble the short exact sequence.
   have hSA' : SA'.ShortExact :=
     { exact := exact_SA', mono_f := mono_i, epi_g := epi_j }
