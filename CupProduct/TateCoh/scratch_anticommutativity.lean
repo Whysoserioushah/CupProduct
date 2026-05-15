@@ -105,14 +105,15 @@ lemma anticommutativity (S : ShortComplex <| ShortComplex (Rep R G)) (hS : S.Sho
     (kernel.lift _ (- S.X₂.f) (by
       change (-S.X₂.f) ≫ S.X₂.g ≫ S.g.τ₃ = 0
       rw [Preadditive.neg_comp, ← Category.assoc, S.X₂.zero, Limits.zero_comp, neg_zero]))
+  have hj₁ : coprod.inl ≫ j ≫ kernel.ι φ = S.f.τ₂ := by
+    rw [← Category.assoc, coprod.inl_desc, kernel.lift_ι]
+  have hj₂ : coprod.inr ≫ j ≫ kernel.ι φ = -S.X₂.f := by
+    rw [← Category.assoc, coprod.inr_desc, kernel.lift_ι]
   have hij : i ≫ j = 0 := by
     apply (cancel_mono (kernel.ι φ)).1
-    show ((S.X₁.f ≫ coprod.inl + S.f.τ₁ ≫ coprod.inr) ≫ j) ≫ kernel.ι φ = 0 ≫ kernel.ι φ
-    rw [Preadditive.add_comp, Limits.zero_comp, Preadditive.add_comp,
-      Category.assoc, Category.assoc,
-      show coprod.inl ≫ j = kernel.lift _ S.f.τ₂ _ from coprod.inl_desc _ _,
-      show coprod.inr ≫ j = kernel.lift _ (-S.X₂.f) _ from coprod.inr_desc _ _,
-      kernel.lift_ι, kernel.lift_ι, Preadditive.comp_neg, ← S.f.comm₁₂]
+    change ((S.X₁.f ≫ coprod.inl + S.f.τ₁ ≫ coprod.inr) ≫ j) ≫ kernel.ι φ = 0 ≫ kernel.ι φ
+    simp only [Preadditive.add_comp, Limits.zero_comp, Category.assoc, hj₁, hj₂]
+    rw [Preadditive.comp_neg, ← S.f.comm₁₂]
     abel
   let SA' : ShortComplex (Rep.{u} R G) := {
     X₁ := S.X₁.X₁
