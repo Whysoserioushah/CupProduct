@@ -427,12 +427,15 @@ lemma anticommutativity (S : ShortComplex <| ShortComplex (Rep R G)) (hS : S.Sho
       rw [Preadditive.add_comp, Category.assoc, Category.assoc, coprod.inl_desc,
         coprod.inr_desc, Category.comp_id, Limits.comp_zero, zero_add]
     comm₂₃ := by
-      show coprod.desc 0 (𝟙 _) ≫ S.g.τ₁ = j ≫ (-Fcol_τ₁)
+      show coprod.desc (0 : S.X₁.X₂ ⟶ S.X₂.X₁) (𝟙 _) ≫ S.g.τ₁ = j ≫ (-Fcol_τ₁)
       apply (cancel_mono S.X₃.f).1
-      rw [Preadditive.comp_neg, Category.assoc, Category.assoc, hFcol_τ₁]
+      -- Goal: (coprod.desc 0 𝟙 ≫ S.g.τ₁) ≫ S.X₃.f = (j ≫ -Fcol_τ₁) ≫ S.X₃.f.
+      rw [Category.assoc, Category.assoc, Preadditive.comp_neg, hFcol_τ₁]
+      -- Goal: coprod.desc 0 𝟙 ≫ S.g.τ₁ ≫ S.X₃.f = -(j ≫ kernel.ι φ ≫ S.g.τ₂).
       apply coprod.hom_ext
       · -- coprod.inl side
-        have e1 : coprod.inl ≫ coprod.desc 0 (𝟙 _) ≫ S.g.τ₁ ≫ S.X₃.f = 0 := by
+        have e1 : coprod.inl ≫ coprod.desc (0 : S.X₁.X₂ ⟶ S.X₂.X₁) (𝟙 _)
+              ≫ S.g.τ₁ ≫ S.X₃.f = 0 := by
           rw [← Category.assoc, coprod.inl_desc, Limits.zero_comp]
         have e2 : coprod.inl ≫ -(j ≫ kernel.ι φ ≫ S.g.τ₂) = 0 := by
           rw [Preadditive.comp_neg]
@@ -444,8 +447,8 @@ lemma anticommutativity (S : ShortComplex <| ShortComplex (Rep R G)) (hS : S.Sho
           rw [hfg, neg_zero]
         rw [e1, e2]
       · -- coprod.inr side
-        have e1 : coprod.inr ≫ coprod.desc 0 (𝟙 _) ≫ S.g.τ₁ ≫ S.X₃.f
-            = S.g.τ₁ ≫ S.X₃.f := by
+        have e1 : coprod.inr ≫ coprod.desc (0 : S.X₁.X₂ ⟶ S.X₂.X₁) (𝟙 _)
+              ≫ S.g.τ₁ ≫ S.X₃.f = S.g.τ₁ ≫ S.X₃.f := by
           rw [← Category.assoc, coprod.inr_desc, Category.id_comp]
         have e2 : coprod.inr ≫ -(j ≫ kernel.ι φ ≫ S.g.τ₂)
             = S.g.τ₁ ≫ S.X₃.f := by
