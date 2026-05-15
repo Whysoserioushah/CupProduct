@@ -238,7 +238,64 @@ lemma anticommutativity (S : ShortComplex <| ShortComplex (Rep R G)) (hS : S.Sho
     rw [lhs_eq, hb''_eq, ← rhs_eq]
     simp [Category.assoc]
   -- (1b) SA'.Exact: exactness at the middle term.
-  have exact_SA' : SA'.Exact := by sorry
+  have exact_SA' : SA'.Exact := by
+    rw [ShortComplex.exact_iff_exact_up_to_refinements]
+    intro A x hx
+    -- x : A ⟶ S.X₁.X₂ ⨿ S.X₂.X₁ with x ≫ j = 0.
+    -- Split via biproduct: a := x ≫ coprod.desc (𝟙 _) 0 : A ⟶ S.X₁.X₂
+    --                      b' := x ≫ coprod.desc 0 (𝟙 _) : A ⟶ S.X₂.X₁
+    let a : A ⟶ S.X₁.X₂ := x ≫ coprod.desc (𝟙 _) 0
+    let b' : A ⟶ S.X₂.X₁ := x ≫ coprod.desc 0 (𝟙 _)
+    -- We have x = a ≫ coprod.inl + b' ≫ coprod.inr (preadditive coprod = biprod).
+    have hx_decomp : x = a ≫ coprod.inl + b' ≫ coprod.inr := by
+      apply coprod.hom_ext <;> simp [a, b', Preadditive.comp_add]
+    -- From hx : x ≫ j = 0, computing x ≫ j ≫ kernel.ι φ via hj₁/hj₂:
+    have hjx : a ≫ S.f.τ₂ - b' ≫ S.X₂.f = 0 := by
+      have : x ≫ j ≫ kernel.ι φ = 0 := by rw [← Category.assoc, hx, Limits.zero_comp]
+      rw [hx_decomp] at this
+      simp only [Preadditive.add_comp, Category.assoc] at this
+      rw [hj₁, hj₂, Preadditive.comp_neg, ← sub_eq_add_neg] at this
+      exact this
+    -- Then S.f.τ₂ ≫ S.X₂.g = S.X₁.g ≫ S.f.τ₃, so a ≫ S.X₁.g ≫ S.f.τ₃ = b' ≫ S.X₂.f ≫ S.X₂.g = 0.
+    have ha_g_τ₃ : (a ≫ S.X₁.g) ≫ S.f.τ₃ = 0 := by
+      have e1 : a ≫ S.X₁.g ≫ S.f.τ₃ = a ≫ S.f.τ₂ ≫ S.X₂.g := by
+        rw [← S.f.comm₂₃]
+      have e2 : b' ≫ S.X₂.f ≫ S.X₂.g = 0 := by
+        rw [← Category.assoc, S.X₂.zero, Limits.zero_comp]
+      have h1 : a ≫ S.f.τ₂ = b' ≫ S.X₂.f := by linear_combination (norm := abel) hjx
+      rw [Category.assoc, e1, ← Category.assoc, h1, Category.assoc, e2]
+    have ha_g : a ≫ S.X₁.g = 0 := by
+      rw [← cancel_mono S.f.τ₃, Limits.zero_comp]
+      exact ha_g_τ₃
+    -- Use exactness of row 1 (S.X₁): a factors through S.X₁.f.
+    obtain ⟨A', π, hπ, a', ha'⟩ := exact_row1.exact_up_to_refinements a ha_g
+    -- ha' : π ≫ a = a' ≫ S.X₁.f
+    -- We want: π ≫ x = a' ≫ i.
+    -- i = S.X₁.f ≫ coprod.inl + S.f.τ₁ ≫ coprod.inr
+    -- So a' ≫ i = a' ≫ S.X₁.f ≫ coprod.inl + a' ≫ S.f.τ₁ ≫ coprod.inr
+    --           = π ≫ a ≫ coprod.inl + a' ≫ S.f.τ₁ ≫ coprod.inr
+    -- We need: π ≫ a ≫ coprod.inl + a' ≫ S.f.τ₁ ≫ coprod.inr
+    --        = π ≫ (a ≫ coprod.inl + b' ≫ coprod.inr)
+    --        = π ≫ a ≫ coprod.inl + π ≫ b' ≫ coprod.inr
+    -- So we need: a' ≫ S.f.τ₁ = π ≫ b'. To prove this, use S.X₂.f mono and
+    --   (a' ≫ S.f.τ₁) ≫ S.X₂.f = a' ≫ S.X₁.f ≫ S.f.τ₂ = π ≫ a ≫ S.f.τ₂ = π ≫ b' ≫ S.X₂.f
+    have h_f_τ₁_X₂f : S.f.τ₁ ≫ S.X₂.f = S.X₁.f ≫ S.f.τ₂ := S.f.comm₁₂
+    have ha'_f_τ₁ : a' ≫ S.f.τ₁ = π ≫ b' := by
+      rw [← cancel_mono S.X₂.f]
+      have e1 : (a' ≫ S.f.τ₁) ≫ S.X₂.f = π ≫ a ≫ S.f.τ₂ := by
+        rw [Category.assoc, h_f_τ₁_X₂f, ← Category.assoc, ← ha', Category.assoc]
+      have h1 : a ≫ S.f.τ₂ = b' ≫ S.X₂.f := by linear_combination (norm := abel) hjx
+      rw [e1, h1, ← Category.assoc]
+    refine ⟨A', π, hπ, a', ?_⟩
+    -- π ≫ x = a' ≫ i
+    rw [hx_decomp, show SA'.f = i from rfl]
+    show π ≫ (a ≫ coprod.inl + b' ≫ coprod.inr)
+       = a' ≫ (S.X₁.f ≫ coprod.inl + S.f.τ₁ ≫ coprod.inr)
+    rw [Preadditive.comp_add, Preadditive.comp_add]
+    rw [show a' ≫ S.X₁.f ≫ coprod.inl = (a' ≫ S.X₁.f) ≫ coprod.inl by rw [Category.assoc]]
+    rw [← ha', Category.assoc]
+    rw [show a' ≫ S.f.τ₁ ≫ coprod.inr = (a' ≫ S.f.τ₁) ≫ coprod.inr by rw [Category.assoc]]
+    rw [ha'_f_τ₁, Category.assoc]
   -- (1c) Assemble the short exact sequence.
   have hSA' : SA'.ShortExact :=
     { exact := exact_SA', mono_f := mono_i, epi_g := epi_j }
