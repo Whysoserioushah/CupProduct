@@ -50,18 +50,21 @@ abbrev CategoryTheory.ShortComplex.transpose (S : ShortComplex <| ShortComplex C
 
 
 
+omit [HasImages C] [HasKernels C] in
 /-- Row 1 of a bicomplex with short-exact transpose is short-exact. -/
 lemma ses₁ {S : ShortComplex <| ShortComplex C} (hS : S.transpose.ShortExact) :
     S.X₁.ShortExact := by
   have := hS.2; have := hS.3
   exact hS.map ShortComplex.π₁
 
+omit [HasImages C] [HasKernels C] in
 /-- Row 2 of a bicomplex with short-exact transpose is short-exact. -/
 lemma ses₂ {S : ShortComplex <| ShortComplex C} (hS : S.transpose.ShortExact) :
     S.X₂.ShortExact := by
   have := hS.2; have := hS.3
   exact hS.map ShortComplex.π₂
 
+omit [HasImages C] [HasKernels C] in
 /-- Row 3 of a bicomplex with short-exact transpose is short-exact. -/
 lemma ses₃ {S : ShortComplex <| ShortComplex C} (hS : S.transpose.ShortExact) :
     S.X₃.ShortExact := by
@@ -72,6 +75,7 @@ lemma ses₃ {S : ShortComplex <| ShortComplex C} (hS : S.transpose.ShortExact) 
 abbrev transposeTranspose (S : ShortComplex (ShortComplex C)) :
     S ≅ S.transpose.transpose := Iso.refl _
 
+omit [HasFiniteLimits C] [HasFiniteColimits C] [HasImages C] [HasKernels C] in
 /-- A short-exact `S` gives a short-exact double transpose. -/
 lemma ttses {S : ShortComplex (ShortComplex C)} (hS : S.ShortExact) :
     S.transpose.transpose.ShortExact := by
