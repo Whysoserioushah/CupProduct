@@ -136,7 +136,10 @@ lemma anticommutativity (S : ShortComplex <| ShortComplex (Rep R G)) (hS : S.Sho
       have hid : coprod.desc (𝟙 _) 0 ≫ (coprod.inl : S.X₁.X₂ ⟶ S.X₁.X₂ ⨿ S.X₂.X₁) +
           coprod.desc 0 (𝟙 _) ≫ (coprod.inr : S.X₂.X₁ ⟶ S.X₁.X₂ ⨿ S.X₂.X₁) =
             𝟙 (S.X₁.X₂ ⨿ S.X₂.X₁) := by
-        apply coprod.hom_ext <;> simp [Preadditive.comp_add, ← Category.assoc]
+        apply coprod.hom_ext <;>
+        · simp only [Preadditive.comp_add, ← Category.assoc, coprod.inl_desc,
+            coprod.inr_desc, Category.id_comp, Limits.zero_comp, add_zero, zero_add,
+            Category.comp_id]
       rw [show x = x ≫ 𝟙 _ by simp, ← hid, Preadditive.comp_add]
       simp [a, b']
     have hjx : a ≫ S.f.τ₂ - b' ≫ S.X₂.f = 0 := by
