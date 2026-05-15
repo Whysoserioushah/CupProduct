@@ -98,12 +98,12 @@ lemma anticommutativity (S : ShortComplex <| ShortComplex (Rep R G)) (hS : S.Sho
   }
   let i : S.X₁.X₁ ⟶ S.X₁.X₂ ⨿ S.X₂.X₁ := S.X₁.f ≫ coprod.inl + S.f.τ₁ ≫ coprod.inr
   let j : S.X₁.X₂ ⨿ S.X₂.X₁ ⟶ D := coprod.desc (kernel.lift _ S.f.τ₂ (by
-      show S.f.τ₂ ≫ S.X₂.g ≫ S.g.τ₃ = 0
-      rw [← Category.assoc, ← S.f.comm₂₃, Category.assoc]
+      change S.f.τ₂ ≫ S.X₂.g ≫ S.g.τ₃ = 0
+      rw [← Category.assoc, S.f.comm₂₃, Category.assoc]
       rw [show S.f.τ₃ ≫ S.g.τ₃ = (S.f ≫ S.g).τ₃ from rfl, S.zero]
       simp))
     (kernel.lift _ (- S.X₂.f) (by
-      show -S.X₂.f ≫ S.X₂.g ≫ S.g.τ₃ = 0
+      change (-S.X₂.f) ≫ S.X₂.g ≫ S.g.τ₃ = 0
       rw [Preadditive.neg_comp, ← Category.assoc, S.X₂.zero, Limits.zero_comp, neg_zero]))
   let SA' : ShortComplex (Rep.{u} R G) := {
     X₁ := S.X₁.X₁
