@@ -167,58 +167,26 @@ lemma anticommutativity (S : ShortComplex <| ShortComplex (Rep R G)) (hS : S.Sho
     · rw [← Category.assoc, ha', Category.assoc]
     · rw [← Category.assoc, ← ha'_f_τ₁, Category.assoc]
   have hSA' : SA'.ShortExact := { exact := exact_SA', mono_f := mono_i, epi_g := epi_j }
-  -- (2)  Build the four short complex morphisms.
-  -- `ses₃ hS'`  is the third column of S  (with  f = S.X₃.f, g = S.X₃.g).
-  -- `ses₁ (ttses hS)` is the first row of S (with f = S.f.τ₁, g = S.g.τ₁) — wait it's
-  -- the row.  Note `ses₁` and `ses₃` are applied to `S.transpose.ShortExact`.
-  -- So `ses₃ hS'` uses `hS' : S.transpose.ShortExact` to give SE of `S.X₃`,
-  --     `ses₃ (ttses hS)` uses `S.transpose.transpose.ShortExact` to give SE
-  --       of `S.transpose.X₃`.
-  -- F_col3 : SD ⟶ S.X₃ with τ₂ = S.g.τ₂, τ₃ = 𝟙, τ₁ lifts kernel.ι φ ≫ S.g.τ₂ via S.X₃.f.
   have exact_S_X₃ : S.X₃.Exact := (ses₃ hS').exact
   have mono_S_X₃f : Mono S.X₃.f := (ses₃ hS').mono_f
   have hFcol_lift_zero : (kernel.ι φ ≫ S.g.τ₂) ≫ S.X₃.g = 0 := by
-    have hcom : S.g.τ₂ ≫ S.X₃.g = S.X₂.g ≫ S.g.τ₃ := S.g.comm₂₃
-    rw [Category.assoc, hcom]
-    change kernel.ι φ ≫ φ = 0
-    exact kernel.condition φ
+    rw [Category.assoc, S.g.comm₂₃]; exact kernel.condition φ
   let Fcol_τ₁ : D ⟶ S.X₃.X₁ := exact_S_X₃.lift (kernel.ι φ ≫ S.g.τ₂) hFcol_lift_zero
   have hFcol_τ₁ : Fcol_τ₁ ≫ S.X₃.f = kernel.ι φ ≫ S.g.τ₂ := exact_S_X₃.lift_f _ _
-  let Fcol : SD ⟶ S.X₃ := {
-    τ₁ := Fcol_τ₁
-    τ₂ := S.g.τ₂
-    τ₃ := 𝟙 _
-    comm₁₂ := by
-      change Fcol_τ₁ ≫ S.X₃.f = kernel.ι φ ≫ S.g.τ₂
-      exact hFcol_τ₁
-    comm₂₃ := by
-      change S.g.τ₂ ≫ S.X₃.g = φ ≫ 𝟙 _
-      rw [Category.comp_id]
-      exact S.g.comm₂₃
-  }
-  -- F_row3 : SD ⟶ S.transpose.X₃ with τ₂ = S.X₂.g, τ₃ = 𝟙, τ₁ lifts
-  -- kernel.ι φ ≫ S.X₂.g via S.f.τ₃.
+  let Fcol : SD ⟶ S.X₃ :=
+    { τ₁ := Fcol_τ₁, τ₂ := S.g.τ₂, τ₃ := 𝟙 _
+      comm₁₂ := hFcol_τ₁
+      comm₂₃ := by change S.g.τ₂ ≫ S.X₃.g = φ ≫ 𝟙 _; rw [Category.comp_id]; exact S.g.comm₂₃ }
   have exact_S_t_X₃ : S.transpose.X₃.Exact := (ses₃ (ttses hS)).exact
   have mono_S_t_X₃f : Mono S.transpose.X₃.f := (ses₃ (ttses hS)).mono_f
   have hFrow_lift_zero : (kernel.ι φ ≫ S.X₂.g) ≫ S.g.τ₃ = 0 := by
-    rw [Category.assoc]
-    change kernel.ι φ ≫ φ = 0
-    exact kernel.condition φ
-  let Frow_τ₁ : D ⟶ S.X₁.X₃ :=
-    exact_S_t_X₃.lift (kernel.ι φ ≫ S.X₂.g) hFrow_lift_zero
-  have hFrow_τ₁ : Frow_τ₁ ≫ S.f.τ₃ = kernel.ι φ ≫ S.X₂.g :=
-    exact_S_t_X₃.lift_f _ _
-  let Frow : SD ⟶ S.transpose.X₃ := {
-    τ₁ := Frow_τ₁
-    τ₂ := S.X₂.g
-    τ₃ := 𝟙 _
-    comm₁₂ := by
-      change Frow_τ₁ ≫ S.f.τ₃ = kernel.ι φ ≫ S.X₂.g
-      exact hFrow_τ₁
-    comm₂₃ := by
-      change S.X₂.g ≫ S.g.τ₃ = φ ≫ 𝟙 _
-      rw [Category.comp_id]
-  }
+    rw [Category.assoc]; exact kernel.condition φ
+  let Frow_τ₁ : D ⟶ S.X₁.X₃ := exact_S_t_X₃.lift (kernel.ι φ ≫ S.X₂.g) hFrow_lift_zero
+  have hFrow_τ₁ : Frow_τ₁ ≫ S.f.τ₃ = kernel.ι φ ≫ S.X₂.g := exact_S_t_X₃.lift_f _ _
+  let Frow : SD ⟶ S.transpose.X₃ :=
+    { τ₁ := Frow_τ₁, τ₂ := S.X₂.g, τ₃ := 𝟙 _
+      comm₁₂ := hFrow_τ₁
+      comm₂₃ := by change S.X₂.g ≫ S.g.τ₃ = φ ≫ 𝟙 _; rw [Category.comp_id] }
   -- G_col1 : SA' ⟶ S.X₁  (first column of S).
   -- τ₁ = 𝟙, τ₂ = coprod.desc 𝟙 0, τ₃ = Frow_τ₁.
   let Gcol : SA' ⟶ S.X₁ := {
