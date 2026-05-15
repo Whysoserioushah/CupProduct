@@ -401,7 +401,7 @@ lemma anticommutativity (S : ShortComplex <| ShortComplex (Rep R G)) (hS : S.Sho
             (coprod.inl ≫ j ≫ kernel.ι φ) ≫ S.X₂.g from by simp [Category.assoc]]
           rw [hj₁]
         rw [e1, e2]
-        exact S.f.comm₂₃
+        exact S.f.comm₂₃.symm
       · -- coprod.inr side
         have e1 : coprod.inr ≫ coprod.desc (𝟙 _) (0 : S.X₂.X₁ ⟶ S.X₁.X₂)
               ≫ S.X₁.g ≫ S.f.τ₃ = 0 := by
