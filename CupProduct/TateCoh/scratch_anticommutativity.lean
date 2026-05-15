@@ -1,5 +1,5 @@
 import CupProduct.TateCoh.degree0
-open CategoryTheory groupCohomology.TateCohomology Limits
+open CategoryTheory groupCohomology groupCohomology.TateCohomology Limits
 variable {R : Type u} [CommRing R] {G : Type u} [Group G] [Fintype G]
 
 
@@ -432,19 +432,27 @@ lemma anticommutativity (S : ShortComplex <| ShortComplex (Rep R G)) (hS : S.Sho
       · -- coprod.inl side: LHS = 0, want to show RHS = 0 (via mono S.X₃.f).
         rw [← Category.assoc, coprod.inl_desc, Limits.zero_comp]
         apply (cancel_mono S.X₃.f).1
-        rw [Limits.zero_comp, Category.assoc, Preadditive.neg_comp, hFcol_τ₁]
-        rw [show coprod.inl ≫ j ≫ kernel.ι φ ≫ S.g.τ₂ =
-          (coprod.inl ≫ j ≫ kernel.ι φ) ≫ S.g.τ₂ from by simp [Category.assoc]]
+        rw [Limits.zero_comp, Category.assoc]
+        rw [show (j ≫ -Fcol_τ₁) ≫ S.X₃.f = -(j ≫ Fcol_τ₁ ≫ S.X₃.f) by
+          rw [Preadditive.comp_neg, Category.assoc]]
+        rw [hFcol_τ₁]
+        rw [show coprod.inl ≫ -(j ≫ kernel.ι φ ≫ S.g.τ₂) =
+          -(coprod.inl ≫ j ≫ kernel.ι φ) ≫ S.g.τ₂ by
+          rw [Preadditive.comp_neg, Preadditive.neg_comp]; simp [Category.assoc]]
         rw [hj₁]
         have hfg : S.f.τ₂ ≫ S.g.τ₂ = 0 :=
           show (S.f ≫ S.g).τ₂ = 0 by rw [S.zero]; rfl
-        rw [hfg, neg_zero]
+        rw [Preadditive.neg_comp, hfg, neg_zero]
       · -- coprod.inr side: LHS = S.g.τ₁; want this = -(coprod.inr ≫ j ≫ Fcol_τ₁) via mono.
         rw [← Category.assoc, coprod.inr_desc, Category.id_comp]
         apply (cancel_mono S.X₃.f).1
-        rw [Category.assoc, Preadditive.neg_comp, hFcol_τ₁]
-        rw [show coprod.inr ≫ j ≫ kernel.ι φ ≫ S.g.τ₂ =
-          (coprod.inr ≫ j ≫ kernel.ι φ) ≫ S.g.τ₂ from by simp [Category.assoc]]
+        rw [Category.assoc]
+        rw [show (j ≫ -Fcol_τ₁) ≫ S.X₃.f = -(j ≫ Fcol_τ₁ ≫ S.X₃.f) by
+          rw [Preadditive.comp_neg, Category.assoc]]
+        rw [hFcol_τ₁]
+        rw [show coprod.inr ≫ -(j ≫ kernel.ι φ ≫ S.g.τ₂) =
+          -(coprod.inr ≫ j ≫ kernel.ι φ) ≫ S.g.τ₂ by
+          rw [Preadditive.comp_neg, Preadditive.neg_comp]; simp [Category.assoc]]
         rw [hj₂, Preadditive.neg_comp, neg_neg]
         exact S.g.comm₁₂.symm
   }
