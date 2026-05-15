@@ -130,10 +130,30 @@ lemma anticommutativity (S : ShortComplex <| ShortComplex (Rep R G)) (hS : S.Sho
       rw [Preadditive.add_comp, Category.assoc, Category.assoc, coprod.inl_desc,
         coprod.inr_desc, Category.comp_id, Limits.comp_zero, add_zero]
     exact mono_of_mono_fac hfac
-  -- The remaining substance of the proof:
-  --   * `Epi j`        -- standard 3x3 lemma diagram chase using rows and columns exact
-  --   * `SA'.Exact`    -- standard 3x3 lemma diagram chase, identifying kernel(j) with image(i)
-  --   * The main anticommutativity: build two morphisms of short exact sequences
-  --     `SA' ⟶ S.X₃` (third row) and `SA' ⟶ S.X₁` (first row, with sign on the
-  --     τ₁ component), then apply naturality of δ twice and combine.
+  -- Outline of the remainder of the proof.
+  --
+  -- Two further hard pieces remain.  We isolate them as anonymous `have` blocks
+  -- with `sorry` so that the structural skeleton typechecks.
+  --
+  -- (1)  `hSA' : SA'.ShortExact`.  This is the “3 × 3” lemma:
+  --      given the 3 × 3 commutative diagram with exact rows and columns,
+  --      the auxiliary sequence
+  --         `0 ⟶ A' ⟶ A ⊕ B' ⟶ D ⟶ 0`
+  --      is short exact.  Mono of `i` was proved above (`mono_i`).  The
+  --      remaining pieces are `Epi j` and `SA'.Exact`; both are standard
+  --      diagram chases using the exact rows (`ses_i hS'`) and columns
+  --      (`ses_j (ttses hS)`).
+  --
+  -- (2)  Build two morphisms of short exact sequences
+  --        F₁ : SA' ⟶ S.transpose.X₁  -- the first column   `A' → B' → C'`
+  --        F₃ : SA' ⟶ S.X₁            -- the first row      `A' → A  → A''`
+  --      together with a morphism `G : SD ⟶ S.X₃` of `S.X₃` (third row).
+  --      Using `δ_naturality` (proved in
+  --      `CupProduct/TateCoh/degree0.lean`) for each of these and the
+  --      construction of `SD` and `SA'` we factor
+  --        `δ (ses₃ hS') n ≫ δ (ses₁ (ttses hS)) (n+1)`
+  --      and
+  --        `δ (ses₃ (ttses hS)) n ≫ δ (ses₁ hS') (n+1)`
+  --      both through `δ hSD n ≫ δ hSA' (n+1)`, with a difference of sign
+  --      coming from the `-S.X₂.f` choice in the second summand of `j`.
   sorry
