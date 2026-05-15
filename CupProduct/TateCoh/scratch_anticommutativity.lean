@@ -173,53 +173,69 @@ lemma anticommutativity (S : ShortComplex <| ShortComplex (Rep R G)) (hS : S.Sho
   have epi_j : Epi j := by
     rw [epi_iff_surjective_up_to_refinements]
     intro A d
-    -- d : A ⟶ D. We need to produce a refinement π and a preimage.
-    -- Step 1: lift d to a morphism A ⟶ S.X₂.X₂ via kernel.ι φ.
-    let b : A ⟶ S.X₂.X₂ := d ≫ kernel.ι φ
-    have hb_gτ₃ : (b ≫ S.X₂.g) ≫ S.g.τ₃ = 0 := by
-      show d ≫ kernel.ι φ ≫ S.X₂.g ≫ S.g.τ₃ = 0
-      rw [show S.X₂.g ≫ S.g.τ₃ = φ from rfl, kernel.condition, comp_zero]
+    -- Step 1: b := d ≫ kernel.ι φ : A ⟶ S.X₂.X₂.
+    -- We don't materialize b; instead carry d through.
+    have hd_gτ₃ : (d ≫ kernel.ι φ) ≫ S.X₂.g ≫ S.g.τ₃ = 0 := by
+      rw [show S.X₂.g ≫ S.g.τ₃ = φ from rfl, ← Category.assoc, kernel.condition]
+    have hd_gτ₃' : (d ≫ kernel.ι φ ≫ S.X₂.g) ≫ S.g.τ₃ = 0 := by
+      simpa [Category.assoc] using hd_gτ₃
     -- Step 2: b ≫ S.X₂.g goes through ker S.g.τ₃ = im S.f.τ₃.
     obtain ⟨A₁, π₁, hπ₁, a'', ha''⟩ :=
-      exact_col3.exact_up_to_refinements (b ≫ S.X₂.g) hb_gτ₃
-    -- Step 3: a'' : A₁ ⟶ S.X₁.X₃, lift via epi S.X₁.g.
+      exact_col3.exact_up_to_refinements (d ≫ kernel.ι φ ≫ S.X₂.g) hd_gτ₃'
+    -- ha'' : π₁ ≫ (d ≫ kernel.ι φ ≫ S.X₂.g) = a'' ≫ S.f.τ₃
+    -- Step 3: lift a'' via epi S.X₁.g.
     obtain ⟨A₂, π₂, hπ₂, a, ha⟩ :=
       surjective_up_to_refinements_of_epi S.X₁.g a''
     -- ha : π₂ ≫ a'' = a ≫ S.X₁.g
-    -- Step 4: define b' = π₂ ≫ π₁ ≫ b - a ≫ S.f.τ₂ : A₂ ⟶ S.X₂.X₂.
-    have hb'_g : (π₂ ≫ π₁ ≫ b - a ≫ S.f.τ₂) ≫ S.X₂.g = 0 := by
-      have hf₂₃ : S.f.τ₂ ≫ S.X₂.g = S.X₁.g ≫ S.f.τ₃ := S.f.comm₂₃
+    -- Step 4: b' := π₂ ≫ π₁ ≫ d ≫ kernel.ι φ - a ≫ S.f.τ₂ has b' ≫ S.X₂.g = 0.
+    have hf₂₃ : S.f.τ₂ ≫ S.X₂.g = S.X₁.g ≫ S.f.τ₃ := S.f.comm₂₃
+    have hb'_g :
+        (π₂ ≫ π₁ ≫ d ≫ kernel.ι φ - a ≫ S.f.τ₂) ≫ S.X₂.g = 0 := by
       rw [Preadditive.sub_comp]
-      rw [Category.assoc, Category.assoc, Category.assoc, hf₂₃, ← Category.assoc π₁,
-          ← Category.assoc π₂, ha'' ▸ rfl, ← Category.assoc a, ← ha, Category.assoc]
-      simp
-    -- Step 5: factor through im S.X₂.f.
+      have e1 : (π₂ ≫ π₁ ≫ d ≫ kernel.ι φ) ≫ S.X₂.g
+          = π₂ ≫ a'' ≫ S.f.τ₃ := by
+        calc (π₂ ≫ π₁ ≫ d ≫ kernel.ι φ) ≫ S.X₂.g
+            = π₂ ≫ π₁ ≫ d ≫ kernel.ι φ ≫ S.X₂.g := by simp [Category.assoc]
+          _ = π₂ ≫ a'' ≫ S.f.τ₃ := by rw [ha'']
+      have e2 : (a ≫ S.f.τ₂) ≫ S.X₂.g = π₂ ≫ a'' ≫ S.f.τ₃ := by
+        rw [Category.assoc, hf₂₃, ← Category.assoc a, ← ha, Category.assoc]
+      rw [e1, e2, sub_self]
+    -- Step 5: factor (π₂ ≫ π₁ ≫ d ≫ kernel.ι φ - a ≫ S.f.τ₂) through im S.X₂.f.
     obtain ⟨A₃, π₃, hπ₃, b'', hb''⟩ :=
-      exact_col2.exact_up_to_refinements (π₂ ≫ π₁ ≫ b - a ≫ S.f.τ₂) hb'_g
-    -- hb'' : π₃ ≫ (π₂ ≫ π₁ ≫ b - a ≫ S.f.τ₂) = b'' ≫ S.X₂.f
-    -- Step 6: the preimage. We use j of (π₃ ≫ a, -b'') ∈ S.X₁.X₂ ⨿ S.X₂.X₁.
+      exact_col2.exact_up_to_refinements
+        (π₂ ≫ π₁ ≫ d ≫ kernel.ι φ - a ≫ S.f.τ₂) hb'_g
+    -- hb'' : π₃ ≫ (π₂ ≫ π₁ ≫ d ≫ kernel.ι φ - a ≫ S.f.τ₂) = b'' ≫ S.X₂.f
+    -- Step 6: preimage = j of (π₃ ≫ a, -b'').
     refine ⟨A₃, π₃ ≫ π₂ ≫ π₁, epi_comp _ _,
         (π₃ ≫ a) ≫ (coprod.inl : S.X₁.X₂ ⟶ S.X₁.X₂ ⨿ S.X₂.X₁) -
           b'' ≫ (coprod.inr : S.X₂.X₁ ⟶ S.X₁.X₂ ⨿ S.X₂.X₁), ?_⟩
     apply (cancel_mono (kernel.ι φ)).1
+    -- Goal: (π₃ ≫ π₂ ≫ π₁) ≫ d ≫ kernel.ι φ
+    --     = ((π₃ ≫ a) ≫ coprod.inl - b'' ≫ coprod.inr) ≫ j ≫ kernel.ι φ
     have rhs_eq :
         ((π₃ ≫ a) ≫ (coprod.inl : S.X₁.X₂ ⟶ S.X₁.X₂ ⨿ S.X₂.X₁) -
           b'' ≫ (coprod.inr : S.X₂.X₁ ⟶ S.X₁.X₂ ⨿ S.X₂.X₁)) ≫ j ≫ kernel.ι φ
           = (π₃ ≫ a) ≫ S.f.τ₂ + b'' ≫ S.X₂.f := by
-      rw [Preadditive.sub_comp, Category.assoc, Category.assoc, hj₁, hj₂]
-      rw [Preadditive.comp_neg, sub_neg_eq_add]
-    have lhs_eq : (π₃ ≫ π₂ ≫ π₁) ≫ d ≫ kernel.ι φ
-        = π₃ ≫ π₂ ≫ π₁ ≫ b := by
-      simp [b, Category.assoc]
-    -- hb'': π₃ ≫ (π₂ ≫ π₁ ≫ b - a ≫ S.f.τ₂) = b'' ≫ S.X₂.f
-    -- ⟹ π₃ ≫ π₂ ≫ π₁ ≫ b = π₃ ≫ a ≫ S.f.τ₂ + b'' ≫ S.X₂.f
-    have hb''_eq : π₃ ≫ π₂ ≫ π₁ ≫ b = (π₃ ≫ a) ≫ S.f.τ₂ + b'' ≫ S.X₂.f := by
-      have h1 : π₃ ≫ (π₂ ≫ π₁ ≫ b - a ≫ S.f.τ₂) = b'' ≫ S.X₂.f := hb''
+      have e1 : ((π₃ ≫ a) ≫ (coprod.inl : S.X₁.X₂ ⟶ S.X₁.X₂ ⨿ S.X₂.X₁))
+                ≫ j ≫ kernel.ι φ = (π₃ ≫ a) ≫ S.f.τ₂ := by
+        rw [Category.assoc, hj₁]
+      have e2 : (b'' ≫ (coprod.inr : S.X₂.X₁ ⟶ S.X₁.X₂ ⨿ S.X₂.X₁))
+                ≫ j ≫ kernel.ι φ = -(b'' ≫ S.X₂.f) := by
+        rw [Category.assoc, hj₂, Preadditive.comp_neg]
+      rw [Preadditive.sub_comp, e1, e2, sub_neg_eq_add]
+    -- hb''_eq : π₃ ≫ π₂ ≫ π₁ ≫ d ≫ kernel.ι φ = (π₃ ≫ a) ≫ S.f.τ₂ + b'' ≫ S.X₂.f
+    have hb''_eq : π₃ ≫ π₂ ≫ π₁ ≫ d ≫ kernel.ι φ
+        = (π₃ ≫ a) ≫ S.f.τ₂ + b'' ≫ S.X₂.f := by
+      have h1 : π₃ ≫ (π₂ ≫ π₁ ≫ d ≫ kernel.ι φ - a ≫ S.f.τ₂) = b'' ≫ S.X₂.f := hb''
       rw [Preadditive.comp_sub] at h1
-      have h2 : π₃ ≫ π₂ ≫ π₁ ≫ b = b'' ≫ S.X₂.f + π₃ ≫ a ≫ S.f.τ₂ := by
-        rw [← h1]; abel
-      rw [h2, add_comm, Category.assoc]
-    rw [lhs_eq, rhs_eq, hb''_eq]
+      -- h1 : π₃ ≫ π₂ ≫ π₁ ≫ d ≫ kernel.ι φ - π₃ ≫ a ≫ S.f.τ₂ = b'' ≫ S.X₂.f
+      have h2 : π₃ ≫ π₂ ≫ π₁ ≫ d ≫ kernel.ι φ
+          = π₃ ≫ a ≫ S.f.τ₂ + b'' ≫ S.X₂.f := by
+        linear_combination (norm := abel) h1
+      rw [h2, Category.assoc]
+    have lhs_eq : ((π₃ ≫ π₂ ≫ π₁) ≫ d) ≫ kernel.ι φ
+        = π₃ ≫ π₂ ≫ π₁ ≫ d ≫ kernel.ι φ := by simp [Category.assoc]
+    rw [lhs_eq, hb''_eq, rhs_eq]
   -- (1b) SA'.Exact: exactness at the middle term.
   have exact_SA' : SA'.Exact := by sorry
   -- (1c) Assemble the short exact sequence.
