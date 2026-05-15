@@ -304,14 +304,19 @@ lemma anticommutativity (S : ShortComplex <| ShortComplex (Rep R G)) (hS : S.Sho
       rw [e1, h1, ← Category.assoc]
     refine ⟨A', π, hπ, a', ?_⟩
     -- π ≫ x = a' ≫ i
-    rw [hx_decomp, show SA'.f = i from rfl]
-    show π ≫ (a ≫ coprod.inl + b' ≫ coprod.inr)
-       = a' ≫ (S.X₁.f ≫ coprod.inl + S.f.τ₁ ≫ coprod.inr)
-    rw [Preadditive.comp_add, Preadditive.comp_add]
-    rw [show a' ≫ S.X₁.f ≫ coprod.inl = (a' ≫ S.X₁.f) ≫ coprod.inl by rw [Category.assoc]]
-    rw [← ha', Category.assoc]
-    rw [show a' ≫ S.f.τ₁ ≫ coprod.inr = (a' ≫ S.f.τ₁) ≫ coprod.inr by rw [Category.assoc]]
-    rw [ha'_f_τ₁, Category.assoc]
+    show π ≫ x = a' ≫ i
+    have h_i : a' ≫ i = a' ≫ S.X₁.f ≫ coprod.inl + a' ≫ S.f.τ₁ ≫ coprod.inr := by
+      show a' ≫ (S.X₁.f ≫ coprod.inl + S.f.τ₁ ≫ coprod.inr) =
+        a' ≫ S.X₁.f ≫ coprod.inl + a' ≫ S.f.τ₁ ≫ coprod.inr
+      rw [Preadditive.comp_add]
+    rw [h_i, hx_decomp, Preadditive.comp_add]
+    congr 1
+    · rw [show a' ≫ S.X₁.f ≫ coprod.inl = (a' ≫ S.X₁.f) ≫ coprod.inl by
+            rw [Category.assoc]]
+      rw [← ha', Category.assoc]
+    · rw [show a' ≫ S.f.τ₁ ≫ coprod.inr = (a' ≫ S.f.τ₁) ≫ coprod.inr by
+            rw [Category.assoc]]
+      rw [ha'_f_τ₁, Category.assoc]
   -- (1c) Assemble the short exact sequence.
   have hSA' : SA'.ShortExact :=
     { exact := exact_SA', mono_f := mono_i, epi_g := epi_j }
