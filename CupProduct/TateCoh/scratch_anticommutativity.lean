@@ -135,7 +135,7 @@ lemma anticommutativity (S : ShortComplex <| ShortComplex (Rep R G)) (hS : S.Sho
   -- Two further hard pieces remain.  We isolate them as anonymous `have` blocks
   -- with `sorry` so that the structural skeleton typechecks.
   --
-  -- (1)  `hSA' : SA'.ShortExact`.  This is the “3 × 3” lemma:
+  -- (1)  `hSA' : SA'.ShortExact`.  This is the "3 × 3" lemma:
   --      given the 3 × 3 commutative diagram with exact rows and columns,
   --      the auxiliary sequence
   --         `0 ⟶ A' ⟶ A ⊕ B' ⟶ D ⟶ 0`
@@ -156,4 +156,15 @@ lemma anticommutativity (S : ShortComplex <| ShortComplex (Rep R G)) (hS : S.Sho
   --        `δ (ses₃ (ttses hS)) n ≫ δ (ses₁ hS') (n+1)`
   --      both through `δ hSD n ≫ δ hSA' (n+1)`, with a difference of sign
   --      coming from the `-S.X₂.f` choice in the second summand of `j`.
+  --
+  -- We isolate each remaining piece as a `have` with its own `sorry`,
+  -- so the overall scaffold becomes easier to attack incrementally.
+  -- (1a) Epi j: surjectivity onto D.
+  have epi_j : Epi j := by sorry
+  -- (1b) SA'.Exact: exactness at the middle term.
+  have exact_SA' : SA'.Exact := by sorry
+  -- (1c) Assemble the short exact sequence.
+  have hSA' : SA'.ShortExact :=
+    { exact := exact_SA', mono_f := mono_i, epi_g := epi_j }
+  -- Step (2) and the final assembly remain as one bundled `sorry`.
   sorry
