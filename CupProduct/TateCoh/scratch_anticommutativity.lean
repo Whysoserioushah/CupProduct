@@ -473,23 +473,23 @@ lemma anticommutativity (S : ShortComplex <| ShortComplex (Rep R G)) (hS : S.Sho
   -- δ_naturality Grow : δ hSA' (n+1) ≫ map Grow.τ₁ = map Grow.τ₃ ≫ δ (ses₁ (ttses hS)) (n+1)
   have hδFcol : δ hSD n ≫ (tateCohomology (n + 1)).map Fcol.τ₁
       = (tateCohomology n).map Fcol.τ₃ ≫ δ (ses₃ hS') n :=
-    δ_naturality hSD (ses₃ hS') Fcol n
+    TateCohomology.δ_naturality hSD (ses₃ hS') Fcol n
   have hδFrow : δ hSD n ≫ (tateCohomology (n + 1)).map Frow.τ₁
       = (tateCohomology n).map Frow.τ₃ ≫ δ (ses₃ (ttses hS)) n :=
-    δ_naturality hSD (ses₃ (ttses hS)) Frow n
+    TateCohomology.δ_naturality hSD (ses₃ (ttses hS)) Frow n
   have hδGcol : δ hSA' (n + 1) ≫ (tateCohomology (n + 1 + 1)).map Gcol.τ₁
       = (tateCohomology (n + 1)).map Gcol.τ₃ ≫ δ (ses₁ hS') (n + 1) :=
-    δ_naturality hSA' (ses₁ hS') Gcol (n + 1)
+    TateCohomology.δ_naturality hSA' (ses₁ hS') Gcol (n + 1)
   have hδGrow : δ hSA' (n + 1) ≫ (tateCohomology (n + 1 + 1)).map Grow.τ₁
       = (tateCohomology (n + 1)).map Grow.τ₃ ≫ δ (ses₁ (ttses hS)) (n + 1) :=
-    δ_naturality hSA' (ses₁ (ttses hS)) Grow (n + 1)
+    TateCohomology.δ_naturality hSA' (ses₁ (ttses hS)) Grow (n + 1)
   -- All of Gcol.τ₁, Frow.τ₃, Grow.τ₁, Fcol.τ₃ are 𝟙. Grow.τ₃ = -Fcol_τ₁.
-  have hFcol_τ₃_id : (tateCohomology n).map Fcol.τ₃ = 𝟙 _ := Functor.map_id _ _
-  have hFrow_τ₃_id : (tateCohomology n).map Frow.τ₃ = 𝟙 _ := Functor.map_id _ _
+  have hFcol_τ₃_id : (tateCohomology n).map Fcol.τ₃ = 𝟙 _ := CategoryTheory.Functor.map_id _ _
+  have hFrow_τ₃_id : (tateCohomology n).map Frow.τ₃ = 𝟙 _ := CategoryTheory.Functor.map_id _ _
   have hGcol_τ₁_id : (tateCohomology (n + 1 + 1)).map Gcol.τ₁ = 𝟙 _ :=
-    Functor.map_id _ _
+    CategoryTheory.Functor.map_id _ _
   have hGrow_τ₁_id : (tateCohomology (n + 1 + 1)).map Grow.τ₁ = 𝟙 _ :=
-    Functor.map_id _ _
+    CategoryTheory.Functor.map_id _ _
   -- Grow.τ₃ = -Fcol_τ₁ = -Frow_τ₁? No, Grow.τ₃ = -Fcol_τ₁ (different from Frow_τ₁).
   -- Wait, Grow goes to row1 with row1.X₃ = S.X₃.X₁, and Fcol goes to col3 with col3.X₁ = S.X₃.X₁.
   -- So Grow.τ₃ : D → S.X₃.X₁ and Fcol.τ₁ : D → S.X₃.X₁, types match.
