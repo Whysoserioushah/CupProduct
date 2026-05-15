@@ -333,7 +333,7 @@ lemma anticommutativity (S : ShortComplex <| ShortComplex (Rep R G)) (hS : S.Sho
   have exact_S_X₃ : S.X₃.Exact := (ses₃ hS').exact
   have mono_S_X₃f : Mono S.X₃.f := (ses₃ hS').mono_f
   have hFcol_lift_zero : (kernel.ι φ ≫ S.g.τ₂) ≫ S.X₃.g = 0 := by
-    have hcom : S.g.τ₂ ≫ S.X₃.g = S.X₂.g ≫ S.g.τ₃ := S.g.comm₂₃.symm
+    have hcom : S.g.τ₂ ≫ S.X₃.g = S.X₂.g ≫ S.g.τ₃ := S.g.comm₂₃
     rw [Category.assoc, hcom]
     show kernel.ι φ ≫ φ = 0
     exact kernel.condition φ
@@ -349,7 +349,7 @@ lemma anticommutativity (S : ShortComplex <| ShortComplex (Rep R G)) (hS : S.Sho
     comm₂₃ := by
       show S.g.τ₂ ≫ S.X₃.g = φ ≫ 𝟙 _
       rw [Category.comp_id]
-      exact S.g.comm₂₃.symm
+      exact S.g.comm₂₃
   }
   -- F_row3 : SD ⟶ S.transpose.X₃ with τ₂ = S.X₂.g, τ₃ = 𝟙, τ₁ lifts
   -- kernel.ι φ ≫ S.X₂.g via S.f.τ₃.
