@@ -233,78 +233,30 @@ lemma anticommutativity (S : ShortComplex <| ShortComplex (Rep R G)) (hS : S.Sho
             hj₂, Preadditive.neg_comp, neg_neg]
           exact S.g.comm₁₂ }
   -- Step 8: assemble via δ_naturality.
-  -- δ_naturality Fcol : δ hSD n ≫ map Fcol.τ₁ = map Fcol.τ₃ ≫ δ (ses₃ hS') n
-  -- δ_naturality Frow : δ hSD n ≫ map Frow.τ₁ = map Frow.τ₃ ≫ δ (ses₃ (ttses hS)) n
-  -- δ_naturality Gcol : δ hSA' (n+1) ≫ map Gcol.τ₁ = map Gcol.τ₃ ≫ δ (ses₁ hS') (n+1)
-  -- δ_naturality Grow : δ hSA' (n+1) ≫ map Grow.τ₁ = map Grow.τ₃ ≫ δ (ses₁ (ttses hS)) (n+1)
-  have hδFcol : δ hSD n ≫ (tateCohomology (n + 1)).map Fcol.τ₁
-      = (tateCohomology n).map Fcol.τ₃ ≫ δ (ses₃ hS') n :=
-    TateCohomology.δ_naturality hSD (ses₃ hS') Fcol n
-  have hδFrow : δ hSD n ≫ (tateCohomology (n + 1)).map Frow.τ₁
-      = (tateCohomology n).map Frow.τ₃ ≫ δ (ses₃ (ttses hS)) n :=
-    TateCohomology.δ_naturality hSD (ses₃ (ttses hS)) Frow n
-  have hδGcol : δ hSA' (n + 1) ≫ (tateCohomology (n + 1 + 1)).map Gcol.τ₁
-      = (tateCohomology (n + 1)).map Gcol.τ₃ ≫ δ (ses₁ hS') (n + 1) :=
-    TateCohomology.δ_naturality hSA' (ses₁ hS') Gcol (n + 1)
-  have hδGrow : δ hSA' (n + 1) ≫ (tateCohomology (n + 1 + 1)).map Grow.τ₁
-      = (tateCohomology (n + 1)).map Grow.τ₃ ≫ δ (ses₁ (ttses hS)) (n + 1) :=
-    TateCohomology.δ_naturality hSA' (ses₁ (ttses hS)) Grow (n + 1)
-  -- All of Gcol.τ₁, Frow.τ₃, Grow.τ₁, Fcol.τ₃ are 𝟙. Grow.τ₃ = -Fcol_τ₁.
-  have hFcol_τ₃_id : (tateCohomology n).map Fcol.τ₃ = 𝟙 _ := CategoryTheory.Functor.map_id _ _
-  have hFrow_τ₃_id : (tateCohomology n).map Frow.τ₃ = 𝟙 _ := CategoryTheory.Functor.map_id _ _
-  have hGcol_τ₁_id : (tateCohomology (n + 1 + 1)).map Gcol.τ₁ = 𝟙 _ :=
-    CategoryTheory.Functor.map_id _ _
-  have hGrow_τ₁_id : (tateCohomology (n + 1 + 1)).map Grow.τ₁ = 𝟙 _ :=
-    CategoryTheory.Functor.map_id _ _
-  -- Grow.τ₃ = -Fcol_τ₁ = -Frow_τ₁? No, Grow.τ₃ = -Fcol_τ₁ (different from Frow_τ₁).
-  -- Wait, Grow goes to row1 with row1.X₃ = S.X₃.X₁, and Fcol goes to col3 with col3.X₁ = S.X₃.X₁.
-  -- So Grow.τ₃ : D → S.X₃.X₁ and Fcol.τ₁ : D → S.X₃.X₁, types match.
   have inst_add : (tateCohomology (R := R) (G := G) (n + 1)).Additive := by
     change (tateComplexFunctor ⋙ HomologicalComplex.homologyFunctor _ _ (n + 1)).Additive
     infer_instance
-  have hGrow_τ₃_eq : (tateCohomology (n + 1)).map Grow.τ₃
-      = -(tateCohomology (n + 1)).map Fcol.τ₁ := by
-    change (tateCohomology (n + 1)).map (-Fcol_τ₁) = -(tateCohomology (n + 1)).map Fcol_τ₁
-    exact Functor.map_neg _
-  -- Plug hGcol_τ₁_id into hδGcol.
-  have hδGcol' : δ hSA' (n + 1)
-      = (tateCohomology (n + 1)).map Gcol.τ₃ ≫ δ (ses₁ hS') (n + 1) := by
-    have := hδGcol
-    rw [hGcol_τ₁_id, Category.comp_id] at this
-    exact this
-  -- Plug hGrow_τ₁_id into hδGrow.
-  have hδGrow' : δ hSA' (n + 1)
-      = (tateCohomology (n + 1)).map Grow.τ₃ ≫ δ (ses₁ (ttses hS)) (n + 1) := by
-    have := hδGrow
-    rw [hGrow_τ₁_id, Category.comp_id] at this
-    exact this
-  -- Plug hFcol_τ₃_id into hδFcol.
   have hδFcol' : δ hSD n ≫ (tateCohomology (n + 1)).map Fcol.τ₁ = δ (ses₃ hS') n := by
-    rw [hδFcol, hFcol_τ₃_id, Category.id_comp]
-  have hδFrow' : δ hSD n ≫ (tateCohomology (n + 1)).map Frow.τ₁
-      = δ (ses₃ (ttses hS)) n := by
-    rw [hδFrow, hFrow_τ₃_id, Category.id_comp]
-  -- Note Gcol.τ₃ = Frow.τ₁, so map Gcol.τ₃ = map Frow.τ₁.
-  -- So δ hSA' (n+1) = map Frow.τ₁ ≫ δ (ses₁ hS') (n+1)
+    rw [TateCohomology.δ_naturality hSD (ses₃ hS') Fcol n,
+      CategoryTheory.Functor.map_id, Category.id_comp]
+  have hδFrow' : δ hSD n ≫ (tateCohomology (n + 1)).map Frow.τ₁ = δ (ses₃ (ttses hS)) n := by
+    rw [TateCohomology.δ_naturality hSD (ses₃ (ttses hS)) Frow n,
+      CategoryTheory.Functor.map_id, Category.id_comp]
   have hδGcol'' : δ hSA' (n + 1)
-      = (tateCohomology (n + 1)).map Frow.τ₁ ≫ δ (ses₁ hS') (n + 1) := hδGcol'
-  -- Note Grow.τ₃ = -Fcol_τ₁, so map Grow.τ₃ = -map Fcol.τ₁.
-  -- So δ hSA' (n+1) = -map Fcol.τ₁ ≫ δ (ses₁ (ttses hS)) (n+1).
+      = (tateCohomology (n + 1)).map Frow.τ₁ ≫ δ (ses₁ hS') (n + 1) := by
+    have := TateCohomology.δ_naturality hSA' (ses₁ hS') Gcol (n + 1)
+    rwa [CategoryTheory.Functor.map_id, Category.comp_id] at this
   have hδGrow'' : δ hSA' (n + 1)
       = -((tateCohomology (n + 1)).map Fcol.τ₁ ≫ δ (ses₁ (ttses hS)) (n + 1)) := by
-    rw [hδGrow', hGrow_τ₃_eq, Preadditive.neg_comp]
-  -- Now combine.  LHS = δ (ses₃ hS') n ≫ δ (ses₁ (ttses hS)) (n+1)
-  --              = (δ hSD n ≫ map Fcol.τ₁) ≫ δ (ses₁ (ttses hS)) (n+1)
-  --              = δ hSD n ≫ (map Fcol.τ₁ ≫ δ (ses₁ (ttses hS)) (n+1))
-  --              = δ hSD n ≫ (-δ hSA' (n+1))      [from hδGrow'']
-  --              = -(δ hSD n ≫ δ hSA' (n+1)).
-  --       RHS = -δ (ses₃ (ttses hS)) n ≫ δ (ses₁ hS') (n+1)
-  --           = -((δ hSD n ≫ map Frow.τ₁) ≫ δ (ses₁ hS') (n+1))
-  --           = -(δ hSD n ≫ (map Frow.τ₁ ≫ δ (ses₁ hS') (n+1)))
-  --           = -(δ hSD n ≫ δ hSA' (n+1))         [from hδGcol''].
-  rw [← hδFcol', ← hδFrow', Category.assoc, Category.assoc]
-  rw [show (tateCohomology (n + 1)).map Fcol.τ₁ ≫ δ (ses₁ (ttses hS)) (n + 1) =
-    -δ hSA' (n + 1) by rw [hδGrow'']; rw [neg_neg]]
-  rw [show (tateCohomology (n + 1)).map Frow.τ₁ ≫ δ (ses₁ hS') (n + 1) =
-    δ hSA' (n + 1) from hδGcol''.symm]
-  rw [Preadditive.comp_neg]
+    have := TateCohomology.δ_naturality hSA' (ses₁ (ttses hS)) Grow (n + 1)
+    rw [CategoryTheory.Functor.map_id, Category.comp_id,
+      show (tateCohomology (n + 1)).map Grow.τ₃
+        = -(tateCohomology (n + 1)).map Fcol.τ₁ from Functor.map_neg _,
+      Preadditive.neg_comp] at this
+    exact this
+  rw [← hδFcol', ← hδFrow', Category.assoc, Category.assoc,
+    show (tateCohomology (n + 1)).map Fcol.τ₁ ≫ δ (ses₁ (ttses hS)) (n + 1) =
+      -δ hSA' (n + 1) by rw [hδGrow'', neg_neg],
+    show (tateCohomology (n + 1)).map Frow.τ₁ ≫ δ (ses₁ hS') (n + 1) =
+      δ hSA' (n + 1) from hδGcol''.symm,
+    Preadditive.comp_neg]
