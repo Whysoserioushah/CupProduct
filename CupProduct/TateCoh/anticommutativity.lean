@@ -9,11 +9,19 @@ variable {C : Type*} [Category* C] [HasZeroMorphisms C] [HasFiniteLimits C] [Has
 /-- Transpose a short complex of short complexes by swapping rows and columns. -/
 abbrev CategoryTheory.ShortComplex.transpose (S : ShortComplex <| ShortComplex C) :
     ShortComplex (ShortComplex C) where
-  X₁ := ⟨S.X₁.X₁, S.X₂.X₁, S.X₃.X₁, S.f.τ₁, S.g.τ₁, congr(ShortComplex.Hom.τ₁ $S.zero)⟩
-  X₂ := ⟨S.X₁.X₂, S.X₂.X₂, S.X₃.X₂, S.f.τ₂, S.g.τ₂, congr(ShortComplex.Hom.τ₂ $S.zero)⟩
-  X₃ := ⟨S.X₁.X₃, S.X₂.X₃, S.X₃.X₃, S.f.τ₃, S.g.τ₃, congr(ShortComplex.Hom.τ₃ $S.zero)⟩
-  f := ⟨S.X₁.f, S.X₂.f, S.X₃.f, S.f.comm₁₂.symm, S.g.comm₁₂.symm⟩
-  g := ⟨S.X₁.g, S.X₂.g, S.X₃.g, S.f.comm₂₃.symm, S.g.comm₂₃.symm⟩
+  X₁ :=
+    { X₁ := S.X₁.X₁, X₂ := S.X₂.X₁, X₃ := S.X₃.X₁, f := S.f.τ₁, g := S.g.τ₁
+      zero := congr(ShortComplex.Hom.τ₁ $S.zero) }
+  X₂ :=
+    { X₁ := S.X₁.X₂, X₂ := S.X₂.X₂, X₃ := S.X₃.X₂, f := S.f.τ₂, g := S.g.τ₂
+      zero := congr(ShortComplex.Hom.τ₂ $S.zero) }
+  X₃ :=
+    { X₁ := S.X₁.X₃, X₂ := S.X₂.X₃, X₃ := S.X₃.X₃, f := S.f.τ₃, g := S.g.τ₃
+      zero := congr(ShortComplex.Hom.τ₃ $S.zero) }
+  f := { τ₁ := S.X₁.f, τ₂ := S.X₂.f, τ₃ := S.X₃.f
+         comm₁₂ := S.f.comm₁₂.symm, comm₂₃ := S.g.comm₁₂.symm }
+  g := { τ₁ := S.X₁.g, τ₂ := S.X₂.g, τ₃ := S.X₃.g
+         comm₁₂ := S.f.comm₂₃.symm, comm₂₃ := S.g.comm₂₃.symm }
   zero := by ext1 <;> simp
 
 omit [HasImages C] [HasKernels C] in
