@@ -97,15 +97,63 @@ lemma anticommutativity (S : ShortComplex <| ShortComplex (Rep R G)) (hS : S.Sho
     epi_g := @epi_comp _ _ _ _ _ _ (ses₂ hS').3 _ (ses₃ (ttses hS)).3
   }
   let i : S.X₁.X₁ ⟶ S.X₁.X₂ ⨿ S.X₂.X₁ := S.X₁.f ≫ coprod.inl + S.f.τ₁ ≫ coprod.inr
-  let j : S.X₁.X₂ ⨿ S.X₂.X₁ ⟶ D := coprod.desc (kernel.lift _ S.f.τ₂ (by sorry))
-    (kernel.lift _ (- S.X₂.f) sorry)
+  let j : S.X₁.X₂ ⨿ S.X₂.X₁ ⟶ D := coprod.desc (kernel.lift _ S.f.τ₂ (by
+      change S.f.τ₂ ≫ S.X₂.g ≫ S.g.τ₃ = 0
+      rw [← Category.assoc, S.f.comm₂₃, Category.assoc]
+      rw [show S.f.τ₃ ≫ S.g.τ₃ = (S.f ≫ S.g).τ₃ from rfl, S.zero]
+      simp))
+    (kernel.lift _ (- S.X₂.f) (by
+      change (-S.X₂.f) ≫ S.X₂.g ≫ S.g.τ₃ = 0
+      rw [Preadditive.neg_comp, ← Category.assoc, S.X₂.zero, Limits.zero_comp, neg_zero]))
+  have hj₁ : coprod.inl ≫ j ≫ kernel.ι φ = S.f.τ₂ := by
+    rw [← Category.assoc, coprod.inl_desc, kernel.lift_ι]
+  have hj₂ : coprod.inr ≫ j ≫ kernel.ι φ = -S.X₂.f := by
+    rw [← Category.assoc, coprod.inr_desc, kernel.lift_ι]
+  have hij : i ≫ j = 0 := by
+    apply (cancel_mono (kernel.ι φ)).1
+    change ((S.X₁.f ≫ coprod.inl + S.f.τ₁ ≫ coprod.inr) ≫ j) ≫ kernel.ι φ = 0 ≫ kernel.ι φ
+    simp only [Preadditive.add_comp, Limits.zero_comp, Category.assoc, hj₁, hj₂]
+    rw [Preadditive.comp_neg, ← S.f.comm₁₂]
+    abel
   let SA' : ShortComplex (Rep.{u} R G) := {
     X₁ := S.X₁.X₁
     X₂ := S.X₁.X₂ ⨿ S.X₂.X₁
     X₃ := D
     f := i
     g := j
-    zero := sorry
+    zero := hij
   }
-  have hSA' : SA'.ShortExact := sorry
+  have mono_X₁f : Mono S.X₁.f := (ses₁ hS').mono_f
+  have mono_i : Mono i := by
+    have hfac : i ≫ coprod.desc (𝟙 _) 0 = S.X₁.f := by
+      change (S.X₁.f ≫ coprod.inl + S.f.τ₁ ≫ coprod.inr) ≫ coprod.desc (𝟙 _) 0 = _
+      rw [Preadditive.add_comp, Category.assoc, Category.assoc, coprod.inl_desc,
+        coprod.inr_desc, Category.comp_id, Limits.comp_zero, add_zero]
+    exact mono_of_mono_fac hfac
+  -- Outline of the remainder of the proof.
+  --
+  -- Two further hard pieces remain.  We isolate them as anonymous `have` blocks
+  -- with `sorry` so that the structural skeleton typechecks.
+  --
+  -- (1)  `hSA' : SA'.ShortExact`.  This is the “3 × 3” lemma:
+  --      given the 3 × 3 commutative diagram with exact rows and columns,
+  --      the auxiliary sequence
+  --         `0 ⟶ A' ⟶ A ⊕ B' ⟶ D ⟶ 0`
+  --      is short exact.  Mono of `i` was proved above (`mono_i`).  The
+  --      remaining pieces are `Epi j` and `SA'.Exact`; both are standard
+  --      diagram chases using the exact rows (`ses_i hS'`) and columns
+  --      (`ses_j (ttses hS)`).
+  --
+  -- (2)  Build two morphisms of short exact sequences
+  --        F₁ : SA' ⟶ S.transpose.X₁  -- the first column   `A' → B' → C'`
+  --        F₃ : SA' ⟶ S.X₁            -- the first row      `A' → A  → A''`
+  --      together with a morphism `G : SD ⟶ S.X₃` of `S.X₃` (third row).
+  --      Using `δ_naturality` (proved in
+  --      `CupProduct/TateCoh/degree0.lean`) for each of these and the
+  --      construction of `SD` and `SA'` we factor
+  --        `δ (ses₃ hS') n ≫ δ (ses₁ (ttses hS)) (n+1)`
+  --      and
+  --        `δ (ses₃ (ttses hS)) n ≫ δ (ses₁ hS') (n+1)`
+  --      both through `δ hSD n ≫ δ hSA' (n+1)`, with a difference of sign
+  --      coming from the `-S.X₂.f` choice in the second summand of `j`.
   sorry
