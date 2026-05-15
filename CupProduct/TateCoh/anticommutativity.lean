@@ -215,7 +215,8 @@ lemma anticommutativity (S : ShortComplex <| ShortComplex (Rep R G)) (hS : S.Sho
         change (𝟙 _ : S.X₁.X₁ ⟶ _) ≫ S.f.τ₁ = i ≫ coprod.desc 0 (𝟙 _)
         rw [Category.id_comp]
         change S.f.τ₁ = (S.X₁.f ≫ coprod.inl + S.f.τ₁ ≫ coprod.inr) ≫ coprod.desc 0 (𝟙 _)
-        simp [Preadditive.add_comp]
+        rw [Preadditive.add_comp, Category.assoc, Category.assoc, coprod.inl_desc,
+          coprod.inr_desc, Category.comp_id, Limits.comp_zero, zero_add]
       comm₂₃ := by
         change coprod.desc (0 : S.X₁.X₂ ⟶ S.X₂.X₁) (𝟙 _) ≫ S.g.τ₁ = j ≫ (-Fcol_τ₁)
         apply coprod.hom_ext
