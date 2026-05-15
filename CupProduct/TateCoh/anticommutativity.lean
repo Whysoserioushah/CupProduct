@@ -190,8 +190,11 @@ lemma anticommutativity (S : ShortComplex <| ShortComplex (Rep R G)) (hS : S.Sho
   let Gcol : SA' ⟶ S.X₁ :=
     { τ₁ := 𝟙 _, τ₂ := coprod.desc (𝟙 _) 0, τ₃ := Frow_τ₁
       comm₁₂ := by
-        change 𝟙 _ ≫ S.X₁.f = (S.X₁.f ≫ coprod.inl + S.f.τ₁ ≫ coprod.inr) ≫ coprod.desc (𝟙 _) 0
-        simp [Preadditive.add_comp]
+        change 𝟙 _ ≫ S.X₁.f = i ≫ coprod.desc (𝟙 _) 0
+        rw [Category.id_comp]
+        change S.X₁.f = (S.X₁.f ≫ coprod.inl + S.f.τ₁ ≫ coprod.inr) ≫ coprod.desc (𝟙 _) 0
+        rw [Preadditive.add_comp, Category.assoc, Category.assoc, coprod.inl_desc,
+          coprod.inr_desc, Category.comp_id, Limits.comp_zero, add_zero]
       comm₂₃ := by
         change coprod.desc (𝟙 _) (0 : S.X₂.X₁ ⟶ S.X₁.X₂) ≫ S.X₁.g = j ≫ Frow_τ₁
         apply (cancel_mono S.f.τ₃).1
@@ -209,8 +212,9 @@ lemma anticommutativity (S : ShortComplex <| ShortComplex (Rep R G)) (hS : S.Sho
   let Grow : SA' ⟶ S.transpose.X₁ :=
     { τ₁ := 𝟙 _, τ₂ := coprod.desc 0 (𝟙 _), τ₃ := -Fcol_τ₁
       comm₁₂ := by
-        change (𝟙 _ : S.X₁.X₁ ⟶ _) ≫ S.f.τ₁ =
-          (S.X₁.f ≫ coprod.inl + S.f.τ₁ ≫ coprod.inr) ≫ coprod.desc 0 (𝟙 _)
+        change (𝟙 _ : S.X₁.X₁ ⟶ _) ≫ S.f.τ₁ = i ≫ coprod.desc 0 (𝟙 _)
+        rw [Category.id_comp]
+        change S.f.τ₁ = (S.X₁.f ≫ coprod.inl + S.f.τ₁ ≫ coprod.inr) ≫ coprod.desc 0 (𝟙 _)
         simp [Preadditive.add_comp]
       comm₂₃ := by
         change coprod.desc (0 : S.X₁.X₂ ⟶ S.X₂.X₁) (𝟙 _) ≫ S.g.τ₁ = j ≫ (-Fcol_τ₁)
