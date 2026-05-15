@@ -1,0 +1,51 @@
+\documentclass{article}
+\usepackage{amsmath, amssymb, amsthm}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+\newtheorem{remark}[theorem]{Remark}
+\begin{document}
+
+\begin{theorem}
+Assume the diagram of $G$-modules and $G$-homomorphisms
+
+% [figure omitted]
+
+is commutative with exact rows and columns. Then the diagram
+
+% [figure omitted]
+
+commutes.
+\end{theorem}
+
+\begin{proof}
+Let $D$ be the kernel of the composite map $B \to C''$; thus the sequence
+$$
+0 \longrightarrow D \longrightarrow B \longrightarrow C'' \longrightarrow 0
+$$
+is exact. We define $G$-homomorphisms
+
+$i: A' \to A \oplus B'$ by $i(a') = (a, b')$, where $a$ (resp.\ $b'$) is the image of $a'$ in $A$ (resp.\ of $a'$ in $B'$),
+
+$j: A \oplus B' \to D$ by $j(a, b') = d_1 - d_2$, where $d_1$ (resp.\ $d_2$) is the image of $a$ (resp.\ of $b'$) in $D \subseteq B$.
+
+It is easy to verify that with these definitions the sequence
+
+% [figure omitted]
+
+is exact, and that the diagram
+
+% [figure omitted]
+
+commutes. Because $\operatorname{im}(D \to B'') \subseteq \operatorname{im}(A'' \to B'')$ and $A'' \to B''$ is injective, there is a $G$-homomorphism $D \to A''$ which extends the above diagram. Similarly, since $\operatorname{im}(D \to C) \subseteq \operatorname{im}(C' \to C)$ and $C' \to C$ is injective, there is an analogous $G$-homomorphism $D \to C'$. Since the resulting extended diagram is commutative, it follows from (3.5) that the following diagram
+
+% [figure omitted]
+
+commutes as well, which immediately implies the theorem.
+\end{proof}
+
+\end{document}
