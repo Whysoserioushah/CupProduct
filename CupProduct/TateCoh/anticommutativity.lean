@@ -311,10 +311,9 @@ lemma anticommutativity (S : ShortComplex <| ShortComplex (Rep R G)) (hS : S.Sho
       have h1 : a ≫ S.f.τ₂ = b' ≫ S.X₂.f := by linear_combination (norm := abel) hjx
       rw [e1, h1, ← Category.assoc]
     refine ⟨A', π, hπ, a', ?_⟩
-    -- π ≫ x = a' ≫ i
-    show π ≫ x = a' ≫ i
+    change π ≫ x = a' ≫ i
     have h_i : a' ≫ i = a' ≫ S.X₁.f ≫ coprod.inl + a' ≫ S.f.τ₁ ≫ coprod.inr := by
-      show a' ≫ (S.X₁.f ≫ coprod.inl + S.f.τ₁ ≫ coprod.inr) =
+      change a' ≫ (S.X₁.f ≫ coprod.inl + S.f.τ₁ ≫ coprod.inr) =
         a' ≫ S.X₁.f ≫ coprod.inl + a' ≫ S.f.τ₁ ≫ coprod.inr
       rw [Preadditive.comp_add]
     rw [h_i, hx_decomp, Preadditive.comp_add]
