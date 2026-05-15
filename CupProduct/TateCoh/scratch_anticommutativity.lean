@@ -123,5 +123,20 @@ lemma anticommutativity (S : ShortComplex <| ShortComplex (Rep R G)) (hS : S.Sho
     g := j
     zero := hij
   }
-  have hSA' : SA'.ShortExact := sorry
+  have mono_X₁f : Mono S.X₁.f := (ses₁ hS').mono_f
+  have mono_i : Mono i := by
+    have hfac : i ≫ coprod.desc (𝟙 _) 0 = S.X₁.f := by
+      change (S.X₁.f ≫ coprod.inl + S.f.τ₁ ≫ coprod.inr) ≫ coprod.desc (𝟙 _) 0 = _
+      rw [Preadditive.add_comp, Category.assoc, Category.assoc, coprod.inl_desc,
+        coprod.inr_desc, Category.comp_id, Limits.comp_zero, add_zero]
+    exact mono_of_mono_fac hfac
+  have epi_j : Epi j := by
+    sorry
+  have exact_SA' : SA'.Exact := by
+    sorry
+  have hSA' : SA'.ShortExact := {
+    exact := exact_SA'
+    mono_f := mono_i
+    epi_g := epi_j
+  }
   sorry
