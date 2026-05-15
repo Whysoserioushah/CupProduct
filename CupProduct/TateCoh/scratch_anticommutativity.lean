@@ -247,8 +247,20 @@ lemma anticommutativity (S : ShortComplex <| ShortComplex (Rep R G)) (hS : S.Sho
     let a : A ⟶ S.X₁.X₂ := x ≫ coprod.desc (𝟙 _) 0
     let b' : A ⟶ S.X₂.X₁ := x ≫ coprod.desc 0 (𝟙 _)
     -- We have x = a ≫ coprod.inl + b' ≫ coprod.inr (preadditive coprod = biprod).
+    -- Decomposition: any morphism into a coproduct (= biproduct in additive)
+    -- decomposes via projections.
     have hx_decomp : x = a ≫ coprod.inl + b' ≫ coprod.inr := by
-      apply coprod.hom_ext <;> simp [a, b', Preadditive.comp_add]
+      have hr : a ≫ coprod.inl + b' ≫ coprod.inr =
+          x ≫ (coprod.desc (𝟙 _) 0 ≫ coprod.inl + coprod.desc 0 (𝟙 _) ≫ coprod.inr) := by
+        rw [Preadditive.comp_add]
+        simp [a, b', Category.assoc]
+      have : coprod.desc (𝟙 _) 0 ≫ (coprod.inl : S.X₁.X₂ ⟶ S.X₁.X₂ ⨿ S.X₂.X₁) +
+             coprod.desc 0 (𝟙 _) ≫ (coprod.inr : S.X₂.X₁ ⟶ S.X₁.X₂ ⨿ S.X₂.X₁)
+             = 𝟙 (S.X₁.X₂ ⨿ S.X₂.X₁) := by
+        apply coprod.hom_ext
+        · simp [Preadditive.comp_add]
+        · simp [Preadditive.comp_add]
+      rw [hr, this, Category.comp_id]
     -- From hx : x ≫ j = 0, computing x ≫ j ≫ kernel.ι φ via hj₁/hj₂:
     have hjx : a ≫ S.f.τ₂ - b' ≫ S.X₂.f = 0 := by
       have : x ≫ j ≫ kernel.ι φ = 0 := by rw [← Category.assoc, hx, Limits.zero_comp]
