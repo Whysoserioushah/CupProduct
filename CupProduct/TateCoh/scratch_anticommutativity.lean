@@ -431,29 +431,33 @@ lemma anticommutativity (S : ShortComplex <| ShortComplex (Rep R G)) (hS : S.Sho
       apply coprod.hom_ext
       · -- coprod.inl side: LHS = 0, want to show RHS = 0 (via mono S.X₃.f).
         have key : coprod.inl ≫ j ≫ (-Fcol_τ₁) = 0 := by
-          have h0 : coprod.inl ≫ j ≫ (-Fcol_τ₁) = -((coprod.inl ≫ j ≫ kernel.ι φ) ≫ S.g.τ₂) := by
-            apply (cancel_mono S.X₃.f).1
-            rw [Preadditive.neg_comp, Category.assoc, Category.assoc, Preadditive.comp_neg,
-              Preadditive.comp_neg]
-            congr 1
-            rw [Category.assoc, hFcol_τ₁]
-            simp [Category.assoc]
-          rw [h0, hj₁]
+          apply (cancel_mono S.X₃.f).1
+          rw [Limits.zero_comp]
+          -- (coprod.inl ≫ j ≫ -Fcol_τ₁) ≫ S.X₃.f
+          -- = coprod.inl ≫ j ≫ -Fcol_τ₁ ≫ S.X₃.f
+          -- = coprod.inl ≫ j ≫ -(Fcol_τ₁ ≫ S.X₃.f)
+          -- = coprod.inl ≫ j ≫ -(kernel.ι φ ≫ S.g.τ₂)
+          -- = -(coprod.inl ≫ j ≫ kernel.ι φ ≫ S.g.τ₂)
+          -- = -(S.f.τ₂ ≫ S.g.τ₂) = 0
+          have h1 : (coprod.inl ≫ j ≫ (-Fcol_τ₁)) ≫ S.X₃.f
+              = -((coprod.inl ≫ j ≫ kernel.ι φ) ≫ S.g.τ₂) := by
+            rw [Category.assoc, Category.assoc, Preadditive.neg_comp, ← Category.assoc Fcol_τ₁,
+              hFcol_τ₁, Preadditive.comp_neg, Preadditive.comp_neg, ← Category.assoc,
+              ← Category.assoc]
           have hfg : S.f.τ₂ ≫ S.g.τ₂ = 0 :=
             show (S.f ≫ S.g).τ₂ = 0 by rw [S.zero]; rfl
-          rw [hfg, neg_zero]
+          rw [h1, hj₁, hfg, neg_zero]
         rw [← Category.assoc, coprod.inl_desc, Limits.zero_comp, key]
       · -- coprod.inr side: LHS = S.g.τ₁; want this = -(coprod.inr ≫ j ≫ Fcol_τ₁) via mono.
         rw [← Category.assoc, coprod.inr_desc, Category.id_comp]
         have key : coprod.inr ≫ j ≫ (-Fcol_τ₁) = S.g.τ₁ := by
-          have h0 : coprod.inr ≫ j ≫ (-Fcol_τ₁) = -((coprod.inr ≫ j ≫ kernel.ι φ) ≫ S.g.τ₂) := by
-            apply (cancel_mono S.X₃.f).1
-            rw [Preadditive.neg_comp, Category.assoc, Category.assoc, Preadditive.comp_neg,
-              Preadditive.comp_neg]
-            congr 1
-            rw [Category.assoc, hFcol_τ₁]
-            simp [Category.assoc]
-          rw [h0, hj₂, Preadditive.neg_comp, neg_neg]
+          apply (cancel_mono S.X₃.f).1
+          have h1 : (coprod.inr ≫ j ≫ (-Fcol_τ₁)) ≫ S.X₃.f
+              = -((coprod.inr ≫ j ≫ kernel.ι φ) ≫ S.g.τ₂) := by
+            rw [Category.assoc, Category.assoc, Preadditive.neg_comp, ← Category.assoc Fcol_τ₁,
+              hFcol_τ₁, Preadditive.comp_neg, Preadditive.comp_neg, ← Category.assoc,
+              ← Category.assoc]
+          rw [h1, hj₂, Preadditive.neg_comp, neg_neg]
           exact S.g.comm₁₂.symm
         exact key.symm
   }
