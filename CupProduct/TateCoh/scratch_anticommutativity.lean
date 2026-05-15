@@ -430,7 +430,8 @@ lemma anticommutativity (S : ShortComplex <| ShortComplex (Rep R G)) (hS : S.Sho
       show coprod.desc (0 : S.X₁.X₂ ⟶ S.X₂.X₁) (𝟙 _) ≫ S.g.τ₁ = j ≫ (-Fcol_τ₁)
       apply (cancel_mono S.X₃.f).1
       -- Goal: (coprod.desc 0 𝟙 ≫ S.g.τ₁) ≫ S.X₃.f = (j ≫ -Fcol_τ₁) ≫ S.X₃.f.
-      rw [Category.assoc, Category.assoc, Preadditive.comp_neg, hFcol_τ₁]
+      rw [Category.assoc, Category.assoc, Preadditive.neg_comp, hFcol_τ₁,
+        ← Preadditive.comp_neg]
       -- Goal: coprod.desc 0 𝟙 ≫ S.g.τ₁ ≫ S.X₃.f = -(j ≫ kernel.ι φ ≫ S.g.τ₂).
       apply coprod.hom_ext
       · -- coprod.inl side
