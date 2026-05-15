@@ -323,56 +323,63 @@ lemma anticommutativity (S : ShortComplex <| ShortComplex (Rep R G)) (hS : S.Sho
   have hSA' : SA'.ShortExact :=
     { exact := exact_SA', mono_f := mono_i, epi_g := epi_j }
   -- (2)  Build the four short complex morphisms.
-  -- F : SD ⟶ S.transpose.X₃ with F.τ₂ = S.X₂.g, F.τ₃ = 𝟙, F.τ₁ via exactness lift.
-  -- (kernel.ι φ) ≫ S.X₂.g  factors through S.f.τ₃ because
-  -- (kernel.ι φ ≫ S.X₂.g) ≫ S.g.τ₃ = kernel.ι φ ≫ φ = 0.
-  have hF_lift_zero : (kernel.ι φ ≫ S.X₂.g) ≫ S.g.τ₃ = 0 := by
-    have : kernel.ι φ ≫ S.X₂.g ≫ S.g.τ₃ = 0 := kernel.condition φ
-    rw [Category.assoc]; exact this
-  let F_τ₁ : D ⟶ S.X₁.X₃ := exact_col3.lift (kernel.ι φ ≫ S.X₂.g) hF_lift_zero
-  have hF_τ₁ : F_τ₁ ≫ S.f.τ₃ = kernel.ι φ ≫ S.X₂.g := exact_col3.lift_f _ _
-  let F : SD ⟶ S.transpose.X₃ := {
-    τ₁ := F_τ₁
-    τ₂ := S.X₂.g
-    τ₃ := 𝟙 _
-    comm₁₂ := by
-      show F_τ₁ ≫ S.f.τ₃ = kernel.ι φ ≫ S.X₂.g
-      exact hF_τ₁
-    comm₂₃ := by
-      show S.X₂.g ≫ S.g.τ₃ = φ ≫ 𝟙 _
-      rw [Category.comp_id]; rfl
-  }
-  -- F' : SD ⟶ S.X₃ with F'.τ₂ = S.g.τ₂, F'.τ₃ = 𝟙, F'.τ₁ via exactness lift.
-  -- exact_row3 : S.X₃ exact
-  have exact_row3 : (ShortComplex.mk S.X₃.f S.X₃.g S.X₃.zero).Exact := (ses₃ (ttses hS)).exact
-  -- Also need (kernel.ι φ ≫ S.g.τ₂) ≫ S.X₃.g = 0.
-  have hF'_lift_zero : (kernel.ι φ ≫ S.g.τ₂) ≫ S.X₃.g = 0 := by
-    -- kernel.ι φ ≫ S.g.τ₂ ≫ S.X₃.g = kernel.ι φ ≫ S.X₂.g ≫ S.g.τ₃ = 0
+  -- `ses₃ hS'`  is the third column of S  (with  f = S.X₃.f, g = S.X₃.g).
+  -- `ses₁ (ttses hS)` is the first row of S (with f = S.f.τ₁, g = S.g.τ₁) — wait it's
+  -- the row.  Note `ses₁` and `ses₃` are applied to `S.transpose.ShortExact`.
+  -- So `ses₃ hS'` uses `hS' : S.transpose.ShortExact` to give SE of `S.X₃`,
+  --     `ses₃ (ttses hS)` uses `S.transpose.transpose.ShortExact` to give SE
+  --       of `S.transpose.X₃`.
+  -- F_col3 : SD ⟶ S.X₃ with τ₂ = S.g.τ₂, τ₃ = 𝟙, τ₁ lifts kernel.ι φ ≫ S.g.τ₂ via S.X₃.f.
+  have exact_S_X₃ : S.X₃.Exact := (ses₃ hS').exact
+  have mono_S_X₃f : Mono S.X₃.f := (ses₃ hS').mono_f
+  have hFcol_lift_zero : (kernel.ι φ ≫ S.g.τ₂) ≫ S.X₃.g = 0 := by
     have hcom : S.g.τ₂ ≫ S.X₃.g = S.X₂.g ≫ S.g.τ₃ := S.g.comm₂₃.symm
-    rw [Category.assoc, hcom, ← Category.assoc]
-    have : kernel.ι φ ≫ φ = 0 := kernel.condition φ
-    change (kernel.ι φ ≫ S.X₂.g) ≫ S.g.τ₃ = 0
-    rw [Category.assoc]; exact this
-  have mono_X₃f : Mono S.X₃.f := (ses₃ (ttses hS)).mono_f
-  let F'_τ₁ : D ⟶ S.X₃.X₁ := exact_row3.lift (kernel.ι φ ≫ S.g.τ₂) hF'_lift_zero
-  have hF'_τ₁ : F'_τ₁ ≫ S.X₃.f = kernel.ι φ ≫ S.g.τ₂ := exact_row3.lift_f _ _
-  let F' : SD ⟶ S.X₃ := {
-    τ₁ := F'_τ₁
+    rw [Category.assoc, hcom]
+    show kernel.ι φ ≫ φ = 0
+    exact kernel.condition φ
+  let Fcol_τ₁ : D ⟶ S.X₃.X₁ := exact_S_X₃.lift (kernel.ι φ ≫ S.g.τ₂) hFcol_lift_zero
+  have hFcol_τ₁ : Fcol_τ₁ ≫ S.X₃.f = kernel.ι φ ≫ S.g.τ₂ := exact_S_X₃.lift_f _ _
+  let Fcol : SD ⟶ S.X₃ := {
+    τ₁ := Fcol_τ₁
     τ₂ := S.g.τ₂
     τ₃ := 𝟙 _
     comm₁₂ := by
-      show F'_τ₁ ≫ S.X₃.f = kernel.ι φ ≫ S.g.τ₂
-      exact hF'_τ₁
+      show Fcol_τ₁ ≫ S.X₃.f = kernel.ι φ ≫ S.g.τ₂
+      exact hFcol_τ₁
     comm₂₃ := by
       show S.g.τ₂ ≫ S.X₃.g = φ ≫ 𝟙 _
       rw [Category.comp_id]
       exact S.g.comm₂₃.symm
   }
-  -- G : SA' ⟶ S.X₁ with G.τ₁ = 𝟙, G.τ₂ = coprod.desc 𝟙 0, G.τ₃ = F_τ₁.
-  let G : SA' ⟶ S.X₁ := {
+  -- F_row3 : SD ⟶ S.transpose.X₃ with τ₂ = S.X₂.g, τ₃ = 𝟙, τ₁ lifts
+  -- kernel.ι φ ≫ S.X₂.g via S.f.τ₃.
+  have exact_S_t_X₃ : S.transpose.X₃.Exact := (ses₃ (ttses hS)).exact
+  have mono_S_t_X₃f : Mono S.transpose.X₃.f := (ses₃ (ttses hS)).mono_f
+  have hFrow_lift_zero : (kernel.ι φ ≫ S.X₂.g) ≫ S.g.τ₃ = 0 := by
+    rw [Category.assoc]
+    show kernel.ι φ ≫ φ = 0
+    exact kernel.condition φ
+  let Frow_τ₁ : D ⟶ S.X₁.X₃ :=
+    exact_S_t_X₃.lift (kernel.ι φ ≫ S.X₂.g) hFrow_lift_zero
+  have hFrow_τ₁ : Frow_τ₁ ≫ S.f.τ₃ = kernel.ι φ ≫ S.X₂.g :=
+    exact_S_t_X₃.lift_f _ _
+  let Frow : SD ⟶ S.transpose.X₃ := {
+    τ₁ := Frow_τ₁
+    τ₂ := S.X₂.g
+    τ₃ := 𝟙 _
+    comm₁₂ := by
+      show Frow_τ₁ ≫ S.f.τ₃ = kernel.ι φ ≫ S.X₂.g
+      exact hFrow_τ₁
+    comm₂₃ := by
+      show S.X₂.g ≫ S.g.τ₃ = φ ≫ 𝟙 _
+      rw [Category.comp_id]; rfl
+  }
+  -- G_col1 : SA' ⟶ S.X₁  (first column of S).
+  -- τ₁ = 𝟙, τ₂ = coprod.desc 𝟙 0, τ₃ = Frow_τ₁.
+  let Gcol : SA' ⟶ S.X₁ := {
     τ₁ := 𝟙 _
     τ₂ := coprod.desc (𝟙 _) 0
-    τ₃ := F_τ₁
+    τ₃ := Frow_τ₁
     comm₁₂ := by
       show 𝟙 _ ≫ S.X₁.f = i ≫ coprod.desc (𝟙 _) 0
       rw [Category.id_comp]
@@ -380,120 +387,145 @@ lemma anticommutativity (S : ShortComplex <| ShortComplex (Rep R G)) (hS : S.Sho
       rw [Preadditive.add_comp, Category.assoc, Category.assoc, coprod.inl_desc,
         coprod.inr_desc, Category.comp_id, Limits.comp_zero, add_zero]
     comm₂₃ := by
-      show coprod.desc (𝟙 _) 0 ≫ S.X₁.g = j ≫ F_τ₁
+      show coprod.desc (𝟙 _) 0 ≫ S.X₁.g = j ≫ Frow_τ₁
       apply (cancel_mono S.f.τ₃).1
-      rw [Category.assoc, Category.assoc, hF_τ₁]
+      rw [Category.assoc, Category.assoc, hFrow_τ₁]
       apply coprod.hom_ext
-      · rw [← Category.assoc, coprod.inl_desc, Category.id_comp,
-          ← Category.assoc, ← Category.assoc, ← Category.assoc, hj₁]
-        exact S.f.comm₂₃.symm
-      · rw [← Category.assoc, coprod.inr_desc, Limits.zero_comp,
-          ← Category.assoc, ← Category.assoc, ← Category.assoc, hj₂,
-          Preadditive.neg_comp]
-        have : S.X₂.f ≫ S.X₂.g = 0 := S.X₂.zero
-        rw [this, neg_zero]
+      · -- coprod.inl side: lhs = S.X₁.g ≫ S.f.τ₃; rhs = S.f.τ₂ ≫ S.X₂.g = S.X₁.g ≫ S.f.τ₃
+        rw [← Category.assoc (coprod.inl) _ S.f.τ₃,
+          ← Category.assoc (coprod.inl) _ S.X₂.g]
+        rw [← Category.assoc (coprod.inl) _ S.X₂.g]
+        show ((coprod.inl ≫ coprod.desc (𝟙 _) 0) ≫ S.X₁.g) ≫ S.f.τ₃ =
+          ((coprod.inl ≫ j) ≫ kernel.ι φ) ≫ S.X₂.g
+        rw [coprod.inl_desc, Category.id_comp]
+        rw [show ((coprod.inl ≫ j) ≫ kernel.ι φ) ≫ S.X₂.g =
+          (coprod.inl ≫ j ≫ kernel.ι φ) ≫ S.X₂.g by rw [Category.assoc]]
+        rw [hj₁]
+        exact S.f.comm₂₃
+      · -- coprod.inr side: lhs = 0; rhs = -S.X₂.f ≫ S.X₂.g = 0
+        rw [← Category.assoc (coprod.inr) _ S.f.τ₃,
+          ← Category.assoc (coprod.inr) _ S.X₂.g]
+        rw [← Category.assoc (coprod.inr) _ S.X₂.g]
+        show ((coprod.inr ≫ coprod.desc (𝟙 _) 0) ≫ S.X₁.g) ≫ S.f.τ₃ =
+          ((coprod.inr ≫ j) ≫ kernel.ι φ) ≫ S.X₂.g
+        rw [coprod.inr_desc, Limits.zero_comp, Limits.zero_comp]
+        rw [show ((coprod.inr ≫ j) ≫ kernel.ι φ) ≫ S.X₂.g =
+          (coprod.inr ≫ j ≫ kernel.ι φ) ≫ S.X₂.g by rw [Category.assoc]]
+        rw [hj₂, Preadditive.neg_comp]
+        have hX₂zero : S.X₂.f ≫ S.X₂.g = 0 := S.X₂.zero
+        rw [hX₂zero, neg_zero]
   }
-  -- G' : SA' ⟶ S.transpose.X₁ with G'.τ₁ = -𝟙, G'.τ₂ = coprod.desc 0 (-𝟙), G'.τ₃ = F'_τ₁.
-  let G' : SA' ⟶ S.transpose.X₁ := {
-    τ₁ := -𝟙 _
-    τ₂ := coprod.desc 0 (-𝟙 _)
-    τ₃ := F'_τ₁
+  -- G_row1 : SA' ⟶ S.transpose.X₁  (first row of S).
+  -- τ₁ = 𝟙, τ₂ = coprod.desc 0 𝟙, τ₃ = -Fcol_τ₁  (sign from -S.X₂.f in j).
+  let Grow : SA' ⟶ S.transpose.X₁ := {
+    τ₁ := 𝟙 _
+    τ₂ := coprod.desc 0 (𝟙 _)
+    τ₃ := -Fcol_τ₁
     comm₁₂ := by
-      show -𝟙 _ ≫ S.f.τ₁ = i ≫ coprod.desc 0 (-𝟙 _)
-      rw [Preadditive.neg_comp, Category.id_comp]
-      show -S.f.τ₁ = (S.X₁.f ≫ coprod.inl + S.f.τ₁ ≫ coprod.inr) ≫ coprod.desc 0 (-𝟙 _)
+      show (𝟙 _ : S.X₁.X₁ ⟶ _) ≫ S.f.τ₁ = i ≫ coprod.desc 0 (𝟙 _)
+      rw [Category.id_comp]
+      show S.f.τ₁ = (S.X₁.f ≫ coprod.inl + S.f.τ₁ ≫ coprod.inr) ≫ coprod.desc 0 (𝟙 _)
       rw [Preadditive.add_comp, Category.assoc, Category.assoc, coprod.inl_desc,
-        coprod.inr_desc, Limits.comp_zero, zero_add,
-        show S.f.τ₁ ≫ -𝟙 _ = -S.f.τ₁ by rw [Preadditive.comp_neg, Category.comp_id]]
+        coprod.inr_desc, Category.comp_id, Limits.comp_zero, zero_add]
     comm₂₃ := by
-      show coprod.desc 0 (-𝟙 _) ≫ S.g.τ₁ = j ≫ F'_τ₁
+      show coprod.desc 0 (𝟙 _) ≫ S.g.τ₁ = j ≫ -Fcol_τ₁
       apply (cancel_mono S.X₃.f).1
-      rw [Category.assoc, Category.assoc, hF'_τ₁]
+      rw [Preadditive.comp_neg, Category.assoc, Category.assoc, hFcol_τ₁]
       apply coprod.hom_ext
-      · rw [← Category.assoc, coprod.inl_desc, Limits.zero_comp,
-          ← Category.assoc, ← Category.assoc, ← Category.assoc, hj₁]
-        have : S.f.τ₂ ≫ S.g.τ₂ = 0 :=
+      · -- coprod.inl side: lhs = 0 ≫ S.g.τ₁ ≫ S.X₃.f = 0; rhs = -(S.f.τ₂ ≫ S.g.τ₂) = 0
+        rw [show coprod.inl ≫ (coprod.desc 0 (𝟙 _) ≫ S.g.τ₁) ≫ S.X₃.f =
+          (coprod.inl ≫ coprod.desc 0 (𝟙 _)) ≫ S.g.τ₁ ≫ S.X₃.f by
+            rw [Category.assoc]]
+        rw [coprod.inl_desc, Limits.zero_comp]
+        rw [Preadditive.comp_neg]
+        rw [show coprod.inl ≫ j ≫ kernel.ι φ ≫ S.g.τ₂ =
+          (coprod.inl ≫ j ≫ kernel.ι φ) ≫ S.g.τ₂ by rw [Category.assoc]]
+        rw [hj₁]
+        have hfg : S.f.τ₂ ≫ S.g.τ₂ = 0 :=
           show (S.f ≫ S.g).τ₂ = 0 by rw [S.zero]; rfl
-        exact this.symm
-      · rw [← Category.assoc, coprod.inr_desc, ← Category.assoc, ← Category.assoc,
-          ← Category.assoc, hj₂, Preadditive.neg_comp, Preadditive.neg_comp,
-          Category.id_comp]
-        exact congrArg (fun x => -x) S.g.comm₁₂.symm
+        rw [hfg, neg_zero]
+      · -- coprod.inr side: lhs = 𝟙 ≫ S.g.τ₁ ≫ S.X₃.f = S.g.τ₁ ≫ S.X₃.f.
+        --                  rhs = -(-S.X₂.f ≫ S.g.τ₂) = S.X₂.f ≫ S.g.τ₂ = S.g.τ₁ ≫ S.X₃.f.
+        rw [show coprod.inr ≫ (coprod.desc 0 (𝟙 _) ≫ S.g.τ₁) ≫ S.X₃.f =
+          (coprod.inr ≫ coprod.desc 0 (𝟙 _)) ≫ S.g.τ₁ ≫ S.X₃.f by
+            rw [Category.assoc]]
+        rw [coprod.inr_desc, Category.id_comp]
+        rw [Preadditive.comp_neg]
+        rw [show coprod.inr ≫ j ≫ kernel.ι φ ≫ S.g.τ₂ =
+          (coprod.inr ≫ j ≫ kernel.ι φ) ≫ S.g.τ₂ by rw [Category.assoc]]
+        rw [hj₂, Preadditive.neg_comp, neg_neg]
+        exact S.g.comm₁₂.symm
   }
-  -- Step 8: assemble the final equation using δ_naturality.
-  -- δ_naturality F : δ hSD n ≫ map F.τ₁ = map F.τ₃ ≫ δ (ses₃ hS') n
-  -- δ_naturality F' : δ hSD n ≫ map F'.τ₁ = map F'.τ₃ ≫ δ (ses₃ (ttses hS)) n
-  -- δ_naturality G : δ hSA' (n+1) ≫ map G.τ₁ = map G.τ₃ ≫ δ (ses₁ (ttses hS)) (n+1)
-  -- δ_naturality G' : δ hSA' (n+1) ≫ map G'.τ₁ = map G'.τ₃ ≫ δ (ses₁ hS') (n+1)
-  have hδF : δ hSD n ≫ (tateCohomology (n + 1)).map F.τ₁
-      = (tateCohomology n).map F.τ₃ ≫ δ (ses₃ hS') n :=
-    δ_naturality hSD (ses₃ hS') F n
-  have hδF' : δ hSD n ≫ (tateCohomology (n + 1)).map F'.τ₁
-      = (tateCohomology n).map F'.τ₃ ≫ δ (ses₃ (ttses hS)) n :=
-    δ_naturality hSD (ses₃ (ttses hS)) F' n
-  have hδG : δ hSA' (n + 1) ≫ (tateCohomology (n + 1 + 1)).map G.τ₁
-      = (tateCohomology (n + 1)).map G.τ₃ ≫ δ (ses₁ (ttses hS)) (n + 1) :=
-    δ_naturality hSA' (ses₁ (ttses hS)) G (n + 1)
-  have hδG' : δ hSA' (n + 1) ≫ (tateCohomology (n + 1 + 1)).map G'.τ₁
-      = (tateCohomology (n + 1)).map G'.τ₃ ≫ δ (ses₁ hS') (n + 1) :=
-    δ_naturality hSA' (ses₁ hS') G' (n + 1)
-  -- G.τ₁ = 𝟙, so (tateCohomology _).map G.τ₁ = 𝟙.
-  -- F.τ₃ = 𝟙, similar.
-  -- G'.τ₁ = -𝟙, so (tateCohomology _).map G'.τ₁ = -𝟙.
-  -- F'.τ₃ = 𝟙, similar.
-  have hG_τ₁ : (tateCohomology (n + 1 + 1)).map G.τ₁ = 𝟙 _ := by
-    show (tateCohomology (n + 1 + 1)).map (𝟙 _) = 𝟙 _
-    exact Functor.map_id _ _
-  have hF_τ₃ : (tateCohomology n).map F.τ₃ = 𝟙 _ := by
-    show (tateCohomology n).map (𝟙 _) = 𝟙 _
-    exact Functor.map_id _ _
-  have hG'_τ₁ : (tateCohomology (n + 1 + 1)).map G'.τ₁
-      = -(𝟙 ((tateCohomology (n + 1 + 1)).obj S.X₁.X₁)) := by
-    show (tateCohomology (n + 1 + 1)).map (-𝟙 _) = -𝟙 _
-    rw [Functor.map_neg, Functor.map_id]
-  have hF'_τ₃ : (tateCohomology n).map F'.τ₃ = 𝟙 _ := by
-    show (tateCohomology n).map (𝟙 _) = 𝟙 _
-    exact Functor.map_id _ _
-  -- From hδG (with id rewrite): δ hSA' (n+1) = map F_τ₁ ≫ δ (ses₁ (ttses hS)) (n+1).
-  have hδG_simp : δ hSA' (n + 1)
-      = (tateCohomology (n + 1)).map G.τ₃ ≫ δ (ses₁ (ttses hS)) (n + 1) := by
-    have := hδG
-    rw [hG_τ₁, Category.comp_id] at this
+  -- Step 8: assemble via δ_naturality.
+  -- δ_naturality Fcol : δ hSD n ≫ map Fcol.τ₁ = map Fcol.τ₃ ≫ δ (ses₃ hS') n
+  -- δ_naturality Frow : δ hSD n ≫ map Frow.τ₁ = map Frow.τ₃ ≫ δ (ses₃ (ttses hS)) n
+  -- δ_naturality Gcol : δ hSA' (n+1) ≫ map Gcol.τ₁ = map Gcol.τ₃ ≫ δ (ses₁ hS') (n+1)
+  -- δ_naturality Grow : δ hSA' (n+1) ≫ map Grow.τ₁ = map Grow.τ₃ ≫ δ (ses₁ (ttses hS)) (n+1)
+  have hδFcol : δ hSD n ≫ (tateCohomology (n + 1)).map Fcol.τ₁
+      = (tateCohomology n).map Fcol.τ₃ ≫ δ (ses₃ hS') n :=
+    δ_naturality hSD (ses₃ hS') Fcol n
+  have hδFrow : δ hSD n ≫ (tateCohomology (n + 1)).map Frow.τ₁
+      = (tateCohomology n).map Frow.τ₃ ≫ δ (ses₃ (ttses hS)) n :=
+    δ_naturality hSD (ses₃ (ttses hS)) Frow n
+  have hδGcol : δ hSA' (n + 1) ≫ (tateCohomology (n + 1 + 1)).map Gcol.τ₁
+      = (tateCohomology (n + 1)).map Gcol.τ₃ ≫ δ (ses₁ hS') (n + 1) :=
+    δ_naturality hSA' (ses₁ hS') Gcol (n + 1)
+  have hδGrow : δ hSA' (n + 1) ≫ (tateCohomology (n + 1 + 1)).map Grow.τ₁
+      = (tateCohomology (n + 1)).map Grow.τ₃ ≫ δ (ses₁ (ttses hS)) (n + 1) :=
+    δ_naturality hSA' (ses₁ (ttses hS)) Grow (n + 1)
+  -- All of Gcol.τ₁, Frow.τ₃, Grow.τ₁, Fcol.τ₃ are 𝟙. Grow.τ₃ = -Fcol_τ₁.
+  have hFcol_τ₃_id : (tateCohomology n).map Fcol.τ₃ = 𝟙 _ := Functor.map_id _ _
+  have hFrow_τ₃_id : (tateCohomology n).map Frow.τ₃ = 𝟙 _ := Functor.map_id _ _
+  have hGcol_τ₁_id : (tateCohomology (n + 1 + 1)).map Gcol.τ₁ = 𝟙 _ :=
+    Functor.map_id _ _
+  have hGrow_τ₁_id : (tateCohomology (n + 1 + 1)).map Grow.τ₁ = 𝟙 _ :=
+    Functor.map_id _ _
+  -- Grow.τ₃ = -Fcol_τ₁ = -Frow_τ₁? No, Grow.τ₃ = -Fcol_τ₁ (different from Frow_τ₁).
+  -- Wait, Grow goes to row1 with row1.X₃ = S.X₃.X₁, and Fcol goes to col3 with col3.X₁ = S.X₃.X₁.
+  -- So Grow.τ₃ : D → S.X₃.X₁ and Fcol.τ₁ : D → S.X₃.X₁, types match.
+  have hGrow_τ₃_eq : (tateCohomology (n + 1)).map Grow.τ₃
+      = -(tateCohomology (n + 1)).map Fcol.τ₁ := by
+    show (tateCohomology (n + 1)).map (-Fcol_τ₁) = -(tateCohomology (n + 1)).map Fcol_τ₁
+    exact Functor.map_neg _
+  -- Plug hGcol_τ₁_id into hδGcol.
+  have hδGcol' : δ hSA' (n + 1)
+      = (tateCohomology (n + 1)).map Gcol.τ₃ ≫ δ (ses₁ hS') (n + 1) := by
+    have := hδGcol
+    rw [hGcol_τ₁_id, Category.comp_id] at this
     exact this
-  -- From hδG' (with -id rewrite): -δ hSA' (n+1) = map F'_τ₁ ≫ δ (ses₁ hS') (n+1).
-  have hδG'_simp : -δ hSA' (n + 1)
-      = (tateCohomology (n + 1)).map G'.τ₃ ≫ δ (ses₁ hS') (n + 1) := by
-    have := hδG'
-    rw [hG'_τ₁, Preadditive.comp_neg, Category.comp_id] at this
-    rw [← this]
-  -- From hδF (with id rewrite): δ hSD n ≫ map F_τ₁ = δ (ses₃ hS') n.
-  have hδF_simp : δ hSD n ≫ (tateCohomology (n + 1)).map F.τ₁ = δ (ses₃ hS') n := by
-    rw [hδF, hF_τ₃, Category.id_comp]
-  -- From hδF' (with id rewrite): δ hSD n ≫ map F'_τ₁ = δ (ses₃ (ttses hS)) n.
-  have hδF'_simp : δ hSD n ≫ (tateCohomology (n + 1)).map F'.τ₁
+  -- Plug hGrow_τ₁_id into hδGrow.
+  have hδGrow' : δ hSA' (n + 1)
+      = (tateCohomology (n + 1)).map Grow.τ₃ ≫ δ (ses₁ (ttses hS)) (n + 1) := by
+    have := hδGrow
+    rw [hGrow_τ₁_id, Category.comp_id] at this
+    exact this
+  -- Plug hFcol_τ₃_id into hδFcol.
+  have hδFcol' : δ hSD n ≫ (tateCohomology (n + 1)).map Fcol.τ₁ = δ (ses₃ hS') n := by
+    rw [hδFcol, hFcol_τ₃_id, Category.id_comp]
+  have hδFrow' : δ hSD n ≫ (tateCohomology (n + 1)).map Frow.τ₁
       = δ (ses₃ (ttses hS)) n := by
-    rw [hδF', hF'_τ₃, Category.id_comp]
-  -- LHS = δ (ses₃ hS') n ≫ δ (ses₁ (ttses hS)) (n+1)
-  --     = δ hSD n ≫ map F.τ₁ ≫ δ (ses₁ (ttses hS)) (n+1)        [by hδF_simp]
-  --     = δ hSD n ≫ δ hSA' (n+1)                                  [by hδG_simp]
-  -- Note F.τ₃ = G.τ₃ = F_τ₁, so this requires G.τ₃ = F.τ₁.
-  -- G.τ₃ = F_τ₁ = F.τ₁ ✓
-  -- RHS = -δ (ses₃ (ttses hS)) n ≫ δ (ses₁ hS') (n+1)
-  --     = -δ hSD n ≫ map F'.τ₁ ≫ δ (ses₁ hS') (n+1)               [by hδF'_simp]
-  --     = -δ hSD n ≫ -δ hSA' (n+1)                                 [by hδG'_simp]
-  --     = δ hSD n ≫ δ hSA' (n+1)
-  -- Note G'.τ₃ = F'_τ₁ = F'.τ₁ ✓
-  have hG_τ₃ : G.τ₃ = F.τ₁ := rfl
-  have hG'_τ₃ : G'.τ₃ = F'.τ₁ := rfl
-  -- Compute LHS:
-  rw [show δ (ses₃ hS') n = δ hSD n ≫ (tateCohomology (n + 1)).map F.τ₁ from hδF_simp.symm]
-  rw [Category.assoc]
-  rw [show (tateCohomology (n + 1)).map F.τ₁ ≫ δ (ses₁ (ttses hS)) (n + 1) =
-    δ hSA' (n + 1) by rw [hδG_simp, hG_τ₃]]
-  -- Now: δ hSD n ≫ δ hSA' (n+1) = -δ (ses₃ (ttses hS)) n ≫ δ (ses₁ hS') (n+1)
-  rw [show δ (ses₃ (ttses hS)) n = δ hSD n ≫ (tateCohomology (n + 1)).map F'.τ₁
-    from hδF'_simp.symm]
-  rw [Preadditive.neg_comp, Category.assoc]
-  rw [show (tateCohomology (n + 1)).map F'.τ₁ ≫ δ (ses₁ hS') (n + 1) =
-    -δ hSA' (n + 1) by rw [← hδG'_simp, hG'_τ₃]]
-  rw [Preadditive.comp_neg, neg_neg]
+    rw [hδFrow, hFrow_τ₃_id, Category.id_comp]
+  -- Note Gcol.τ₃ = Frow.τ₁, so map Gcol.τ₃ = map Frow.τ₁.
+  -- So δ hSA' (n+1) = map Frow.τ₁ ≫ δ (ses₁ hS') (n+1)
+  have hδGcol'' : δ hSA' (n + 1)
+      = (tateCohomology (n + 1)).map Frow.τ₁ ≫ δ (ses₁ hS') (n + 1) := hδGcol'
+  -- Note Grow.τ₃ = -Fcol_τ₁, so map Grow.τ₃ = -map Fcol.τ₁.
+  -- So δ hSA' (n+1) = -map Fcol.τ₁ ≫ δ (ses₁ (ttses hS)) (n+1).
+  have hδGrow'' : δ hSA' (n + 1)
+      = -((tateCohomology (n + 1)).map Fcol.τ₁ ≫ δ (ses₁ (ttses hS)) (n + 1)) := by
+    rw [hδGrow', hGrow_τ₃_eq, Preadditive.neg_comp]
+  -- Now combine.  LHS = δ (ses₃ hS') n ≫ δ (ses₁ (ttses hS)) (n+1)
+  --              = (δ hSD n ≫ map Fcol.τ₁) ≫ δ (ses₁ (ttses hS)) (n+1)
+  --              = δ hSD n ≫ (map Fcol.τ₁ ≫ δ (ses₁ (ttses hS)) (n+1))
+  --              = δ hSD n ≫ (-δ hSA' (n+1))      [from hδGrow'']
+  --              = -(δ hSD n ≫ δ hSA' (n+1)).
+  --       RHS = -δ (ses₃ (ttses hS)) n ≫ δ (ses₁ hS') (n+1)
+  --           = -((δ hSD n ≫ map Frow.τ₁) ≫ δ (ses₁ hS') (n+1))
+  --           = -(δ hSD n ≫ (map Frow.τ₁ ≫ δ (ses₁ hS') (n+1)))
+  --           = -(δ hSD n ≫ δ hSA' (n+1))         [from hδGcol''].
+  rw [← hδFcol', ← hδFrow', Category.assoc, Category.assoc]
+  rw [show (tateCohomology (n + 1)).map Fcol.τ₁ ≫ δ (ses₁ (ttses hS)) (n + 1) =
+    -δ hSA' (n + 1) by rw [hδGrow'']; rw [neg_neg]]
+  rw [show (tateCohomology (n + 1)).map Frow.τ₁ ≫ δ (ses₁ hS') (n + 1) =
+    δ hSA' (n + 1) from hδGcol''.symm]
+  rw [Preadditive.comp_neg, Preadditive.neg_comp]
