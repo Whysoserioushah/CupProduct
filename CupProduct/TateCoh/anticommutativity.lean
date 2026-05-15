@@ -218,20 +218,20 @@ lemma anticommutativity (S : ShortComplex <| ShortComplex (Rep R G)) (hS : S.Sho
         change coprod.desc (0 : S.X₁.X₂ ⟶ S.X₂.X₁) (𝟙 _) ≫ S.g.τ₁ = j ≫ (-Fcol_τ₁)
         apply coprod.hom_ext
         · apply (cancel_mono S.X₃.f).1
-          have hassoc : coprod.inl ≫ j ≫ -(kernel.ι φ ≫ S.g.τ₂) =
+          have hassoc : coprod.inl ≫ j ≫ (-(kernel.ι φ ≫ S.g.τ₂)) =
               -((coprod.inl ≫ j ≫ kernel.ι φ) ≫ S.g.τ₂) := by
             simp [Preadditive.comp_neg, Category.assoc]
           rw [← Category.assoc, coprod.inl_desc, Limits.zero_comp, Limits.zero_comp,
             Category.assoc, Category.assoc, Preadditive.neg_comp, hFcol_τ₁, hassoc,
             hj₁, hfg_τ₂, neg_zero]
         · apply (cancel_mono S.X₃.f).1
-          have hassoc : coprod.inr ≫ j ≫ -(kernel.ι φ ≫ S.g.τ₂) =
+          have hassoc : coprod.inr ≫ j ≫ (-(kernel.ι φ ≫ S.g.τ₂)) =
               -((coprod.inr ≫ j ≫ kernel.ι φ) ≫ S.g.τ₂) := by
             simp [Preadditive.comp_neg, Category.assoc]
           rw [← Category.assoc, coprod.inr_desc, Category.id_comp,
             Category.assoc, Category.assoc, Preadditive.neg_comp, hFcol_τ₁, hassoc,
             hj₂, Preadditive.neg_comp, neg_neg]
-          exact S.g.comm₁₂.symm }
+          exact S.g.comm₁₂ }
   -- Step 8: assemble via δ_naturality.
   -- δ_naturality Fcol : δ hSD n ≫ map Fcol.τ₁ = map Fcol.τ₃ ≫ δ (ses₃ hS') n
   -- δ_naturality Frow : δ hSD n ≫ map Frow.τ₁ = map Frow.τ₃ ≫ δ (ses₃ (ttses hS)) n
